@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const FormWrapper = styled.div`
   max-width: 600px;
@@ -53,6 +54,12 @@ const SubmitButton = styled.button`
 `;
 
 const Test06 = () => {
+
+  const navigate = useNavigate();
+  const goToAiChat =()=>{
+    navigate('/AiChat')
+  }
+
   return (
     <FormWrapper>
       <TitleInput type="text" placeholder="제목" />
@@ -67,7 +74,7 @@ const Test06 = () => {
       <ContentArea placeholder="내용을 입력하세요..." />
 
       <SubmitWrapper>
-        <SubmitButton>CREATE</SubmitButton>
+        <SubmitButton onClick={goToAiChat}>CREATE</SubmitButton>
       </SubmitWrapper>
     </FormWrapper>
   );

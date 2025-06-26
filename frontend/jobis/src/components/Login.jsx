@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const Wrapper = styled.div`
   position: fixed;
@@ -62,6 +63,11 @@ const Options = styled.div`
 `;
 
 const Login = () => {
+  const navigate = useNavigate();
+  const announcementPage =()=>{
+    console.log('1234')
+    navigate('/announcementPage')
+  }
   return (
     <Wrapper>
       <LoginBox>
@@ -74,7 +80,7 @@ const Login = () => {
           <Label htmlFor="userPw">PW :</Label>
           <Input type="password" id="userPw" />
         </FormGroup>
-        <Button>login</Button>
+        <Button onClick={announcementPage}>login</Button>
         <Options>
           <span>ID/PW 찾기</span> |
           <span>회원가입</span>

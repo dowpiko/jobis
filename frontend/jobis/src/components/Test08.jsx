@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const Wrapper = styled.div`
   display: flex;
@@ -68,6 +69,12 @@ const LoadMoreButton = styled.button`
 `;
 
 const Test08 = () => {
+
+  const navigate= useNavigate();
+  const toApply = ()=>{
+    navigate('/toApply')
+  }
+
   const allCompanies = Array.from({ length: 30 }, (_, idx) => ({
     id: idx + 1,
     name: `기업 이미지`,
@@ -93,7 +100,7 @@ const Test08 = () => {
       <Content>
         <Grid>
           {allCompanies.slice(0, visibleCount).map((company) => (
-            <CompanyCard key={company.id}>
+            <CompanyCard key={company.id} onClick={toApply}>
               <div>{company.name}</div>
               <div>{company.desc}</div>
             </CompanyCard>

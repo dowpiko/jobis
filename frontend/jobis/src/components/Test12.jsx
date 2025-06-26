@@ -11,11 +11,11 @@ const Container = styled.div`
   gap: 30px;
 `;
 
-const Test16 = () => (
+const Test12 = () => (
   <Container>
     <RadarSection />
     <LineChartSection />
   </Container>
 );
 
-export default Test16;
+export default Test12;

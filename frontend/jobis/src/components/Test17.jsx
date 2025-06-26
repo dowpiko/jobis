@@ -69,6 +69,7 @@ const Test17 = () => {
 
   return (
     <Container>
+      공고등록페이지 
       {questions.map((q, index) => (
         <QuestionGroup key={index}>
           <Label>Q.{index + 1}</Label>

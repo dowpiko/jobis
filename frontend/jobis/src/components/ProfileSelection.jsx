@@ -1,12 +1,23 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+
 
 const ProfileSelection = () => {
+
+  const navigate= useNavigate();
+  const toAiInterview = ()=>{
+    navigate('/aiInterview');
+  };
+  const mockInterview = ()=>{
+    navigate('/mockInterview');
+  };
+  
   return (
     <div style={styles.wrapper}>
       <h2 style={styles.title}>프로필 선택</h2>
       <div style={styles.cardContainer}>
         {/* AI 모의 면접 */}
-        <div style={styles.card}>
+        <div style={styles.card} onClick={toAiInterview}>
           <img
             src="https://via.placeholder.com/100" // 나중에 이미지 교체
             alt="AI 면접"
@@ -20,7 +31,7 @@ const ProfileSelection = () => {
         </div>
 
         {/* 화상 모의 면접 */}
-        <div style={styles.card}>
+        <div style={styles.card} onClick={mockInterview}>
           <img
             src="https://via.placeholder.com/100" // 나중에 이미지 교체
             alt="화상 면접"

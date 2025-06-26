@@ -1,6 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function SignUpCmp() {
+
+   const navigate =useNavigate();
+  
+    const toLogin =()=>{
+      navigate('/login')
+    }
+
   const containerStyle = {
     display: 'flex',
     justifyContent: 'center',
@@ -100,7 +108,7 @@ function SignUpCmp() {
           <button style={checkButtonStyle}>✔️ 이메일 인증</button>
         </div>
 
-        <button style={buttonStyle}>회원 가입</button>
+        <button style={buttonStyle} onClick={toLogin}>회원 가입</button>
 
         <p style={{ textAlign: 'center', fontSize: '12px', marginTop: '10px' }}>
           이미 가입된 회원이신가요? <strong>로그인</strong>

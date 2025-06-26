@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const Container = styled.div`
   max-width: 800px;
@@ -39,6 +40,11 @@ const CreateBox = styled.button`
 `;
 
 const Test05 = () => {
+  const navigate = useNavigate();
+
+  const toAiInterviewPage =()=>{
+    navigate('/toAiInterviewPage')
+  }
   return (
     <Container>
       <Label>기록</Label>
@@ -48,7 +54,7 @@ const Test05 = () => {
       </Select>
 
       <CenterBoxWrapper>
-        <CreateBox>생성</CreateBox>
+        <CreateBox onClick={toAiInterviewPage}>생성</CreateBox>
       </CenterBoxWrapper>
     </Container>
   );

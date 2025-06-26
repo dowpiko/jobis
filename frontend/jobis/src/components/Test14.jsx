@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const Container = styled.div`
   max-width: 800px;
@@ -97,6 +98,10 @@ const RegisterButton = styled.button`
 const Test14 = () => {
   const [activeTab, setActiveTab] = useState('progress');
   const [expanded, setExpanded] = useState([]);
+  const navigate = useNavigate();
+  const registAnnounce =()=>{
+    navigate('/registAnnounce');
+  };
 
   const progressPosts = [
     {
@@ -157,7 +162,7 @@ const Test14 = () => {
             마감
           </Tab>
         </TabMenu>
-        <RegisterButton>공고등록</RegisterButton>
+        <RegisterButton onClick={registAnnounce}>공고등록</RegisterButton>
       </HeaderRow>
 
       {posts.map((post, idx) => (
