@@ -1,6 +1,6 @@
 # React
-frontend/node_modules/
-frontend/build/
+frontend/jobis/node_modules/
+frontend/jobis/build/
 
 # Spring
 backend/target/
