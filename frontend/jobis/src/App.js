@@ -1,10 +1,13 @@
 import logo from './logo.svg';
 import './App.css';
+import BackGround from './components/BackGround';
+import Login from './components/Login';
 
 function App() {
   return (
     <div >
-      바뀌는지 확인
+      <BackGround>
+      </BackGround>
     </div>
   );
 }
