@@ -56,14 +56,14 @@ const SubmitButton = styled.button`
   cursor: pointer;
 `;
 
-const Modal01 = ({ onClose }) => {
+const Modal01 = ({ onClose, onSubmit }) => {
   return (
     <ModalOverlay onClick={onClose}>
       <ModalBox onClick={(e) => e.stopPropagation()}>
         <Title>이메일로 <b>ID/PW</b> 찾기</Title>
         <Input type="email" placeholder="이메일을 입력하세요." />
         <ButtonWrapper>
-          <SubmitButton>ID 찾기</SubmitButton>
+          <SubmitButton onClick={onSubmit}>ID 찾기</SubmitButton>
         </ButtonWrapper>
       </ModalBox>
     </ModalOverlay>

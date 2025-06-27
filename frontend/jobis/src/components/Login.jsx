@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import Modal01 from './Modal01';
+import Modal02 from './Modal02'; // 새 모달 import
 import { useNavigate } from 'react-router-dom';
 
 const Wrapper = styled.div`
@@ -12,6 +14,10 @@ const Wrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: ${({ blur }) => (blur ? 'rgba(255,255,255,0.4)' : 'transparent')};
+  backdrop-filter: ${({ blur }) => (blur ? 'blur(4px)' : 'none')};
+  transition: backdrop-filter 0.2s ease;
+  pointer-events: ${({ blur }) => (blur ? 'none' : 'all')};
 `;
 
 const LoginBox = styled.div`
@@ -58,6 +64,8 @@ const Input = styled.input`
     background-color: #ffffff;
     outline: none;
   }
+  width: 350px;
+  pointer-events: all;
 `;
 
 const Button = styled.button`
@@ -95,34 +103,44 @@ const Options = styled.div`
 `;
 
 const Login = () => {
+  const [modalStep, setModalStep] = useState(null); // null | 'id' | 'resetPw'
   const navigate = useNavigate();
-  const announcementPage =()=>{
-    navigate('/companyNotice')
-  }
-  const getProfileSelection =()=>{
-    navigate('/profileselection')
-  }
+
+  const announcementPage = () => navigate('/companyNotice');
+  const getProfileSelection = () => navigate('/profileselection');
+
   return (
-    <Wrapper>
-      <LoginBox>
-        <Title>Login</Title>
-        <FormGroup>
-          <Label htmlFor="userId">ID :</Label>
-          <Input type="text" id="userId" />
-        </FormGroup>
-        <FormGroup>
-          <Label htmlFor="userPw">PW :</Label>
-          <Input type="password" id="userPw" />
-        </FormGroup>
-        <Button onClick={getProfileSelection}>User Login</Button>
-        <Button onClick={announcementPage}>Company Login</Button>
-        <Options>
-          <span>ID/PW 찾기</span> |
-          <span>회원가입</span>
-        </Options>
-      </LoginBox>
-    </Wrapper>
+    <>
+      <Wrapper blur={modalStep !== null}>
+        <LoginBox>
+          <Title>login</Title>
+          <FormGroup>
+            <Label htmlFor="userId">ID :</Label>
+            <Input type="text" id="userId" />
+          </FormGroup>
+          <FormGroup>
+            <Label htmlFor="userPw">PW :</Label>
+            <Input type="password" id="userPw" />
+          </FormGroup>
+          <Button onClick={getProfileSelection}>user login</Button>
+          <Button onClick={announcementPage}>company login</Button>
+          <Options>
+            <span onClick={() => setModalStep('id')}>ID/PW 찾기</span> |
+            <span>회원가입</span>
+          </Options>
+        </LoginBox>
+      </Wrapper>
+
+      {/* 모달 렌더링 */}
+      {modalStep === 'id' && (
+        <Modal01 onClose={() => setModalStep(null)} onSubmit={() => setModalStep('resetPw')} />
+      )}
+      {modalStep === 'resetPw' && (
+        <Modal02 onClose={() => setModalStep(null)} userId="exampleUserId" />
+      )}
+    </>
   );
 };
 
 export default Login;
+
