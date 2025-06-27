@@ -8,7 +8,7 @@ function BackGround({children}) {
 
   const navigate = useNavigate();
   const toLogin =()=>{
-    navigate('/login');
+    navigate('/');
   };
   const toAiInterview = ()=>{
     navigate('/aiInterview');
