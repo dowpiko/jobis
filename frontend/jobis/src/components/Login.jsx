@@ -65,8 +65,10 @@ const Options = styled.div`
 const Login = () => {
   const navigate = useNavigate();
   const announcementPage =()=>{
-    console.log('1234')
     navigate('/announcementPage')
+  }
+  const getProfileSelection =()=>{
+    navigate('/profileselection')
   }
   return (
     <Wrapper>
@@ -80,7 +82,7 @@ const Login = () => {
           <Label htmlFor="userPw">PW :</Label>
           <Input type="password" id="userPw" />
         </FormGroup>
-        <Button onClick={announcementPage}>user login</Button>
+        <Button onClick={getProfileSelection}>user login</Button>
         <Button onClick={announcementPage}>company login</Button>
         <Options>
           <span>ID/PW 찾기</span> |
