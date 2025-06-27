@@ -20,6 +20,7 @@ import LineChartSection from './components/LineChartSection';
 import CompanyInfo from './components/CompanyInfo';
 import ApplyNotice from './components/ApplyNotice';
 import CompanyMain from './components/CompanyMain';
+import ProfileSidebar from './components/ProfileSidebar';
 
 
 
@@ -90,9 +91,9 @@ function App() {
           path="/scheduleManager"
           element={
             
-                <UserSidebar>
+                <ProfileSidebar>
                   <ScheduleManager/>
-               </UserSidebar>
+               </ProfileSidebar>
           }
         />
        {/* AI 인터뷰 생성 페이지  */}
@@ -128,9 +129,9 @@ function App() {
           path="/discordPage"
           element={
             
-                <UserSidebar>
+                <ProfileSidebar>
                   <DiscordPage/>
-               </UserSidebar>
+               </ProfileSidebar>
           }
         />
          {/* 기업 공고 정보  */}

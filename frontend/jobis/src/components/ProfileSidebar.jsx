@@ -156,7 +156,7 @@ const Main = styled.main`
   border-left: 1px solid #B0BCCB;
 `;
 
-function UserSidebar({ children }) {
+function ProfileSidebar({ children }) {
   const navigate = useNavigate();
 
   return (
@@ -164,7 +164,7 @@ function UserSidebar({ children }) {
       <Sidebar>
         <TopBar>
           <Logo onClick={() => navigate('/profile')}>🌐Jobis</Logo>
-          <ModeToggle onClick={() => navigate('/scheduleManager')}>↔️</ModeToggle>
+          <ModeToggle onClick={() => navigate('/aiInterview')}>↔️</ModeToggle>
         </TopBar>
 
         <Profile>
@@ -173,15 +173,13 @@ function UserSidebar({ children }) {
             <ProfileName>HamanJo</ProfileName>
           </ProfileInfo>
           <ProfileActions>
-            <ProfileButton onClick={() => navigate('/graphPage')}>마이페이지</ProfileButton>
             <ProfileButton onClick={() => navigate('/')}>로그아웃</ProfileButton>
           </ProfileActions>
         </Profile>
 
         <Menu>
-          <MenuItem onClick={() => navigate('/aiInterview')}>🏠 AI모의 면접</MenuItem>
-          <MenuItem onClick={() => navigate('/companyInfo')}>💬 기업 공고 정보</MenuItem>
-          <MenuItem onClick={() => navigate('/scrapPage')}>⚙️ 스크랩/지원공고</MenuItem>
+          <MenuItem onClick={() => navigate('/scheduleManager')}>🏠 일정 관리</MenuItem>
+          <MenuItem onClick={() => navigate('/discordPage')}>💬 대기방 목록</MenuItem>
         </Menu>
 
         <Footer>
@@ -196,4 +194,4 @@ function UserSidebar({ children }) {
   );
 }
 
-export default UserSidebar;
+export default ProfileSidebar;
