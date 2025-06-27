@@ -80,7 +80,8 @@ const Login = () => {
           <Label htmlFor="userPw">PW :</Label>
           <Input type="password" id="userPw" />
         </FormGroup>
-        <Button onClick={announcementPage}>login</Button>
+        <Button onClick={announcementPage}>user login</Button>
+        <Button onClick={announcementPage}>company login</Button>
         <Options>
           <span>ID/PW 찾기</span> |
           <span>회원가입</span>
