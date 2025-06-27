@@ -1,60 +1,197 @@
-import '../App.css';
-import styles from '../css/BackGround.module.css';
+import React from 'react';
+import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+
+const AppLayout = styled.div`
+  display: flex;
+  height: 100vh;
+  background-color: #F8F9FA;
+  color: #1F2A37;
+  font-family: sans-serif;
+`;
+
+const Sidebar = styled.aside`
+  width: 280px;
+  background-color: #DCE3EA;
+  border-right: 1px solid #B0BCCB;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  gap: 12px;
+  box-sizing: border-box;
+`;
+
+const TopBar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 6px;
+`;
+
+const Logo = styled.div`
+  font-size: 24px;
+  color: #1F2A37;
+  cursor: pointer;
+`;
+
+const ModeToggle = styled.button`
+  width: 40px;
+  height: 40px;
+  background-color: #4376B6;
+  border: none;
+  border-radius: 50%;
+  color: #FFFFFF;
+  font-size: 18px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #5C8BC4;
+  }
+`;
+
+const Profile = styled.div`
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid #B0BCCB;
+`;
+
+const ProfileInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+`;
+
+const ProfileImg = styled.img`
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid #4376B6;
+`;
+
+const ProfileName = styled.span`
+  font-size: 17px;
+  font-weight: bold;
+  color: #1F2A37;
+`;
+
+const ProfileActions = styled.div`
+  display: flex;
+  justify-content: space-between;
+`;
+
+const ProfileButton = styled.button`
+  background-color: #4376B6;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #FFFFFF;
+  font-size: 13px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #5C8BC4;
+  }
+`;
+
+const Menu = styled.nav`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #B0BCCB;
+`;
+
+const MenuItem = styled.div`
+  cursor: pointer;
+  padding: 18px 14px;
+  border-radius: 8px;
+  background-color: #FFFFFF;
+  border: 1px solid #B0BCCB;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+  color: #1F2A37;
+
+  &:hover {
+    background-color: #5C8BC4;
+    color: #FFFFFF;
+  }
+`;
+
+const Footer = styled.div`
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #B0BCCB;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6B7280;
+`;
+
+const FooterLink = styled.a`
+  color: #6B7280;
+  text-decoration: none;
+  padding: 2px 4px;
+
+  &:hover {
+    color: #4376B6;
+  }
+`;
+
+const FooterDivider = styled.span`
+  color: #B0BCCB;
+`;
+
+const Main = styled.main`
+  flex: 1;
+  padding: 30px;
+  background-color: #FFFFFF;
+  overflow-y: auto;
+  border-left: 1px solid #B0BCCB;
+`;
 
 function CompanySidebar({ children }) {
   const navigate = useNavigate();
 
-  const companyMain = () => navigate('/companyMain');
-  const goToLogin = () => navigate('/');
-  const goToNotice = () => navigate('/noticeProgress');
-  const goToChat = () => navigate('/companyChat');
-
   return (
-    <div className={styles.app}>
-      <aside className={styles.sidebar}>
-        {/* 상단 로고 및 모드 변경 */}
-        <div className={styles.topBar}>
-          <div className={styles.logo} onClick={companyMain}>Logo</div>
-        </div>
+    <AppLayout>
+      <Sidebar>
+        <TopBar>
+          <Logo onClick={() => navigate('/companyMain')}>🌐Jobis</Logo>
+        </TopBar>
 
-        {/* 회사 정보 */}
-        <div className={styles.companyProfile}>
-          <img
-            src="https://via.placeholder.com/64"
-            alt="Company Profile"
-            className={styles.companyAvatar}
-          />
-          <div className={styles.companyInfo}>
-            <div>기업명 : 메이픔</div>
-            <div>대표자명 : 신창섭</div>
-          </div>
-          <div className={styles.profileActions}>
-            <button className={styles.profileButton} onClick={goToLogin}>LogOut</button>
-          </div>
-        </div>
+        <Profile>
+          <ProfileInfo>
+            <ProfileImg src="https://via.placeholder.com/48" alt="profile" />
+            <ProfileName>기업명 : 메이플</ProfileName>
+            <ProfileName>대표자명 : 신창섭</ProfileName>
+          </ProfileInfo>
+          <ProfileActions>
+            <ProfileButton onClick={() => navigate('/')}>로그아웃</ProfileButton>
+          </ProfileActions>
+        </Profile>
 
-        {/* 메뉴 영역 */}
-        <nav className={styles.menu}>
-          <div className={styles.menuItem} onClick={goToNotice}>📢 공고</div>
-          <div className={`${styles.menuItem} ${styles.active}`} onClick={goToChat}>
-            💬 <strong>채팅</strong>
-          </div>
-        </nav>
+        <Menu>
+          <MenuItem onClick={() => navigate('/companyMain')}>🏠 공고</MenuItem>
+          <MenuItem onClick={() => navigate('/companyChat')}>💬 채팅</MenuItem>
 
-        {/* 하단 링크 */}
-        <div className={styles.footer}>
-          <a href="#" className={styles.footerLink}>개인정보 처리방침</a>
-          <span className={styles.footerDivider}>|</span>
-          <a href="#" className={styles.footerLink}>이용 약관</a>
-        </div>
-      </aside>
+        </Menu>
 
-      {/* 메인 컨텐츠 */}
-      <main className={styles.main}>
-        {children}
-      </main>
-    </div>
+        <Footer>
+          <FooterLink href="#">개인정보처리방침</FooterLink>
+          <FooterDivider>|</FooterDivider>
+          <FooterLink href="#">이용약관</FooterLink>
+        </Footer>
+      </Sidebar>
+
+      <Main>{children}</Main>
+    </AppLayout>
   );
 }
 
