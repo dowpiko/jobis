@@ -1,6 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const ChatUI = () => {
+
+  const navigate = useNavigate();
+  const dataVisualization =()=>{
+    navigate('/dataVisualization')
+  }
+
   return (
     <div style={styles.container}>
       <span style={styles.title}>제목</span>
@@ -15,6 +22,7 @@ const ChatUI = () => {
         <button style={styles.sendButton}>▶️</button>
         <button style={styles.iconButton}>🎤</button>
         <button style={styles.iconButton}>🔄</button>
+        <button style={styles.iconButton} onClick={dataVisualization}>면접 종료</button>
       </div>
     </div>
   );

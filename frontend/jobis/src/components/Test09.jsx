@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 
 const MainContent = styled.main`
   flex-grow: 1;
@@ -47,6 +48,10 @@ const SubmitButton = styled.button`
 `;
 
 const Test09 = () => {
+  const navigate= useNavigate();
+    const toScrap = ()=>{
+      navigate('/toScrap')
+    }
   return (
       <MainContent>
         {[1, 2, 3].map((num) => (
@@ -61,7 +66,7 @@ const Test09 = () => {
           <FileButton>영상 첨부</FileButton>
         </FileButtons>
 
-        <SubmitButton>제출</SubmitButton>
+        <SubmitButton onClick={toScrap}>제출</SubmitButton>
       </MainContent>
   );
 };

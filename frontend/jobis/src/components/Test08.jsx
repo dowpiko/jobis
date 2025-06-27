@@ -74,7 +74,7 @@ const Test08 = () => {
   const toApply = ()=>{
     navigate('/toApply')
   }
-
+  
   const allCompanies = Array.from({ length: 30 }, (_, idx) => ({
     id: idx + 1,
     name: `기업 이미지`,

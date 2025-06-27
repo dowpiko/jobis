@@ -11,6 +11,7 @@ import Test06 from './components/Test06';
 import ChatUI from './components/ChatUI';
 import Test09 from './components/Test09';
 import Test10 from './components/Test10';
+import Test13 from './components/Test13';
 import Test14 from './components/Test14';
 import Test17 from './components/Test17';
 
@@ -18,6 +19,7 @@ import ProfileSelection from './components/ProfileSelection';
 import ScheduleManager from './components/ScheduleManager';
 import CompanySidebar from './components/CompanySidebar';
 import ChatLayout from './components/ChatLayout;';
+import RadarSection from './components/RadarSection';
 
 
 
@@ -110,6 +112,15 @@ function App() {
             </BackGround>
           }
         />
+        {/* 데이터 시각화 페이지  */}
+        <Route
+          path="/dataVisualization"
+          element={
+            <BackGround>
+              <RadarSection/>
+            </BackGround>
+          }
+        />
         {/* 디스코드 페이지  */}
         <Route
           path="/discordPage"
@@ -135,6 +146,15 @@ function App() {
           element={
             <BackGround>
               <Test09/>
+            </BackGround>
+          }
+        />
+        {/* 스크립 & 지원  */}
+        <Route
+          path="/toScrap"
+          element={
+            <BackGround>
+              <Test13/>
             </BackGround>
           }
         />
