@@ -16,6 +16,7 @@ import Test17 from './components/Test17';
 
 import ProfileSelection from './components/ProfileSelection';
 import ScheduleManager from './components/ScheduleManager';
+import CompanySidebar from './components/CompanySidebar';
 
 
 
@@ -140,18 +141,18 @@ function App() {
         <Route
           path="/announcementPage"
           element={
-            <BackGround>
+            <CompanySidebar>
               <Test14/>
-            </BackGround>
+            </CompanySidebar>
           }
         />
         {/* 기업 채팅  */}
         <Route
           path="/registAnnounce"
           element={
-            <BackGround>
+            <CompanySidebar>
               <Test17/>
-            </BackGround>
+            </CompanySidebar>
           }
         />
        
