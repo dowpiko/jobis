@@ -1,20 +1,29 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import {
-  RadarChart, PolarGrid, PolarAngleAxis, Radar, PolarRadiusAxis, ResponsiveContainer
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  Radar,
+  PolarRadiusAxis,
+  ResponsiveContainer,
 } from 'recharts';
 
-const Box = styled.div`
+const Container = styled.div`
   display: flex;
   gap: 20px;
-  margin-bottom: 30px;
+  flex-grow: 1;
+  padding: 20px;
+  background-color: #f8f9fa;
+  box-sizing: border-box;
 `;
 
 const ChartBox = styled.div`
   flex: 1;
-  background-color: #ddd;
+  background-color: #e0e7ef;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
   svg {
     outline: none;
@@ -23,17 +32,21 @@ const ChartBox = styled.div`
 
 const InfoBox = styled.div`
   flex: 1;
-  background-color: #ddd;
+  background-color: #f0f2f5;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 12px;
+  border: 1px solid #b0bccb;
 `;
 
 const InfoTitle = styled.h4`
   margin-bottom: 10px;
+  font-size: 18px;
+  color: #1f2a37;
 `;
 
-const InfoText = styled.div`
+const InfoText = styled.p`
   font-size: 14px;
+  color: #6b7280;
 `;
 
 const radarData = [
@@ -60,7 +73,7 @@ const RadarSection = () => {
   };
 
   return (
-    <Box>
+    <Container>
       <ChartBox>
         <ResponsiveContainer width="100%" height={300}>
           <RadarChart
@@ -71,13 +84,13 @@ const RadarSection = () => {
             onClick={handleRadarClick}
           >
             <PolarGrid />
-            <PolarAngleAxis dataKey="subject" />
-            <PolarRadiusAxis />
+            <PolarAngleAxis dataKey="subject" stroke="#6b7280" />
+            <PolarRadiusAxis stroke="#b0bccb" />
             <Radar
               name="형 지표"
               dataKey="A"
-              stroke="#333"
-              fill="#8884d8"
+              stroke="#4376B6"
+              fill="#5C8BC4"
               fillOpacity={0.6}
             />
           </RadarChart>
@@ -86,7 +99,7 @@ const RadarSection = () => {
 
       <InfoBox>
         <InfoTitle>
-          {selectedSubject ? selectedSubject : '클릭 시 표현'}
+          {selectedSubject ?? '클릭 시 표현'}
         </InfoTitle>
         <InfoText>
           {selectedSubject
@@ -94,7 +107,7 @@ const RadarSection = () => {
             : '형을 클릭하면 설명이 표시됩니다.'}
         </InfoText>
       </InfoBox>
-    </Box>
+    </Container>
   );
 };
 

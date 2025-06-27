@@ -108,6 +108,7 @@ const Login = () => {
 
   const announcementPage = () => navigate('/companyNotice');
   const getProfileSelection = () => navigate('/profileselection');
+  const signUpPage = () => navigate('/signUp');
 
   return (
     <>
@@ -126,7 +127,7 @@ const Login = () => {
           <Button onClick={announcementPage}>company login</Button>
           <Options>
             <span onClick={() => setModalStep('id')}>ID/PW 찾기</span> |
-            <span>회원가입</span>
+            <span onClick={signUpPage}>회원가입</span>
           </Options>
         </LoginBox>
       </Wrapper>

@@ -1,38 +1,42 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
-const Container = styled.div`
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 0 20px;
+const Page = styled.div`
+  flex-grow: 1;
+  padding: 40px;
+  background-color: #F8F9FA;
+  font-family: sans-serif;
+  color: #1F2A37;
+  height: 100%;
+  box-sizing: border-box;
 `;
 
 const Title = styled.h2`
-  font-size: 20px;
-  margin-bottom: 20px;
+  font-size: 24px;
+  margin-bottom: 24px;
+  color: #4376B6;
 `;
 
 const TabMenu = styled.div`
   display: flex;
-  margin-bottom: 20px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  background-color: #E0E7EF;
 `;
 
 const Tab = styled.button`
-  padding: 10px 20px;
+  flex: 1;
+  padding: 12px;
+  background-color: ${(props) => (props.active ? '#4376B6' : 'transparent')};
+  color: ${(props) => (props.active ? 'white' : '#1F2A37')};
+  font-weight: bold;
   border: none;
-  background-color: ${(props) => (props.active ? '#d9d9d9' : '#f1f1f1')};
-  color: #333;
-  font-weight: ${(props) => (props.active ? 'bold' : 'normal')};
   cursor: pointer;
+  font-size: 15px;
 
-  &:first-child {
-    border-top-left-radius: 6px;
-    border-bottom-left-radius: 6px;
-  }
-
-  &:last-child {
-    border-top-right-radius: 6px;
-    border-bottom-right-radius: 6px;
+  &:hover {
+    background-color: ${(props) => (props.active ? '#5C8BC4' : '#DDE5F1')};
   }
 `;
 
@@ -43,28 +47,30 @@ const List = styled.div`
 `;
 
 const ListItem = styled.div`
-  background-color: #e3f2f2;
-  height: 48px;
+  background-color: #ffffff;
+  border: 1px solid #B0BCCB;
   border-radius: 6px;
+  padding: 16px;
+  font-size: 15px;
 `;
 
 const EmptyMessage = styled.div`
   text-align: center;
-  padding: 40px 0;
-  color: #777;
+  padding: 60px 0;
   font-size: 15px;
+  color: #6B7280;
 `;
 
 const Test13 = () => {
   const [activeTab, setActiveTab] = useState('scrap');
 
-  const scrapData = []; // 빈 배열로 테스트
-  const appliedData = []; // 빈 배열로 테스트
+  const scrapData = []; // 예시
+  const appliedData = []; // 예시
 
   const data = activeTab === 'scrap' ? scrapData : appliedData;
 
   return (
-    <Container>
+    <Page>
       <Title>스크랩 / 지원</Title>
 
       <TabMenu>
@@ -85,7 +91,7 @@ const Test13 = () => {
       {data.length > 0 ? (
         <List>
           {data.map((_, idx) => (
-            <ListItem key={idx} />
+            <ListItem key={idx}>리스트 아이템 {idx + 1}</ListItem>
           ))}
         </List>
       ) : (
@@ -95,7 +101,7 @@ const Test13 = () => {
             : '지원한 기업이 없습니다.'}
         </EmptyMessage>
       )}
-    </Container>
+    </Page>
   );
 };
 

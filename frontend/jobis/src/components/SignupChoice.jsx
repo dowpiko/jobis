@@ -5,67 +5,77 @@ import { useNavigate } from 'react-router-dom';
 const Container = styled.div`
   font-family: sans-serif;
   text-align: center;
-  margin-top: 50px;
+  padding: 80px 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
 `;
 
 const Title = styled.h2`
-  margin-bottom: 30px;
+  margin-bottom: 40px;
+  font-size: 28px;
+  color: #1f2a37;
 `;
 
 const BoxWrapper = styled.div`
   display: flex;
   justify-content: center;
-  gap: 40px;
+  gap: 60px;
+  flex-wrap: wrap;
 `;
 
 const Box = styled.div`
-  width: 150px;
-  height: 150px;
-  background: #dcdcdc;
+  width: 200px;
+  height: 200px;
+  background: #e0e7ef;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 16px;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, background-color 0.3s ease;
 
   &:hover {
     transform: scale(1.05);
+    background-color: #d0ddef;
   }
 `;
 
 const IconWrapper = styled.div`
-  background-color: ${props => (props.type === 'individual' ? '#e6dafe' : 'transparent')};
-  padding: 10px;
-  border-radius: 16px;
-  margin-bottom: 10px;
+  background-color: #5c8bc4;
+  padding: 16px;
+  border-radius: 50%;
+  margin-bottom: 16px;
 `;
 
 const Icon = styled.span`
-  font-size: 40px;
+  font-size: 48px;
+  color: white;
 `;
 
 const Label = styled.span`
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #1f2a37;
 `;
 
-
 const SignupChoice = () => {
+  const navigate = useNavigate();
 
-  const navigate =useNavigate();
-  const goToUserLogin=()=>{
+  const goToUserLogin = () => {
     navigate('/signUpUser');
   };
-  const goToCmpLogin =()=>{
+
+  const goToCmpLogin = () => {
     navigate('/signUpCmp');
   };
+
   return (
     <Container>
       <Title>회원가입</Title>
       <BoxWrapper>
-        <Box onClick={goToUserLogin}> 
-          <IconWrapper type="individual">
+        <Box onClick={goToUserLogin}>
+          <IconWrapper>
             <Icon>👤</Icon>
           </IconWrapper>
           <Label>개인회원</Label>

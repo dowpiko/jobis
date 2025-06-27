@@ -29,7 +29,7 @@ function App() {
       <Routes>
         {/* 기본 경로 - 회원가입 선택 */}
         <Route
-          path="/signUpChoice"
+          path="/signUp"
           element={
               <SignupChoice/>
           }

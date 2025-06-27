@@ -15,20 +15,22 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalBox = styled.div`
-  background-color: #ddd;
-  padding: 30px 40px;
-  border-radius: 8px;
-  width: 400px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  background-color: #f0f2f5;
+  padding: 40px 50px;
+  border-radius: 12px;
+  width: 480px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 `;
 
 const Title = styled.h3`
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   font-weight: normal;
+  color: #1f2a37;
 
   b {
     font-weight: bold;
+    color: #4376b6;
   }
 `;
 
@@ -36,10 +38,15 @@ const Input = styled.input`
   width: 100%;
   padding: 14px;
   font-size: 14px;
-  border: none;
-  border-radius: 4px;
+  border: 1px solid #b0bccb;
+  border-radius: 6px;
   box-sizing: border-box;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
+  outline: none;
+
+  &::placeholder {
+    color: #6b7280;
+  }
 `;
 
 const ButtonWrapper = styled.div`
@@ -48,12 +55,18 @@ const ButtonWrapper = styled.div`
 `;
 
 const SubmitButton = styled.button`
-  padding: 8px 16px;
-  background: white;
-  border: none;
+  padding: 10px 18px;
+  background-color: #5c8bc4;
+  color: white;
   font-size: 14px;
-  border-radius: 4px;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #4376b6;
+  }
 `;
 
 const Modal01 = ({ onClose, onSubmit }) => {

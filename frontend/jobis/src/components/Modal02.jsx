@@ -15,41 +15,50 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalBox = styled.div`
-  background-color: #ddd;
-  padding: 30px 40px;
-  border-radius: 8px;
-  width: 400px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  background-color: #f0f2f5;
+  padding: 40px 50px;
+  border-radius: 12px;
+  width: 480px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 `;
 
 const Title = styled.h3`
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  font-weight: normal;
+  color: #1f2a37;
 `;
 
 const Label = styled.div`
   font-size: 14px;
   font-weight: bold;
+  color: #1f2a37;
   margin-bottom: 6px;
 `;
 
 const Text = styled.p`
   font-size: 13px;
+  color: #6b7280;
   margin-bottom: 10px;
 `;
 
 const InputGroup = styled.div`
   position: relative;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 `;
 
 const Input = styled.input`
   width: 100%;
   padding: 14px 40px 14px 14px;
   font-size: 14px;
-  border: none;
-  border-radius: 4px;
+  border: 1px solid #b0bccb;
+  border-radius: 6px;
   box-sizing: border-box;
+  outline: none;
+
+  &::placeholder {
+    color: #6b7280;
+  }
 `;
 
 const ToggleButton = styled.button`
@@ -59,23 +68,34 @@ const ToggleButton = styled.button`
   transform: translateY(-50%);
   border: none;
   background: none;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
+  color: #6b7280;
+
+  &:hover {
+    color: #4376b6;
+  }
 `;
 
 const ButtonWrapper = styled.div`
   text-align: center;
-  margin-top: 10px;
+  margin-top: 20px;
 `;
 
 const SubmitButton = styled.button`
   padding: 10px 30px;
-  background: white;
-  font-size: 18px;
+  background-color: #5c8bc4;
+  color: white;
+  font-size: 16px;
   font-weight: bold;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #4376b6;
+  }
 `;
 
 const Modal02 = ({ userId = '사용자아이디', onClose }) => {
@@ -90,7 +110,7 @@ const Modal02 = ({ userId = '사용자아이디', onClose }) => {
         <Title>아이디 확인 및 비밀번호 재설정</Title>
 
         <Label>ID :</Label>
-        <div style={{ marginBottom: 16 }}>{userId}</div>
+        <div style={{ marginBottom: 16, color: '#1f2a37' }}>{userId}</div>
 
         <Text>새 비밀번호를 입력하세요.</Text>
 
