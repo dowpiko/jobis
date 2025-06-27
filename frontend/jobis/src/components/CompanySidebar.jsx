@@ -5,9 +5,8 @@ import { useNavigate } from 'react-router-dom';
 function CompanySidebar({ children }) {
   const navigate = useNavigate();
 
-  const goToMain = () => navigate('/companyMain');
-  const goToMypage = () => navigate('/companyMypage');
-  const goToLogin = () => navigate('/login');
+  const goToMain = () => navigate('/companyNotice');
+  const goToLogin = () => navigate('/');
   const goToNotice = () => navigate('/companyNotice');
   const goToChat = () => navigate('/companyChat');
 
@@ -17,7 +16,6 @@ function CompanySidebar({ children }) {
         {/* 상단 로고 및 모드 변경 */}
         <div className={styles.topBar}>
           <div className={styles.logo} onClick={goToMain}>Logo</div>
-          <button className={styles.modeToggle}>모드 변경</button>
         </div>
 
         {/* 회사 정보 */}
@@ -32,7 +30,6 @@ function CompanySidebar({ children }) {
             <div>대표자명 : 신창섭</div>
           </div>
           <div className={styles.profileActions}>
-            <button className={styles.profileButton} onClick={goToMypage}>MyPage</button>
             <button className={styles.profileButton} onClick={goToLogin}>LogOut</button>
           </div>
         </div>

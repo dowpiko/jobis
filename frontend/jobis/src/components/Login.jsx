@@ -65,7 +65,7 @@ const Options = styled.div`
 const Login = () => {
   const navigate = useNavigate();
   const announcementPage =()=>{
-    navigate('/announcementPage')
+    navigate('/companyNotice')
   }
   const getProfileSelection =()=>{
     navigate('/profileselection')

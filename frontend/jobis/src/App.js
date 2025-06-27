@@ -17,6 +17,7 @@ import Test17 from './components/Test17';
 import ProfileSelection from './components/ProfileSelection';
 import ScheduleManager from './components/ScheduleManager';
 import CompanySidebar from './components/CompanySidebar';
+import ChatLayout from './components/ChatLayout;';
 
 
 
@@ -139,14 +140,14 @@ function App() {
         />
         {/* 기업 메인(공고 진행중)  */}
         <Route
-          path="/announcementPage"
+          path="/companyNotice"
           element={
             <CompanySidebar>
               <Test14/>
             </CompanySidebar>
           }
         />
-        {/* 기업 채팅  */}
+        {/* 공고 등록  */}
         <Route
           path="/registAnnounce"
           element={
@@ -155,7 +156,17 @@ function App() {
             </CompanySidebar>
           }
         />
-       
+
+        {/* 기업 채팅 */}
+        <Route
+          path="/companyChat"
+          element={
+            <CompanySidebar>
+              <ChatLayout/>
+            </CompanySidebar>
+          }
+        />
+
       </Routes>
     </BrowserRouter>
   );

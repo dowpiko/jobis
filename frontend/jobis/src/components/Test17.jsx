@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 const Container = styled.div`
@@ -49,6 +50,7 @@ const SubmitButton = styled.button`
 
 const Test17 = () => {
   const [questions, setQuestions] = useState(['', '', '', '']);
+  const navigate = useNavigate();
 
   const handleChange = (index, value) => {
     const newQuestions = [...questions];
@@ -65,6 +67,7 @@ const Test17 = () => {
   const handleSubmit = () => {
     console.log('등록된 질문:', questions);
     alert('질문이 등록되었습니다.');
+    navigate('/companyNotice');
   };
 
   return (

@@ -48,7 +48,7 @@ const ChatLayout = () => {
 
       {/* 오른쪽: 해당 공고 */}
       <div style={styles.announcementPanel}>
-        <div style={styles.announcementText}>해<br />당<br />공<br />고</div>
+        <div style={styles.announcementText}>고<br />공<br />당<br />해</div>
       </div>
     </div>
   );
