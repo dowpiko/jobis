@@ -3,7 +3,7 @@ frontend/jobis/node_modules/
 frontend/jobis/build/
 
 # Spring
-backend/.metadata/
+backend/
 
 # 기타
 .env
