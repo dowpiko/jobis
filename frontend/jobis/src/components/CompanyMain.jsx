@@ -114,13 +114,13 @@ const ApplicantItem = styled.div`
   }
 `;
 
-const Test14 = () => {
+const CompanyMain = () => {
   const [activeTab, setActiveTab] = useState('progress');
   const [expanded, setExpanded] = useState([]);
   const navigate = useNavigate();
 
-  const registAnnounce = () => {
-    navigate('/registAnnounce');
+  const noticeProgress = () => {
+    navigate('/noticeProgress');
   };
 
   const progressPosts = [
@@ -154,7 +154,7 @@ const Test14 = () => {
             마감
           </Tab>
         </TabMenu>
-        <RegisterButton onClick={registAnnounce}>공고등록</RegisterButton>
+        <RegisterButton onClick={noticeProgress}>공고등록</RegisterButton>
       </HeaderRow>
 
       {posts.map((post, idx) => (
@@ -180,4 +180,4 @@ const Test14 = () => {
   );
 };
 
-export default Test14;
+export default CompanyMain;

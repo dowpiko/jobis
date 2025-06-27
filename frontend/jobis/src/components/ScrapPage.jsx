@@ -61,7 +61,7 @@ const EmptyMessage = styled.div`
   color: #6B7280;
 `;
 
-const Test13 = () => {
+const ScrapPage = () => {
   const [activeTab, setActiveTab] = useState('scrap');
 
   const scrapData = []; // 예시
@@ -105,4 +105,4 @@ const Test13 = () => {
   );
 };
 
-export default Test13;
+export default ScrapPage;

@@ -114,7 +114,7 @@ const SendButton = styled.button`
   cursor: pointer;
 `;
 
-const Test10 = () => {
+const DiscordPage = () => {
   return (
     <Container>
       <Header>
@@ -175,4 +175,4 @@ const Test10 = () => {
   );
 };
 
-export default Test10;
+export default DiscordPage;

@@ -156,14 +156,14 @@ const Main = styled.main`
   border-left: 1px solid #B0BCCB;
 `;
 
-function BackGround({ children }) {
+function UserSidebar({ children }) {
   const navigate = useNavigate();
 
   return (
     <AppLayout>
       <Sidebar>
         <TopBar>
-          <Logo onClick={() => navigate('/profileselection')}>🌐Jobis</Logo>
+          <Logo onClick={() => navigate('/profile')}>🌐Jobis</Logo>
           <ModeToggle>↔️</ModeToggle>
         </TopBar>
 
@@ -180,7 +180,7 @@ function BackGround({ children }) {
 
         <Menu>
           <MenuItem onClick={() => navigate('/aiInterview')}>🏠 AI모의 면접</MenuItem>
-          <MenuItem onClick={() => navigate('/cmpInfo')}>💬 기업 공고 정보</MenuItem>
+          <MenuItem onClick={() => navigate('/companyInfo')}>💬 기업 공고 정보</MenuItem>
           <MenuItem>⚙️ 설정</MenuItem>
         </Menu>
 
@@ -196,4 +196,4 @@ function BackGround({ children }) {
   );
 }
 
-export default BackGround;
+export default UserSidebar;

@@ -59,7 +59,7 @@ const Label = styled.span`
   color: #1f2a37;
 `;
 
-const SignupChoice = () => {
+const SignUp = () => {
   const navigate = useNavigate();
 
   const goToUserLogin = () => {
@@ -91,4 +91,4 @@ const SignupChoice = () => {
   );
 };
 
-export default SignupChoice;
+export default SignUp;

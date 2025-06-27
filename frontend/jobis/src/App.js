@@ -1,25 +1,26 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import BackGround from './components/BackGround';
+import UserSidebar from './components/UserSidebar';
 import Login from './components/Login';
 import SignUpUser from './components/SignUpUser';
 import SignUpCmp from './components/SignUpCmp';
-import SignupChoice from './components/SignupChoice';
-import Test05 from './components/Test05';
-import Test08 from './components/Test08';
-import Test06 from './components/Test06';
-import ChatUI from './components/ChatUI';
-import Test09 from './components/Test09';
-import Test10 from './components/Test10';
-import Test13 from './components/Test13';
-import Test14 from './components/Test14';
-import Test17 from './components/Test17';
-
-import ProfileSelection from './components/ProfileSelection';
+import CreateAiInterview from './components/CreateAiInterview';
+import AiChat from './components/AiChat';
+import DiscordPage from './components/DiscordPage';
+import ScrapPage from './components/ScrapPage';
+import NoticeProgress from './components/NoticeProgress';
 import ScheduleManager from './components/ScheduleManager';
 import CompanySidebar from './components/CompanySidebar';
 import ChatLayout from './components/ChatLayout;';
-import RadarSection from './components/RadarSection';
+import GraphPage from './components/GraphPage';
+import SignUp from './components/SignUp';
+import Profile from './components/Profile';
+import AiInterview from './components/AiInterview';
+import LineChartSection from './components/LineChartSection';
+import CompanyInfo from './components/CompanyInfo';
+import ApplyNotice from './components/ApplyNotice';
+import CompanyMain from './components/CompanyMain';
+
 
 
 
@@ -31,7 +32,7 @@ function App() {
         <Route
           path="/signUp"
           element={
-              <SignupChoice/>
+              <SignUp/>
           }
         />
 
@@ -59,18 +60,18 @@ function App() {
         />
 
         {/*백그라운드만 띄우기 */ }
-          <Route path="/backGround" element={
-              <BackGround />
+          <Route path="/UserSidebar" element={
+              <UserSidebar />
           }
         />
         {/* 프로필 선택(AI or 화상채팅)  */}
         <Route
-          path="/profileselection"
+          path="/profile"
           element={
             
-               <BackGround>
-                  <ProfileSelection/>
-               </BackGround>
+               <UserSidebar>
+                  <Profile/>
+               </UserSidebar>
           }
         />
         
@@ -79,46 +80,47 @@ function App() {
           path="/aiInterview"
           element={
             
-                <BackGround>
-                  <Test05 />
-               </BackGround>
+                <UserSidebar>
+                  <AiInterview />
+               </UserSidebar>
           }
         />
         {/* 화상 모의 면접  */}
         <Route
-          path="/mockInterview"
+          path="/scheduleManager"
           element={
             
-                <BackGround>
+                <UserSidebar>
                   <ScheduleManager/>
-               </BackGround>
+               </UserSidebar>
           }
         />
        {/* AI 인터뷰 생성 페이지  */}
         <Route
-          path="/toAiInterviewPage"
+          path="/createAiInterview"
           element={
-            <BackGround>
-              <Test06/>
-            </BackGround>
+            <UserSidebar>
+              <CreateAiInterview/>
+            </UserSidebar>
           }
         />
        {/* AI 인터뷰 생성 페이지  */}
         <Route
           path="/AiChat"
           element={
-            <BackGround>
-              <ChatUI/>
-            </BackGround>
+            <UserSidebar>
+              <AiChat/>
+            </UserSidebar>
           }
         />
         {/* 데이터 시각화 페이지  */}
         <Route
-          path="/dataVisualization"
+          path="/graphPage"
           element={
-            <BackGround>
-              <RadarSection/>
-            </BackGround>
+            <UserSidebar>
+              <GraphPage/>
+              <LineChartSection/>
+            </UserSidebar>
           }
         />
         {/* 디스코드 페이지  */}
@@ -126,53 +128,54 @@ function App() {
           path="/discordPage"
           element={
             
-                <BackGround>
-                  <Test10/>
-               </BackGround>
+                <UserSidebar>
+                  <DiscordPage/>
+               </UserSidebar>
           }
         />
          {/* 기업 공고 정보  */}
         <Route
-          path="/cmpInfo"
+          path="/companyInfo"
           element={
-            <BackGround>
-              <Test08/>
-            </BackGround>
+            <UserSidebar>
+              <CompanyInfo/>
+            </UserSidebar>
           }
         />
-        {/* 공고지원 페이지  */}
+        {/* 공고 지원 페이지  */}
         <Route
-          path="/toApply"
+          path="/applyNotice"
           element={
-            <BackGround>
-              <Test09/>
-            </BackGround>
+            <UserSidebar>
+              <ApplyNotice/>
+            </UserSidebar>
           }
         />
         {/* 스크립 & 지원  */}
         <Route
-          path="/toScrap"
+          path="/scrapPage"
           element={
-            <BackGround>
-              <Test13/>
-            </BackGround>
+            <UserSidebar>
+              <ScrapPage/>
+            </UserSidebar>
           }
         />
-        {/* 기업 메인(공고 진행중)  */}
+        
+        {/*  기업 메인(공고 진행중)   */}
         <Route
-          path="/companyNotice"
+          path="/companyMain"
           element={
             <CompanySidebar>
-              <Test14/>
+              <CompanyMain/>
             </CompanySidebar>
           }
         />
-        {/* 공고 등록  */}
+        {/* 공고 등록 */}
         <Route
-          path="/registAnnounce"
+          path="/noticeProgress"
           element={
             <CompanySidebar>
-              <Test17/>
+              <NoticeProgress/>
             </CompanySidebar>
           }
         />

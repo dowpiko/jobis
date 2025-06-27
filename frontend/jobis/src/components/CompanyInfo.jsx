@@ -93,9 +93,9 @@ const LoadMoreButton = styled.button`
   }
 `;
 
-const Test08 = () => {
+const CompanyInfo = () => {
   const navigate = useNavigate();
-  const toApply = () => navigate('/toApply');
+  const applyNotice = () => navigate('/applyNotice');
 
   const allCompanies = Array.from({ length: 30 }, (_, idx) => ({
     id: idx + 1,
@@ -119,7 +119,7 @@ const Test08 = () => {
 
         <Grid>
           {allCompanies.slice(0, visibleCount).map(company => (
-            <CompanyCard key={company.id} onClick={toApply}>
+            <CompanyCard key={company.id} onClick={applyNotice}>
               <div>{company.name}</div>
               <div>{company.desc}</div>
             </CompanyCard>
@@ -136,4 +136,4 @@ const Test08 = () => {
   );
 };
 
-export default Test08;
+export default CompanyInfo;

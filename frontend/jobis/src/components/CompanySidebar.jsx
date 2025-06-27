@@ -5,9 +5,9 @@ import { useNavigate } from 'react-router-dom';
 function CompanySidebar({ children }) {
   const navigate = useNavigate();
 
-  const goToMain = () => navigate('/companyNotice');
+  const companyMain = () => navigate('/companyMain');
   const goToLogin = () => navigate('/');
-  const goToNotice = () => navigate('/companyNotice');
+  const goToNotice = () => navigate('/noticeProgress');
   const goToChat = () => navigate('/companyChat');
 
   return (
@@ -15,7 +15,7 @@ function CompanySidebar({ children }) {
       <aside className={styles.sidebar}>
         {/* 상단 로고 및 모드 변경 */}
         <div className={styles.topBar}>
-          <div className={styles.logo} onClick={goToMain}>Logo</div>
+          <div className={styles.logo} onClick={companyMain}>Logo</div>
         </div>
 
         {/* 회사 정보 */}

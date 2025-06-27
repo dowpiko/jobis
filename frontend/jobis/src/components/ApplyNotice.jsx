@@ -76,9 +76,9 @@ const SubmitButton = styled.button`
   }
 `;
 
-const Test09 = () => {
+const ApplyNotice = () => {
   const navigate = useNavigate();
-  const toScrap = () => navigate('/toScrap');
+  const scrapPage = () => navigate('/scrapPage');
 
   return (
     <MainContent>
@@ -96,9 +96,9 @@ const Test09 = () => {
         <FileButton>영상 첨부</FileButton>
       </FileButtons>
 
-      <SubmitButton onClick={toScrap}>제출</SubmitButton>
+      <SubmitButton onClick={scrapPage}>제출</SubmitButton>
     </MainContent>
   );
 };
 
-export default Test09;
+export default ApplyNotice;

@@ -76,11 +76,11 @@ const IconButton = styled.button`
   }
 `;
 
-const ChatUI = () => {
+const AiChat = () => {
   const navigate = useNavigate();
 
-  const dataVisualization = () => {
-    navigate('/dataVisualization');
+  const graphPage = () => {
+    navigate('/graphPage');
   };
 
   return (
@@ -91,10 +91,10 @@ const ChatUI = () => {
         <SendButton>▶️</SendButton>
         <IconButton>🎤</IconButton>
         <IconButton>🔄</IconButton>
-        <IconButton onClick={dataVisualization}>면접 종료</IconButton>
+        <IconButton onClick={graphPage}>면접 종료</IconButton>
       </InputContainer>
     </Container>
   );
 };
 
-export default ChatUI;
+export default AiChat;

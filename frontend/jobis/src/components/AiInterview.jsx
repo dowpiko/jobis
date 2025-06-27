@@ -67,11 +67,11 @@ const CreateBox = styled.button`
   }
 `;
 
-const Test05 = () => {
+const AiInterview = () => {
   const navigate = useNavigate();
 
-  const toAiInterviewPage = () => {
-    navigate('/toAiInterviewPage');
+  const createAiInterview = () => {
+    navigate('/createAiInterview');
   };
 
   return (
@@ -85,10 +85,10 @@ const Test05 = () => {
       </SelectWrapper>
 
       <CenterBoxWrapper>
-        <CreateBox onClick={toAiInterviewPage}>생성</CreateBox>
+        <CreateBox onClick={createAiInterview}>생성</CreateBox>
       </CenterBoxWrapper>
     </Container>
   );
 };
 
-export default Test05;
+export default AiInterview;

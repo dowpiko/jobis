@@ -92,7 +92,7 @@ const CancelButton = styled.button`
 
 function ScheduleManager() {
   const navigate = useNavigate();
-  const gotoDiscord = () => navigate('/discordPage');
+  const discordPage = () => navigate('/discordPage');
   const [date, setDate] = useState(new Date());
 
   return (
@@ -111,7 +111,7 @@ function ScheduleManager() {
           <SectionTitle>일정 관리</SectionTitle>
           <ScheduleList>
             {[1, 2, 3, 4].map(item => (
-              <ScheduleItem key={item} onClick={gotoDiscord}>
+              <ScheduleItem key={item} onClick={discordPage}>
                 <span>2025년 7월 {item}일 {10 + item}시 모의 면접</span>
                 <CancelButton>취소</CancelButton>
               </ScheduleItem>

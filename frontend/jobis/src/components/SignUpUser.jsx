@@ -128,7 +128,7 @@ const SignUpUser = () => {
   const [birthDate, setBirthDate] = useState(null);
 
   const toLogin = () => {
-    navigate('/login');
+    navigate('/');
   };
 
   return (

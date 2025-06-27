@@ -48,7 +48,7 @@ const SubmitButton = styled.button`
   cursor: pointer;
 `;
 
-const Test17 = () => {
+const NoticeProgress = () => {
   const [questions, setQuestions] = useState(['', '', '', '']);
   const navigate = useNavigate();
 
@@ -67,7 +67,7 @@ const Test17 = () => {
   const handleSubmit = () => {
     console.log('등록된 질문:', questions);
     alert('질문이 등록되었습니다.');
-    navigate('/companyNotice');
+    navigate('/companyMain');
   };
 
   return (
@@ -93,4 +93,4 @@ const Test17 = () => {
   );
 };
 
-export default Test17;
+export default NoticeProgress;

@@ -67,24 +67,24 @@ const Description = styled.p`
   color: #374151;
 `;
 
-const ProfileSelection = () => {
+const Profile = () => {
   const navigate = useNavigate();
 
-  const toAiInterview = () => navigate('/aiInterview');
-  const mockInterview = () => navigate('/mockInterview');
+  const aiInterview = () => navigate('/aiInterview');
+  const scheduleManager = () => navigate('/scheduleManager');
 
   return (
     <Wrapper>
       <Title>프로필 선택</Title>
       <CardContainer>
-        <Card onClick={toAiInterview}>
+        <Card onClick={aiInterview}>
           <CardImage src="https://via.placeholder.com/120" alt="AI 면접" />
           <CardTitle>AI 모의 면접</CardTitle>
           <Description>
             AI가 질문하고 실시간 피드백을 제공하는 지능형 인터뷰 환경을 경험해보세요.
           </Description>
         </Card>
-        <Card onClick={mockInterview}>
+        <Card onClick={scheduleManager}>
           <CardImage src="https://via.placeholder.com/120" alt="화상 면접" />
           <CardTitle>화상 모의 면접</CardTitle>
           <Description>
@@ -96,4 +96,4 @@ const ProfileSelection = () => {
   );
 };
 
-export default ProfileSelection;
+export default Profile;

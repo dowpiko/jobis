@@ -93,7 +93,7 @@ const SubmitButton = styled.button`
   }
 `;
 
-const Test06 = () => {
+const CreateAiInterview = () => {
   const navigate = useNavigate();
 
   const goToAiChat = () => {
@@ -120,4 +120,4 @@ const Test06 = () => {
   );
 };
 
-export default Test06;
+export default CreateAiInterview;

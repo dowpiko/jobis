@@ -105,7 +105,7 @@ const SignUpCmp = () => {
   const navigate = useNavigate();
 
   const toLogin = () => {
-    navigate('/login');
+    navigate('/');
   };
 
   return (

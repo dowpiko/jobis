@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import Modal01 from './Modal01';
-import Modal02 from './Modal02'; // 새 모달 import
+import FindPwModal from './FindPwModal';
+import ResetPwModal from './ResetPwModal'; // 새 모달 import
 import { useNavigate } from 'react-router-dom';
 
 const Wrapper = styled.div`
@@ -106,8 +106,8 @@ const Login = () => {
   const [modalStep, setModalStep] = useState(null); // null | 'id' | 'resetPw'
   const navigate = useNavigate();
 
-  const announcementPage = () => navigate('/companyNotice');
-  const getProfileSelection = () => navigate('/profileselection');
+  const companyMain = () => navigate('/companyMain');
+  const profile = () => navigate('/profile');
   const signUpPage = () => navigate('/signUp');
 
   return (
@@ -123,8 +123,8 @@ const Login = () => {
             <Label htmlFor="userPw">PW :</Label>
             <Input type="password" id="userPw" />
           </FormGroup>
-          <Button onClick={getProfileSelection}>user login</Button>
-          <Button onClick={announcementPage}>company login</Button>
+          <Button onClick={profile}>user login</Button>
+          <Button onClick={companyMain}>company login</Button>
           <Options>
             <span onClick={() => setModalStep('id')}>ID/PW 찾기</span> |
             <span onClick={signUpPage}>회원가입</span>
@@ -134,10 +134,10 @@ const Login = () => {
 
       {/* 모달 렌더링 */}
       {modalStep === 'id' && (
-        <Modal01 onClose={() => setModalStep(null)} onSubmit={() => setModalStep('resetPw')} />
+        <FindPwModal onClose={() => setModalStep(null)} onSubmit={() => setModalStep('resetPw')} />
       )}
       {modalStep === 'resetPw' && (
-        <Modal02 onClose={() => setModalStep(null)} userId="exampleUserId" />
+        <ResetPwModal onClose={() => setModalStep(null)} userId="exampleUserId" />
       )}
     </>
   );

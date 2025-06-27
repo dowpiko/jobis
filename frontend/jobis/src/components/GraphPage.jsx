@@ -107,6 +107,7 @@ const RadarSection = () => {
             : '형을 클릭하면 설명이 표시됩니다.'}
         </InfoText>
       </InfoBox>
+      <div> 나중에 진행한 모든 ai면접의 평균점수를 그래프로</div>
     </Container>
   );
 };
