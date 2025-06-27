@@ -33,7 +33,7 @@ function App() {
 
         {/* 로그인 화면 */}
         <Route
-          path="/login"
+          path="/"
           element={
               <Login />
           }
