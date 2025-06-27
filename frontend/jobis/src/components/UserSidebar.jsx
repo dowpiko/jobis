@@ -181,7 +181,7 @@ function UserSidebar({ children }) {
         <Menu>
           <MenuItem onClick={() => navigate('/aiInterview')}>🏠 AI모의 면접</MenuItem>
           <MenuItem onClick={() => navigate('/companyInfo')}>💬 기업 공고 정보</MenuItem>
-          <MenuItem>⚙️ 설정</MenuItem>
+          <MenuItem onClick={() => navigate('/scrapPage')}>⚙️ 스크랩/지원공고</MenuItem>
         </Menu>
 
         <Footer>
