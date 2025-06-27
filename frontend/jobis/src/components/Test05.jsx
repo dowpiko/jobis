@@ -3,55 +3,86 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 
 const Container = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 40px 20px;
+  width: 100%;
+  height: 100%;
+  padding: 40px 40px 0;
+  font-family: sans-serif;
+  color: #1F2A37;
+  background-color: #F8F9FA;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+`;
+
+const SelectWrapper = styled.div`
+  margin-bottom: 40px;
 `;
 
 const Label = styled.label`
   display: block;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: bold;
   margin-bottom: 6px;
+  color: #1F2A37;
 `;
 
 const Select = styled.select`
-  padding: 8px 12px;
-  font-size: 14px;
+  padding: 10px 14px;
+  font-size: 15px;
   border-radius: 6px;
-  border: 1px solid #ccc;
-  background-color: #f1f1f1;
+  border: 1px solid #B0BCCB;
+  background-color: #ffffff;
+  color: #1F2A37;
+  width: 260px;
+
+  &:focus {
+    outline: none;
+    border-color: #4376B6;
+    box-shadow: 0 0 0 2px rgba(67, 118, 182, 0.2);
+  }
 `;
 
 const CenterBoxWrapper = styled.div`
+  flex: 1;
   display: flex;
   justify-content: center;
-  margin-top: 100px;
+  align-items: center;
 `;
 
 const CreateBox = styled.button`
   width: 300px;
   height: 300px;
-  background-color: #aaa;
+  background-color: #4376B6;
   border: none;
-  border-radius: 8px;
-  font-size: 24px;
+  border-radius: 12px;
+  font-size: 26px;
+  font-weight: bold;
   color: white;
   cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+
+  &:hover {
+    background-color: #5C8BC4;
+    transform: scale(1.03);
+  }
 `;
 
 const Test05 = () => {
   const navigate = useNavigate();
 
-  const toAiInterviewPage =()=>{
-    navigate('/toAiInterviewPage')
-  }
+  const toAiInterviewPage = () => {
+    navigate('/toAiInterviewPage');
+  };
+
   return (
     <Container>
-      <Label>기록</Label>
-      <Select>
-        <option>2025.07.01 프로그래머 면접 1</option>
-        <option>2025.07.02 기획자 면접 2</option>
-      </Select>
+      <SelectWrapper>
+        <Label>기록</Label>
+        <Select>
+          <option>2025.07.01 프로그래머 면접 1</option>
+          <option>2025.07.02 기획자 면접 2</option>
+        </Select>
+      </SelectWrapper>
 
       <CenterBoxWrapper>
         <CreateBox onClick={toAiInterviewPage}>생성</CreateBox>

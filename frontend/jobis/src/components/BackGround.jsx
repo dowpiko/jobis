@@ -1,67 +1,198 @@
-import '../App.css';
-// import Display from './display/Display';
-import styles from '../css/BackGround.module.css';
-import SignupChoice from './SignupChoice';
+import React from 'react';
+import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 
-function BackGround({children}) {
+const AppLayout = styled.div`
+  display: flex;
+  height: 100vh;
+  background-color: #F8F9FA;
+  color: #1F2A37;
+  font-family: sans-serif;
+`;
 
+const Sidebar = styled.aside`
+  width: 280px;
+  background-color: #DCE3EA;
+  border-right: 1px solid #B0BCCB;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  gap: 12px;
+  box-sizing: border-box;
+`;
+
+const TopBar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 6px;
+`;
+
+const Logo = styled.div`
+  font-size: 24px;
+  color: #1F2A37;
+  cursor: pointer;
+`;
+
+const ModeToggle = styled.button`
+  width: 40px;
+  height: 40px;
+  background-color: #4376B6;
+  border: none;
+  border-radius: 50%;
+  color: #FFFFFF;
+  font-size: 18px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #5C8BC4;
+  }
+`;
+
+const Profile = styled.div`
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid #B0BCCB;
+`;
+
+const ProfileInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+`;
+
+const ProfileImg = styled.img`
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid #4376B6;
+`;
+
+const ProfileName = styled.span`
+  font-size: 17px;
+  font-weight: bold;
+  color: #1F2A37;
+`;
+
+const ProfileActions = styled.div`
+  display: flex;
+  justify-content: space-between;
+`;
+
+const ProfileButton = styled.button`
+  background-color: #4376B6;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #FFFFFF;
+  font-size: 13px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #5C8BC4;
+  }
+`;
+
+const Menu = styled.nav`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #B0BCCB;
+`;
+
+const MenuItem = styled.div`
+  cursor: pointer;
+  padding: 18px 14px;
+  border-radius: 8px;
+  background-color: #FFFFFF;
+  border: 1px solid #B0BCCB;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+  color: #1F2A37;
+
+  &:hover {
+    background-color: #5C8BC4;
+    color: #FFFFFF;
+  }
+`;
+
+const Footer = styled.div`
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #B0BCCB;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6B7280;
+`;
+
+const FooterLink = styled.a`
+  color: #6B7280;
+  text-decoration: none;
+  padding: 2px 4px;
+
+  &:hover {
+    color: #4376B6;
+  }
+`;
+
+const FooterDivider = styled.span`
+  color: #B0BCCB;
+`;
+
+const Main = styled.main`
+  flex: 1;
+  padding: 30px;
+  background-color: #FFFFFF;
+  overflow-y: auto;
+  border-left: 1px solid #B0BCCB;
+`;
+
+function BackGround({ children }) {
   const navigate = useNavigate();
-  const toLogin =()=>{
-    navigate('/');
-  };
-  const toAiInterview = ()=>{
-    navigate('/aiInterview');
-  };
-  const cmpInfo =()=>{
-    navigate('/cmpInfo')
-  }
-  const gotoMain =()=>{
-    navigate('/profileselection')
-  }
 
   return (
-    <div>
-      <div className={styles.app}>
-      <aside className={styles.sidebar}>
-        <div className={styles.topBar}>
-          <div className={styles.logo} onClick={gotoMain} >🌐Jobis</div>
-          <button className={styles.modeToggle}>↔️</button>
-        </div>
+    <AppLayout>
+      <Sidebar>
+        <TopBar>
+          <Logo onClick={() => navigate('/profileselection')}>🌐Jobis</Logo>
+          <ModeToggle>↔️</ModeToggle>
+        </TopBar>
 
-        <div className={styles.profile}>
-          <div className={styles.profileInfo}>
-            <img src="https://via.placeholder.com/48" alt="profile" />
-            <span>HamanJo</span>
-          </div>
-          <div className={styles.profileActions}>
-            <button className={styles.profileButton}>마이페이지</button>
-            <button className={styles.profileButton} onClick={toLogin}>로그아웃</button>
-          </div>
-        </div>
+        <Profile>
+          <ProfileInfo>
+            <ProfileImg src="https://via.placeholder.com/48" alt="profile" />
+            <ProfileName>HamanJo</ProfileName>
+          </ProfileInfo>
+          <ProfileActions>
+            <ProfileButton>마이페이지</ProfileButton>
+            <ProfileButton onClick={() => navigate('/')}>로그아웃</ProfileButton>
+          </ProfileActions>
+        </Profile>
 
+        <Menu>
+          <MenuItem onClick={() => navigate('/aiInterview')}>🏠 AI모의 면접</MenuItem>
+          <MenuItem onClick={() => navigate('/cmpInfo')}>💬 기업 공고 정보</MenuItem>
+          <MenuItem>⚙️ 설정</MenuItem>
+        </Menu>
 
-        <nav className={styles.menu}>
-          <div className={styles.menuItem} onClick={toAiInterview}>🏠 AI모의 면접</div>
-          <div className={styles.menuItem} onClick={cmpInfo}>💬 기업 공고 정보</div>
-          <div className={styles.menuItem}>⚙️ 설정</div>
-        </nav>
+        <Footer>
+          <FooterLink href="#">개인정보처리방침</FooterLink>
+          <FooterDivider>|</FooterDivider>
+          <FooterLink href="#">이용약관</FooterLink>
+        </Footer>
+      </Sidebar>
 
-        <div className={styles.footer}>
-          <a href="#" className={styles.footerLink}>개인정보처리방침</a>
-          <span className={styles.footerDivider}>|</span>
-          <a href="#" className={styles.footerLink}>이용약관</a>
-        </div>
-      </aside>
-
-      <main className={styles.main}>
-          {/* <h1>메인 콘텐츠</h1>
-          <p>여기에 채팅이나 페이지 내용이 들어갑니다.</p> */}
-          {children}
-      </main>
-    </div>
-      {/* <Display/> */}
-    </div>
+      <Main>{children}</Main>
+    </AppLayout>
   );
 }
 

@@ -1,91 +1,99 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
 
+const Wrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  padding: 60px 20px;
+  font-family: sans-serif;
+  background-color: #F8F9FA;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #1F2A37;
+`;
+
+const Title = styled.h2`
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 60px;
+  color: #1F2A37;
+`;
+
+const CardContainer = styled.div`
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  flex-wrap: wrap;
+  align-content: start;
+`;
+
+const Card = styled.div`
+  width: 300px;
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border: 1px solid #B0BCCB;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    transform: translateY(-6px);
+  }
+`;
+
+const CardImage = styled.img`
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  margin-bottom: 16px;
+`;
+
+const CardTitle = styled.h3`
+  font-size: 20px;
+  font-weight: bold;
+  color: #4376B6;
+  margin: 14px 0;
+`;
+
+const Description = styled.p`
+  font-size: 15px;
+  line-height: 1.6;
+  color: #374151;
+`;
 
 const ProfileSelection = () => {
+  const navigate = useNavigate();
 
-  const navigate= useNavigate();
-  const toAiInterview = ()=>{
-    navigate('/aiInterview');
-  };
-  const mockInterview = ()=>{
-    navigate('/mockInterview');
-  };
-  
+  const toAiInterview = () => navigate('/aiInterview');
+  const mockInterview = () => navigate('/mockInterview');
+
   return (
-    <div style={styles.wrapper}>
-      <h2 style={styles.title}>프로필 선택</h2>
-      <div style={styles.cardContainer}>
-        {/* AI 모의 면접 */}
-        <div style={styles.card} onClick={toAiInterview}>
-          <img
-            src="https://via.placeholder.com/100" // 나중에 이미지 교체
-            alt="AI 면접"
-            style={styles.image}
-          />
-          <h3 style={styles.cardTitle}>AI 모의 면접</h3>
-          <p style={styles.description}>
-            이곳에는 무언가 멋진 문장이 들어갈 예정입니다. 아직은 비어있지만 곧 문장으로 가득 찰 공간이에요.
-            여기는 아주 중요한 말을 써야 하는 자리라고 합니다.
-          </p>
-        </div>
-
-        {/* 화상 모의 면접 */}
-        <div style={styles.card} onClick={mockInterview}>
-          <img
-            src="https://via.placeholder.com/100" // 나중에 이미지 교체
-            alt="화상 면접"
-            style={styles.image}
-          />
-          <h3 style={styles.cardTitle}>화상 모의 면접</h3>
-          <p style={styles.description}>
-            이곳에는 무언가 멋진 문장이 들어갈 예정입니다. 아직은 비어있지만 곧 문장으로 가득 찰 공간이에요.
-            여기는 아주 중요한 말을 써야 하는 자리라고 합니다.
-          </p>
-        </div>
-      </div>
-    </div>
+    <Wrapper>
+      <Title>프로필 선택</Title>
+      <CardContainer>
+        <Card onClick={toAiInterview}>
+          <CardImage src="https://via.placeholder.com/120" alt="AI 면접" />
+          <CardTitle>AI 모의 면접</CardTitle>
+          <Description>
+            AI가 질문하고 실시간 피드백을 제공하는 지능형 인터뷰 환경을 경험해보세요.
+          </Description>
+        </Card>
+        <Card onClick={mockInterview}>
+          <CardImage src="https://via.placeholder.com/120" alt="화상 면접" />
+          <CardTitle>화상 모의 면접</CardTitle>
+          <Description>
+            실제 면접과 유사한 화상 환경에서 실전 감각을 키워보세요.
+          </Description>
+        </Card>
+      </CardContainer>
+    </Wrapper>
   );
-};
-
-const styles = {
-  wrapper: {
-    textAlign: 'center',
-    padding: '40px 20px',
-    fontFamily: 'sans-serif',
-  },
-  title: {
-    fontSize: '24px',
-    marginBottom: '40px',
-  },
-  cardContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    gap: '40px',
-    flexWrap: 'wrap',
-  },
-  card: {
-    width: '220px',
-    backgroundColor: '#e0e0e0',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-  },
-  image: {
-    width: '100px',
-    height: '100px',
-    objectFit: 'contain',
-    marginBottom: '10px',
-  },
-  cardTitle: {
-    fontSize: '18px',
-    fontWeight: 'bold',
-    margin: '10px 0',
-  },
-  description: {
-    fontSize: '14px',
-    lineHeight: '1.4',
-  },
 };
 
 export default ProfileSelection;

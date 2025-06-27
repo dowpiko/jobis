@@ -3,9 +3,20 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 
 const FormWrapper = styled.div`
+  width: 100%;
   max-width: 600px;
-  margin: 0 auto;
+  margin: 40px auto;
+  padding: 40px 20px;
+  background-color: #F8F9FA;
+  font-family: sans-serif;
+  color: #1F2A37;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: auto;
+  height: auto;
 `;
+
 
 const TitleInput = styled.input`
   width: 100%;
@@ -13,29 +24,51 @@ const TitleInput = styled.input`
   font-size: 24px;
   font-weight: bold;
   text-align: center;
-  background-color: #d9d9d9;
-  border: none;
+  background-color: #ffffff;
+  border: 2px solid #B0BCCB;
+  border-radius: 6px;
   margin-bottom: 20px;
+  color: #1F2A37;
+
+  &:focus {
+    outline: none;
+    border-color: #4376B6;
+    box-shadow: 0 0 0 2px rgba(67, 118, 182, 0.2);
+  }
 `;
 
 const CategorySelect = styled.select`
   width: 100%;
-  height: 40px;
+  height: 44px;
   font-size: 16px;
-  background-color: #d9d9d9;
-  border: none;
+  background-color: #ffffff;
+  border: 2px solid #B0BCCB;
+  border-radius: 6px;
   padding: 0 12px;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
+  color: #1F2A37;
+
+  &:focus {
+    outline: none;
+    border-color: #4376B6;
+  }
 `;
 
 const ContentArea = styled.textarea`
   width: 100%;
   height: 250px;
-  background-color: #d9d9d9;
-  border: 1px solid #333;
+  background-color: #ffffff;
+  border: 2px solid #B0BCCB;
+  border-radius: 6px;
   resize: none;
   font-size: 16px;
-  padding: 10px;
+  padding: 12px;
+  color: #1F2A37;
+
+  &:focus {
+    outline: none;
+    border-color: #4376B6;
+  }
 `;
 
 const SubmitWrapper = styled.div`
@@ -47,18 +80,25 @@ const SubmitWrapper = styled.div`
 const SubmitButton = styled.button`
   padding: 10px 30px;
   font-size: 16px;
-  background-color: #d9d9d9;
+  background-color: #4376B6;
   border: none;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
+  color: white;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #5C8BC4;
+  }
 `;
 
 const Test06 = () => {
-
   const navigate = useNavigate();
-  const goToAiChat =()=>{
-    navigate('/AiChat')
-  }
+
+  const goToAiChat = () => {
+    navigate('/AiChat');
+  };
 
   return (
     <FormWrapper>

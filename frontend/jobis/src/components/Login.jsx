@@ -8,57 +8,89 @@ const Wrapper = styled.div`
   left: 0;
   width: 100vw;
   height: 100vh;
+  background-color: #F8F9FA;
   display: flex;
   justify-content: center;
   align-items: center;
-  pointer-events: none; /* ❗️ 배경과 겹칠 때 무응답 방지 */
 `;
 
 const LoginBox = styled.div`
-  background-color: #d9d9d9;
-  padding: 30px 40px;
-  border-radius: 5px;
+  background-color: #ffffff;
+  border: 1px solid #B0BCCB;
+  border-radius: 8px;
+  padding: 40px 50px;
+  width: 360px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
   text-align: center;
-  width: 350px;
-  pointer-events: all; /* ❗️ 클릭 이벤트 허용 */
+  pointer-events: all;
 `;
 
 const Title = styled.h2`
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  font-size: 24px;
+  color: #1F2A37;
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: 15px;
+  margin-bottom: 18px;
   text-align: left;
 `;
 
 const Label = styled.label`
   display: inline-block;
-  width: 50px;
+  width: 60px;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 16px;
+  color: #1F2A37;
 `;
 
 const Input = styled.input`
-  width: 75%;
+  width: 70%;
   padding: 8px;
-  font-size: 16px;
+  font-size: 15px;
+  border: 1px solid #B0BCCB;
+  border-radius: 4px;
+  background-color: #F1F5F9;
+  color: #1F2A37;
+
+  &:focus {
+    border-color: #4376B6;
+    background-color: #ffffff;
+    outline: none;
+  }
 `;
 
 const Button = styled.button`
+  width: 100%;
+  padding: 10px;
   margin-top: 10px;
-  padding: 6px 20px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: bold;
+  color: #ffffff;
+  background-color: #4376B6;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #5C8BC4;
+  }
 `;
 
 const Options = styled.div`
-  margin-top: 15px;
-  font-size: 14px;
+  margin-top: 18px;
+  font-size: 13px;
+  color: #6B7280;
 
   span {
-    margin: 0 10px;
+    margin: 0 8px;
+    cursor: pointer;
+
+    &:hover {
+      color: #4376B6;
+      text-decoration: underline;
+    }
   }
 `;
 
@@ -73,7 +105,7 @@ const Login = () => {
   return (
     <Wrapper>
       <LoginBox>
-        <Title>login</Title>
+        <Title>Login</Title>
         <FormGroup>
           <Label htmlFor="userId">ID :</Label>
           <Input type="text" id="userId" />
@@ -82,8 +114,8 @@ const Login = () => {
           <Label htmlFor="userPw">PW :</Label>
           <Input type="password" id="userPw" />
         </FormGroup>
-        <Button onClick={getProfileSelection}>user login</Button>
-        <Button onClick={announcementPage}>company login</Button>
+        <Button onClick={getProfileSelection}>User Login</Button>
+        <Button onClick={announcementPage}>Company Login</Button>
         <Options>
           <span>ID/PW 찾기</span> |
           <span>회원가입</span>
