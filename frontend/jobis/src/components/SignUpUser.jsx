@@ -57,7 +57,7 @@ const Input = styled.input`
 `;
 
 const StyledDateInput = styled(Input)`
-  width: 100% !important;
+  width: 480px !important;
 `;
 
 const CustomInput = forwardRef(({ value, onClick }, ref) => (

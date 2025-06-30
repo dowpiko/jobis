@@ -21,20 +21,12 @@ public class JshController {
 
 	@Autowired
 	JshService jshservice;
-
-	@Autowired
-    private String mailAccountInfo;
-
-    @GetMapping("/mailinfo")
-    public String getMailInfo() {
-        return mailAccountInfo;
-    }
     
 	@GetMapping("/checkusername")
 	@ResponseBody
 	public Map<String, Boolean> checkUsername(@RequestParam String username) {
 		System.out.println("checkusername: " + username);
-		return Collections.singletonMap("available", true); // 나중에 DB 체크 로직 연결
+		return Collections.singletonMap("available", true);
 	}
 
 	@PostMapping("/sendemailcode")
