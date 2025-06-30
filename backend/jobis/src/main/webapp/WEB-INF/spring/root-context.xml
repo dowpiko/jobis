@@ -31,5 +31,4 @@
 	<context:component-scan base-package="org.jobis.config" />
 	<context:component-scan base-package="org.jobis.service" />
 	<mybatis-spring:scan base-package="org.jobis.mapper" />	
-	<mybatis-spring:scan base-package="org.jobis.controller" />	
 </beans>
