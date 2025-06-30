@@ -10,7 +10,7 @@ backend/jobis/.project
 backend/jobis/*.log
 backend/jobis/*.tmp
 backend/jobis/*.bak
-backend/jobis/.metadata/
+backend/.metadata/
 backend/jobis/wtpwebapps/
 backend/jobis/pom.xml.*
 backend/jobis/release.properties
