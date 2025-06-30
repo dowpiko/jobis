@@ -3,7 +3,18 @@ frontend/jobis/node_modules/
 frontend/jobis/build/
 
 # Spring
-backend/jobis
+backend/jobis/target/
+backend/jobis/.settings/
+backend/jobis/.classpath
+backend/jobis/.project
+backend/jobis/*.log
+backend/jobis/*.tmp
+backend/jobis/*.bak
+backend/jobis/.metadata/
+backend/jobis/wtpwebapps/
+backend/jobis/pom.xml.*
+backend/jobis/release.properties
+backend/jobis/src/main/resources/OpenAI_apiKey.properties
 
 # 기타
 .env
