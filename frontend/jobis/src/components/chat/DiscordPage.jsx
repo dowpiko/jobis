@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
+import DatePicker from 'react-datepicker'; // 날짜 선택
+import { ko } from 'date-fns/locale';    // 달력 한글로 만들기
+import 'react-datepicker/dist/react-datepicker.css';
 
 const Wrapper = styled.div`
   display: flex;
@@ -92,7 +95,7 @@ const MeetingInfo = styled.div`
 
 const PeopleCount = styled.span`
   color: green;
-  margin-left: 10px;
+  margin-left: 12px;
 `;
 
 const ActionButton = styled.button`
@@ -101,7 +104,7 @@ const ActionButton = styled.button`
   border: none;
   font-size: 12px;
   padding: 2px 10px;
-  margin-left: 6px;
+  margin-left: 10px;
   border-radius: 6px;
   cursor: pointer;
 `;
@@ -123,36 +126,104 @@ const Input = styled.input`
   border: 1px solid #b0bccb;
   border-radius: 6px;
 `;
-
-const SelectRow = styled.div`
-  display: flex;
-  gap: 10px;
+const SendButton = styled.button`
+  padding: 8px 16px;         
+  background-color: #5c8bc4;
+  color: white;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;       
+  height: 52px;             
 `;
 
-const Select = styled.select`
-  flex: 1;
+const StyledDatePicker = styled(DatePicker).withConfig({
+  shouldForwardProp: (prop) =>
+    !['blur'].includes(prop),
+})`
+  width: 100%;
   height: 34px;
-  padding: 6px 8px;
-  font-size: 13px;
+  padding: 8px 10px;
+  font-size: 14px;
   border: 1px solid #b0bccb;
   border-radius: 6px;
 `;
 
-const SendButton = styled.button`
-  width: 40px;
-  height: 40px;
-  background-color: #5c8bc4;
-  color: white;
-  font-size: 18px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+const DateRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
 `;
 
+
 const DiscordPage = () => {
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [title,setTitle] = useState('');
+  const [chatList, setChatList] = useState([]);
+
+  const handleCreateChat = () => {
+  const formattedDate = selectedDate.toLocaleString('sv-SE', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).replace(' ', 'T');
+
+  const payload = {
+    r_title: title,
+    r_tag: '직종 중 택1',
+    leader: 1,
+    member: 2,
+    sch_date: formattedDate,
+  };
+
+  fetch('/cjs/insertUserChat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  setChatList((prev) => [
+    ...prev,
+    {
+      id: Date.now(),
+      title,
+      date: selectedDate,
+    },
+  ]);
+  setTitle('');
+  setSelectedDate(null);
+};
+
+
+
+    // const handleCreateChat =()=>{
+    //   if(!title || !selectedDate){
+    //     alert('제목 또는 날짜를 입력해주세요.');
+    //     return;
+    //   }
+    //    setChatList((prev) => [
+    //   ...prev,
+    //   {
+    //     id: Date.now(),
+    //     title,
+    //     date: selectedDate,
+    //   },
+    // ]);
+    // setTitle('');
+    // setSelectedDate(null);
+    // };
+
   return (
     <Wrapper>
       <Container>
+        {/* 
+        header랑  chattime은 그냥 알림 표시
+        시간 되면 알림표시가 뜨게 하는 방식으로 
+         */}
         <Header>
           <Title>‘박말선’님과의 화상 채팅 일정</Title>
           <JoinButton>회의 참여</JoinButton>
@@ -160,39 +231,52 @@ const DiscordPage = () => {
 
         <ChatBox>
           <ChatTime>금일 16:00 시</ChatTime>
-
-          <ChatBubble>
-            <Avatar src="https://via.placeholder.com/40" alt="avatar" />
-            <BubbleContainer>
-              <Bubble>모의 면접 해요!</Bubble>
-              <MeetingInfo>
-                일시: 2025.04.21 | 16:00
-                <PeopleCount>0/1 👥</PeopleCount>
-                <ActionButton>참가</ActionButton>
-              </MeetingInfo>
-            </BubbleContainer>
-          </ChatBubble>
-
-          <ChatBubble>
-            <Avatar src="https://via.placeholder.com/40" alt="avatar" />
-            <BubbleContainer>
-              <Bubble>안녕하세요. 반갑습니다!</Bubble>
-            </BubbleContainer>
-          </ChatBubble>
         </ChatBox>
+        {/* 동적 채팅 출력 */}
+          {/* {chatList.map((chat) => (
+            <ChatBubble key={chat.id}>
+              <Avatar src="https://via.placeholder.com/40" alt="avatar" />
+              <BubbleContainer>
+                <Bubble>{chat.title}</Bubble>
+                <MeetingInfo>
+                    일시:{' '}
+                    {chat.date.toLocaleDateString('ko-KR', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                    })}{' '}
+                    |{' '}
+                    {chat.date.toLocaleTimeString('ko-KR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false,
+                    })}
+                  <PeopleCount>0/1 👥</PeopleCount>
+                  <ActionButton>참가</ActionButton>
+                </MeetingInfo>
+              </BubbleContainer>
+            </ChatBubble>
+          ))} */}
 
         <InputSection>
           <InputRow>
-            <Input placeholder="제목 입력" />
+            <Input placeholder="제목 입력"  value={title} onChange={(e)=>setTitle(e.target.value)}/>
           </InputRow>
 
-          <SelectRow>
-            <Select><option>연</option></Select>
-            <Select><option>월</option></Select>
-            <Select><option>일</option></Select>
-            <Select><option>시</option></Select>
-            <SendButton>↑</SendButton>
-          </SelectRow>
+        <DateRow>
+          <StyledDatePicker
+            selected={selectedDate}
+            onChange={(date) => setSelectedDate(date)}
+            placeholderText="날짜 선택"
+            dateFormat="yyyy-MM-dd HH:mm"
+            showTimeSelect         // ✅ 시간 선택 UI 표시
+            timeIntervals={30}     // ✅ 30분 간격 선택
+            timeFormat="HH:mm"     // ✅ 24시간 형식으로 시간 표시
+            locale={ko}
+            timeCaption="시간"       
+          />
+          <SendButton onClick={handleCreateChat}>모집하기</SendButton>
+        </DateRow>
         </InputSection>
       </Container>
     </Wrapper>
