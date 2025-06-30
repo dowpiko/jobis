@@ -20,13 +20,14 @@ public class JshServiceImple implements JshService{
 		String code = String.valueOf((int)(Math.random() * 900000) + 100000);
 		redisTemplate.opsForValue().set("verify:" + email, code, 5, TimeUnit.MINUTES);
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        message.setSubject("ÀÌ¸ŞÀÏ ÀÎÁõ ÄÚµå");
-        message.setText("ÀÎÁõÄÚµå: " + code);
-        message.setFrom("tjdgus3877@naver.com");
-        mailSender.send(message);		
+		SimpleMailMessage message = new SimpleMailMessage();
+	    message.setTo(email);
+	    message.setSubject("ì´ë©”ì¼ ì¸ì¦ ì½”ë“œ");
+	    message.setText("ì¸ì¦ì½”ë“œ: " + code);
+	    message.setFrom("tjdgus3877@naver.com");
+	    mailSender.send(message);	
 	}
+	
 	@Override
 	public boolean verifyCode(String email, String inputCode) {
 		String key = "verify:" + email;

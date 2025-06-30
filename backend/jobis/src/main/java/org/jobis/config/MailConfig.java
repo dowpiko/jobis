@@ -5,12 +5,10 @@ import java.util.Properties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 @Configuration
-@PropertySource("classpath:application.properties") // ✅ 이 줄 필수!
 public class MailConfig {
 
     @Value("${spring.mail.host}")
@@ -41,10 +39,5 @@ public class MailConfig {
         props.put("mail.debug", true);
 
         return sender;
-    }
-    
-    @Bean
-    public String mailAccountInfo() {
-        return "📧 이메일 계정 설정: " + username + " / " + password;
     }
 }
