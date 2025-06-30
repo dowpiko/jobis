@@ -1,9 +1,10 @@
 package org.jobis.service;
 
 import org.jobis.domain.CJSVO;
-
+import org.springframework.stereotype.Service;
+@Service
 public interface UserChatService {
 
-	// À¯ÀúÃ¤ÆÃ »ðÀÔÇÏ±â
+	// ï¿½ï¿½ï¿½ï¿½Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
 	public int register(CJSVO cjsvo);
 }

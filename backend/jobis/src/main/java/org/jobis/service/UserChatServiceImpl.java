@@ -11,11 +11,11 @@ public class UserChatServiceImpl implements UserChatService {
 	
 	@Autowired UserChatMapper ucMapper;
 	
-	// À¯Àú Ã¤ÆÃ ÀÔ·Â
+	// ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½ï¿½ ï¿½Ô·ï¿½
 	@Override
 	public int register(CJSVO cjsvo) {
 		
-		return ucMapper.register(cjsvo);
+		return 0;//ucMapper.register(cjsvo);
 	}
 	
 	
