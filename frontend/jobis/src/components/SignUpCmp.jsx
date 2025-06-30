@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Container = styled.div`
   display: flex;
@@ -103,6 +104,18 @@ const Message = styled.p`
 
 const SignUpCmp = () => {
   const navigate = useNavigate();
+  const [corpName, setCorpName] = useState('');
+
+  const handleCheckCorp = async () => {
+  try {
+    const res = await axios.get('http://localhost:9090/api/corp-info', {
+      params: { corpNm: corpName },
+    });
+    console.log('✅ 받은 응답:', res.data);
+  } catch (err) {
+    console.error('❌ 백엔드 호출 실패:', err);
+  }
+};
 
   const toLogin = () => {
     navigate('/');
@@ -130,14 +143,18 @@ const SignUpCmp = () => {
         </InputGroup>
 
         <InputGroup>
-          <Label>기업명</Label>
-          <Input type="text" />
+          <Label>법인명</Label>
+          <Input
+              type="text"
+              value={corpName}
+              onChange={(e) => setCorpName(e.target.value)}
+            />
+          <CheckButton onClick={handleCheckCorp}>✔️ 확인</CheckButton>
         </InputGroup>
 
         <InputGroup>
           <Label>사업자등록번호</Label>
           <Input type="text" />
-          <CheckButton>✔️ 확인</CheckButton>
         </InputGroup>
 
         <InputGroup>
