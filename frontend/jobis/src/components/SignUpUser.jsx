@@ -1,9 +1,11 @@
+// src/components/SignUpUser.jsx
 import React, { useState, forwardRef } from 'react';
 import styled from 'styled-components';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { validateField } from '../utils/validators'; // 정확한 경로 확인
 
 const Container = styled.div`
   display: flex;
@@ -45,12 +47,10 @@ const Input = styled.input`
   font-size: 13px;
   border-radius: 6px;
   border: 1px solid #b0bccb;
-
   &:hover {
     border-color: #5c8bc4;
     background-color: #f0f4f8;
   }
-
   &::placeholder {
     color: #6b7280;
   }
@@ -60,23 +60,41 @@ const StyledDateInput = styled(Input)`
   width: 480px !important;
 `;
 
+const ErrorText = styled.div`
+  color: red;
+  font-size: 11px;
+  margin-top: 4px;
+`;
+
 const CustomInput = forwardRef(({ value, onClick }, ref) => (
-  <StyledDateInput ref={ref} onClick={onClick} value={value} readOnly placeholder="생년월일 선택" />
+  <StyledDateInput
+    ref={ref}
+    onClick={onClick}
+    value={value}
+    readOnly
+    placeholder="생년월일 선택"
+  />
 ));
 
 const CheckButton = styled.button`
   margin-top: 6px;
+  margin-left: auto;
+  display: block;
   font-size: 11px;
   background-color: #e0e7ef;
   padding: 4px 8px;
   border: none;
   border-radius: 6px;
-  float: right;
   cursor: pointer;
   color: #1f2a37;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: #d4eaf4;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
   }
 `;
 
@@ -91,8 +109,13 @@ const SubmitButton = styled.button`
   font-size: 15px;
   margin-top: 6px;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: #4376b6;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
   }
 `;
 
@@ -111,11 +134,13 @@ const Message = styled.p`
 const SignUpUser = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: '', password: '', confirmPassword: '',
+    id: '', password: '', confirmPassword: '',
     name: '', birthDate: null, email: '',
   });
-
-  const [usernameOk, setUsernameOk] = useState(false);
+  const [formErrors, setFormErrors] = useState({
+    id: '', password: '', confirmPassword: '', name: '', email: ''
+  });
+  const [idOk, setIdOk] = useState(false);
   const [emailCodeSent, setEmailCodeSent] = useState(false);
   const [verifyCode, setVerifyCode] = useState('');
   const [emailVerified, setEmailVerified] = useState(false);
@@ -124,29 +149,25 @@ const SignUpUser = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (name === 'username') setUsernameOk(false);
+
+    const error = validateField(name, value, name === 'confirmPassword' ? formData.password : '');
+    setFormErrors(prev => ({ ...prev, [name]: error }));
+
+    if (name === 'id') setIdOk(false);
     if (name === 'email') {
       setEmailCodeSent(false);
       setEmailVerified(false);
     }
   };
 
-  const handleDateChange = (date) => {
-    setFormData(prev => ({ ...prev, birthDate: date }));
-  };
+  const handleDateChange = (date) => setFormData(prev => ({ ...prev, birthDate: date }));
 
-  const checkUsername = async () => {
-    if (!formData.username.trim()) return alert('아이디 입력');
-
+  const checkId = async () => {
+    if (formErrors.id || !formData.id.trim()) return;
     try {
-      const res = await axios.get(`/jsh/checkusername?username=${encodeURIComponent(formData.username)}`);
-      if (res.data.available) {
-        alert('사용 가능한 아이디입니다');
-        setUsernameOk(true);
-      } else {
-        alert('이미 사용 중인 아이디입니다');
-        setUsernameOk(false);
-      }
+      const res = await axios.get(`/jsh/checkid?id=${encodeURIComponent(formData.id)}`);
+      setIdOk(res.data.available);
+      alert(res.data.available ? '사용 가능한 아이디입니다' : '이미 사용 중인 아이디입니다');
     } catch (e) {
       console.error(e);
       alert('중복 확인 오류');
@@ -154,16 +175,13 @@ const SignUpUser = () => {
   };
 
   const sendVerification = async () => {
-    if (!formData.email.trim()) return alert('이메일 입력');
+    if (formErrors.email || !formData.email.trim()) return;
     setLoading(true);
     try {
       const res = await axios.post('/jsh/sendemailcode', { email: formData.email });
-      if (res.data.success) {
-        alert('코드 발송됨');
-        setEmailCodeSent(true);
-      } else {
-        alert('실패: ' + res.data.message);
-      }
+      setEmailCodeSent(res.data.success);
+      if (res.data.success) alert('코드 발송됨');
+      else alert('실패: ' + res.data.message);
     } catch (e) {
       console.error(e);
       alert('전송 오류');
@@ -173,51 +191,34 @@ const SignUpUser = () => {
   };
 
   const verifyEmailCode = async () => {
-  if (!verifyCode.trim()) {
-    alert('인증 코드를 입력해주세요.');
-    return;
-  }
-
-  try {
-    const params = new URLSearchParams();
-    params.append('email', formData.email);
-    params.append('code', verifyCode);
-
-    const res = await axios.post('/jsh/verifyemailcode', params, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
-
-    if (res.data.verified) {
-      alert('✅ 이메일 인증이 완료되었습니다!');
-      setEmailVerified(true);
-    } else {
-      alert('❌ 인증 코드가 일치하지 않습니다.');
+    if (!verifyCode.trim()) return alert('인증 코드를 입력해주세요.');
+    try {
+      const params = new URLSearchParams([
+        ['email', formData.email],
+        ['code', verifyCode],
+      ]);
+      const res = await axios.post('/jsh/verifyemailcode', params, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+      setEmailVerified(res.data.verified);
+      alert(res.data.verified ? '✅ 이메일 인증이 완료되었습니다!' : '❌ 인증 코드가 일치하지 않습니다.');
+    } catch (e) {
+      console.error(e);
+      alert('⚠️ 인증 중 오류 발생');
     }
-  } catch (e) {
-    console.error('이메일 인증 오류:', e);
-    alert('⚠️ 인증 중 오류 발생');
-  }
-};
-
+  };
 
   const handleSubmit = async () => {
-    if (!usernameOk) return alert('아이디 중복 확인');
-    if (!emailVerified) return alert('이메일 인증 필요');
-    if (formData.password !== formData.confirmPassword) return alert('비밀번호 불일치');
-
-    const payload = {
-      ...formData,
-      birthDate: formData.birthDate?.toISOString().split('T')[0],
-    };
+    if (Object.values(formErrors).some(msg => msg)) return alert('입력 형식을 확인해주세요.');
+    if (!idOk) return alert('아이디 중복 확인을 완료해주세요.');
+    if (!emailVerified) return alert('이메일 인증을 완료해주세요.');
+    if (!formData.birthDate) return alert('생년월일을 선택해주세요.');
 
     try {
+      const payload = { ...formData, birthDate: formData.birthDate.toISOString().split('T')[0] };
       const res = await axios.post('/api/signup', payload);
-      if (res.data.success) {
-        alert('가입 성공');
-        navigate('/');
-      } else {
-        alert('가입 실패');
-      }
+      alert(res.data.success ? '가입 성공' : '가입 실패');
+      if (res.data.success) navigate('/');
     } catch (e) {
       console.error(e);
       alert('가입 중 오류');
@@ -228,30 +229,28 @@ const SignUpUser = () => {
     <Container>
       <FormWrapper>
         <Title>개인 회원 가입</Title>
-
-        <InputGroup>
-          <Label>아이디</Label>
-          <Input name="username" value={formData.username} onChange={handleChange} />
-          <CheckButton onClick={checkUsername}>
-            ✔️ {usernameOk ? '사용 가능' : '중복확인'}
-          </CheckButton>
-        </InputGroup>
-
-        <InputGroup>
-          <Label>비밀번호</Label>
-          <Input type="password" name="password" value={formData.password} onChange={handleChange} />
-        </InputGroup>
-
-        <InputGroup>
-          <Label>비밀번호 확인</Label>
-          <Input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} />
-        </InputGroup>
-
-        <InputGroup>
-          <Label>이름</Label>
-          <Input name="name" value={formData.name} onChange={handleChange} />
-        </InputGroup>
-
+        {['id', 'password', 'confirmPassword', 'name', 'email'].map(field => (
+          <InputGroup key={field}>
+            <Label>{field === 'confirmPassword' ? '비밀번호 확인' : field.toUpperCase()}</Label>
+            <Input type={field.includes('password') ? 'password' : 'text'}
+                   name={field}
+                   value={formData[field]}
+                   onChange={handleChange} />
+            {formErrors[field] && <ErrorText>{formErrors[field]}</ErrorText>}
+            {field === 'id' && (
+              <CheckButton onClick={checkId}
+                           disabled={!!formErrors.id || !formData.id.trim()}>
+                ✔️ {idOk ? '사용 가능' : '중복확인'}
+              </CheckButton>
+            )}
+            {field === 'email' && (
+              <CheckButton onClick={sendVerification}
+                           disabled={emailVerified || loading || !!formErrors.email || !formData.email.trim()}>
+                {emailVerified ? '인증완료' : emailCodeSent ? (loading ? '전송중...' : '재전송') : '인증요청'}
+              </CheckButton>
+            )}
+          </InputGroup>
+        ))}
         <InputGroup>
           <Label>생년월일</Label>
           <DatePicker
@@ -264,28 +263,15 @@ const SignUpUser = () => {
             customInput={<CustomInput />}
           />
         </InputGroup>
-
-        <InputGroup>
-          <Label>이메일</Label>
-          <Input name="email" type="email" value={formData.email} onChange={handleChange} />
-          <CheckButton onClick={sendVerification} disabled={emailVerified || loading}>
-            {emailVerified ? '인증완료' : emailCodeSent ? (loading ? '전송중...' : '재전송') : '인증요청'}
-          </CheckButton>
-        </InputGroup>
-
         {emailCodeSent && !emailVerified && (
           <InputGroup>
             <Label>인증 코드 입력</Label>
-            <Input value={verifyCode} onChange={(e) => setVerifyCode(e.target.value)} />
+            <Input value={verifyCode} onChange={e => setVerifyCode(e.target.value)} />
             <CheckButton onClick={verifyEmailCode}>확인</CheckButton>
           </InputGroup>
         )}
-
         <SubmitButton onClick={handleSubmit}>회원 가입</SubmitButton>
-
-        <Message>
-          이미 가입하셨나요? <strong onClick={() => navigate('/')}>로그인</strong>
-        </Message>
+        <Message>이미 가입하셨나요? <strong onClick={() => navigate('/')}>로그인</strong></Message>
       </FormWrapper>
     </Container>
   );
