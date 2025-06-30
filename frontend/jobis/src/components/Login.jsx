@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import FindPwModal from './FindPwModal';
-import ResetPwModal from './ResetPwModal'; // 새 모달 import
+import FindPwModal from './modal/FindPwModal';
+import ResetPwModal from './modal/ResetPwModal'; 
 import { useNavigate } from 'react-router-dom';
 
 const Wrapper = styled.div`
