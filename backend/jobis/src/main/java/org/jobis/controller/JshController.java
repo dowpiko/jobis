@@ -22,10 +22,10 @@ public class JshController {
 	@Autowired
 	JshService jshservice;
     
-	@GetMapping("/checkusername")
+	@GetMapping("/checkid")
 	@ResponseBody
-	public Map<String, Boolean> checkUsername(@RequestParam String username) {
-		System.out.println("checkusername: " + username);
+	public Map<String, Boolean> checkUsername(@RequestParam String id) {
+		jshservice.checkId(id);
 		return Collections.singletonMap("available", true);
 	}
 

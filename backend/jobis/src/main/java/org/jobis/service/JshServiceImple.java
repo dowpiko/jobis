@@ -15,6 +15,12 @@ public class JshServiceImple implements JshService{
 
     @Autowired private StringRedisTemplate redisTemplate;
     
+    @Override
+    public boolean checkId(String id) {
+    	// TODO Auto-generated method stub
+    	return false;
+    }
+    
 	@Override
 	public void sendVerificationCode(String email) {
 		String code = String.valueOf((int)(Math.random() * 900000) + 100000);
