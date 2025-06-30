@@ -16,6 +16,7 @@ backend/jobis/pom.xml.*
 backend/jobis/release.properties
 backend/jobis/src/main/resources/OpenAI_apiKey.properties
 backend/Servers/
+*.properties
 
 # 기타
 .env
