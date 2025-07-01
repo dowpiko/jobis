@@ -3,8 +3,23 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.jobis.mapper.JshMapper">
-	<select id="findUserId" parameterType="String">
-		
+	<select id="findUserId" parameterType="String" resultType="int">
+		SELECT COUNT(*) FROM tbl_user WHERE id=#{id}
 	</select>
+	
+	<insert id="registerUser" parameterType="org.jobis.domain.UserVO">
+		INSERT INTO tbl_user (
+        uno, name, birthdate, id, pw, email, subscribe, auth
+	    ) VALUES (
+	        seq_uno.nextval,
+	        #{name},
+	        #{birthdate},
+	        #{id},
+	        #{pw},
+	        #{email},
+	        DEFAULT,
+	        'user'
+	    )
+	</insert>
 
 </mapper>

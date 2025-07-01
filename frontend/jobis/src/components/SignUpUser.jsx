@@ -6,6 +6,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { validateField } from '../utils/validators'; // 정확한 경로 확인
+import { ko } from 'date-fns/locale';
 
 const Container = styled.div`
   display: flex;
@@ -134,11 +135,12 @@ const Message = styled.p`
 const SignUpUser = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    id: '', password: '', confirmPassword: '',
-    name: '', birthDate: null, email: '',
+    id: '', pw: '', confirmPassword: '',
+    name: '', birthdate: null, email: '',
   });
+
   const [formErrors, setFormErrors] = useState({
-    id: '', password: '', confirmPassword: '', name: '', email: ''
+    id: '', pw: '', confirmPassword: '', name: '', email: ''
   });
   const [idOk, setIdOk] = useState(false);
   const [emailCodeSent, setEmailCodeSent] = useState(false);
@@ -146,11 +148,14 @@ const SignUpUser = () => {
   const [emailVerified, setEmailVerified] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const maxYear = new Date().getFullYear() - 19;
+  const maxDateByYear = new Date(maxYear, 11, 31);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
 
-    const error = validateField(name, value, name === 'confirmPassword' ? formData.password : '');
+    const error = validateField(name, value, name === 'confirmPassword' ? formData.pw : '');
     setFormErrors(prev => ({ ...prev, [name]: error }));
 
     if (name === 'id') setIdOk(false);
@@ -160,7 +165,7 @@ const SignUpUser = () => {
     }
   };
 
-  const handleDateChange = (date) => setFormData(prev => ({ ...prev, birthDate: date }));
+  const handleDateChange = (date) => setFormData(prev => ({ ...prev, birthdate: date }));
 
   const checkId = async () => {
     if (formErrors.id || !formData.id.trim()) return;
@@ -212,11 +217,11 @@ const SignUpUser = () => {
     if (Object.values(formErrors).some(msg => msg)) return alert('입력 형식을 확인해주세요.');
     if (!idOk) return alert('아이디 중복 확인을 완료해주세요.');
     if (!emailVerified) return alert('이메일 인증을 완료해주세요.');
-    if (!formData.birthDate) return alert('생년월일을 선택해주세요.');
+    if (!formData.birthdate) return alert('생년월일을 선택해주세요.');
 
     try {
-      const payload = { ...formData, birthDate: formData.birthDate.toISOString().split('T')[0] };
-      const res = await axios.post('/api/signup', payload);
+      const payload = { ...formData, birthdate: formData.birthdate.toISOString().split('T')[0] };
+      const res = await axios.post('/jsh/signup', payload);
       alert(res.data.success ? '가입 성공' : '가입 실패');
       if (res.data.success) navigate('/');
     } catch (e) {
@@ -229,10 +234,10 @@ const SignUpUser = () => {
     <Container>
       <FormWrapper>
         <Title>개인 회원 가입</Title>
-        {['id', 'password', 'confirmPassword', 'name', 'email'].map(field => (
+        {['id', 'pw', 'confirmPassword', 'name', 'email'].map(field => (
           <InputGroup key={field}>
             <Label>{field === 'confirmPassword' ? '비밀번호 확인' : field.toUpperCase()}</Label>
-            <Input type={field.includes('password') ? 'password' : 'text'}
+            <Input type={field.includes('w') ? 'password' : 'text'}
                    name={field}
                    value={formData[field]}
                    onChange={handleChange} />
@@ -251,18 +256,6 @@ const SignUpUser = () => {
             )}
           </InputGroup>
         ))}
-        <InputGroup>
-          <Label>생년월일</Label>
-          <DatePicker
-            selected={formData.birthDate}
-            onChange={handleDateChange}
-            dateFormat="yyyy-MM-dd"
-            showMonthDropdown
-            showYearDropdown
-            dropdownMode="select"
-            customInput={<CustomInput />}
-          />
-        </InputGroup>
         {emailCodeSent && !emailVerified && (
           <InputGroup>
             <Label>인증 코드 입력</Label>
@@ -270,6 +263,20 @@ const SignUpUser = () => {
             <CheckButton onClick={verifyEmailCode}>확인</CheckButton>
           </InputGroup>
         )}
+        <InputGroup>
+          <Label>생년월일</Label>
+          <DatePicker
+            selected={formData.birthdate}
+            onChange={handleDateChange}
+            dateFormat="yyyy-MM-dd"
+            showMonthDropdown
+            showYearDropdown
+            dropdownMode="select"
+            customInput={<CustomInput />}
+            maxDate={maxDateByYear}
+            locale={ko}
+          />
+        </InputGroup>        
         <SubmitButton onClick={handleSubmit}>회원 가입</SubmitButton>
         <Message>이미 가입하셨나요? <strong onClick={() => navigate('/')}>로그인</strong></Message>
       </FormWrapper>

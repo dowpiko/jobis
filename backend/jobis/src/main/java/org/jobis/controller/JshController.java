@@ -1,8 +1,10 @@
 package org.jobis.controller;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
+import org.jobis.domain.UserVO;
 import org.jobis.service.JshService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -25,9 +27,18 @@ public class JshController {
 	@GetMapping("/checkid")
 	@ResponseBody
 	public Map<String, Boolean> checkUsername(@RequestParam String id) {
-		jshservice.checkId(id);
-		return Collections.singletonMap("available", true);
+		return Collections.singletonMap("available", jshservice.checkId(id));
 	}
+	
+	@PostMapping("/signup")
+    @ResponseBody
+    public Map<String, Object> signup(@RequestBody UserVO userVO) {		
+        boolean success = jshservice.registerUser(userVO);
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", success);
+        result.put("message", success ? "가입 성공" : "이미 존재하는 사용자입니다");
+        return result;
+    }
 
 	@PostMapping("/sendemailcode")
 	@ResponseBody

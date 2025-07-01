@@ -2,6 +2,8 @@ package org.jobis.service;
 
 import java.util.concurrent.TimeUnit;
 
+import org.jobis.domain.UserVO;
+import org.jobis.mapper.JshMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
@@ -15,10 +17,16 @@ public class JshServiceImple implements JshService{
 
     @Autowired private StringRedisTemplate redisTemplate;
     
+    @Autowired private JshMapper jsmMapper;
+    
     @Override
-    public boolean checkId(String id) {
-    	// TODO Auto-generated method stub
-    	return false;
+    public boolean checkId(String id) {    	
+    	return jsmMapper.findUserId(id) == 0 ? true : false;
+    }
+    
+    @Override
+    public boolean registerUser(UserVO userVO) {    	
+    	return jsmMapper.registerUser(userVO) > 0 ? true : false;
     }
     
 	@Override
