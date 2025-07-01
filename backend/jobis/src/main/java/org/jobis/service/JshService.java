@@ -1,5 +1,6 @@
 package org.jobis.service;
 
+import org.jobis.domain.ProfileVO;
 import org.jobis.domain.UserVO;
 import org.springframework.stereotype.Service;
 
@@ -15,4 +16,8 @@ public interface JshService {
 	public boolean verifyCode(String email, String inputCode);
 	
 	public UserVO loginUser(String id, String pw);
+	
+	public ProfileVO getProfileByUno(int uno);
+	
+	public boolean createProfile(ProfileVO profileVO);
 }

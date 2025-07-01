@@ -21,6 +21,8 @@
   import ApplyNotice from './components/ai/ApplyNotice';
   import CompanyMain from './components/company/CompanyMain';
   import ProfileSidebar from './components/sidebar/ProfileSidebar';
+import CreateProfile from './components/chat/CreateProfile';
+import CreateProfileForm from './components/chat/CreateProfileForm';
 
 
 
@@ -81,6 +83,26 @@
                   <UserSidebar>
                     <AiInterview />
                 </UserSidebar>
+            }
+          />
+          {/* 프로필 생성  */}
+          <Route
+            path="/createProfile"
+            element={
+              
+                  <ProfileSidebar>
+                    <CreateProfile/>
+                </ProfileSidebar>
+            }
+          />
+          {/* 프로필 생성  */}
+          <Route
+            path="/createProfileForm"
+            element={
+              
+                  <ProfileSidebar>
+                    <CreateProfileForm/>
+                </ProfileSidebar>
             }
           />
           {/* 화상 모의 면접  */}

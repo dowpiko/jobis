@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -71,7 +72,20 @@ const Profile = () => {
   const navigate = useNavigate();
 
   const aiInterview = () => navigate('/aiInterview');
-  const scheduleManager = () => navigate('/scheduleManager');
+  const handleProfile = async () => {
+    try {
+      const res = await axios.get('/jsh/checkProfile');
+      if (res.data.exists) {
+        navigate('/scheduleManager');
+      } else {
+        navigate('/createProfile');
+      }
+    } catch (err) {
+      console.error('프로필 확인 실패:', err);
+      alert('세션이 만료되었거나 오류가 발생했습니다.');
+      navigate('/');
+    }
+  };
 
   return (
     <Wrapper>
@@ -84,7 +98,7 @@ const Profile = () => {
             AI가 질문하고 실시간 피드백을 제공하는 지능형 인터뷰 환경을 경험해보세요.
           </Description>
         </Card>
-        <Card onClick={scheduleManager}>
+        <Card onClick={handleProfile}>
           <CardImage src="https://via.placeholder.com/120" alt="화상 면접" />
           <CardTitle>화상 모의 면접</CardTitle>
           <Description>

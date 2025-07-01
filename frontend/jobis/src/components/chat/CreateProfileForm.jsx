@@ -1,0 +1,122 @@
+import React, { useState } from 'react';
+import styled from 'styled-components';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+const Container = styled.div`
+  max-width: 600px;
+  margin: 60px auto;
+  padding: 40px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+`;
+
+const Title = styled.h2`
+  margin-bottom: 24px;
+  font-size: 24px;
+  color: #1F2A37;
+`;
+
+const Input = styled.input`
+  padding: 10px;
+  font-size: 16px;
+  width: 60%;
+  margin-bottom: 24px;
+  border: 1px solid #B0BCCB;
+  border-radius: 6px;
+`;
+
+const ImageGrid = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 24px;
+`;
+
+const ImageOption = styled.img`
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: ${({ selected }) => (selected ? '3px solid #4376B6' : '2px solid #B0BCCB')};
+  cursor: pointer;
+  transition: 0.2s;
+
+  &:hover {
+    border-color: #4376B6;
+  }
+`;
+
+const SubmitButton = styled.button`
+  padding: 12px 24px;
+  background-color: #4376B6;
+  color: #fff;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #5C8BC4;
+  }
+`;
+
+const defaultImages = [
+  'https://via.placeholder.com/80?text=👩',
+  'https://via.placeholder.com/80?text=👨',
+  'https://via.placeholder.com/80?text=🧑',
+];
+
+const CreateProfileForm = () => {
+  const [nickname, setNickname] = useState('');
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const navigate = useNavigate();
+
+  const handleSubmit = async () => {
+    if (!nickname.trim()) return alert('닉네임을 입력해주세요.');
+
+    try {
+      const payload = {
+        nickname,
+        profileimage: selectedImageIndex + 1, // 서버에 숫자 전송 (1부터 시작)
+      };
+      const res = await axios.post('/jsh/createProfile', payload);
+
+      if (res.data.success) {
+        alert('프로필이 생성되었습니다!');
+        navigate('/scheduleManager');
+      } else {
+        alert(res.data.message || '프로필 생성 실패');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('서버 오류 발생');
+    }
+  };
+
+  return (
+    <Container>
+      <Title>프로필 생성</Title>
+      <Input
+        placeholder="닉네임 입력"
+        value={nickname}
+        onChange={(e) => setNickname(e.target.value)}
+      />
+      <ImageGrid>
+        {defaultImages.map((img, index) => (
+          <ImageOption
+            key={index}
+            src={img}
+            alt={`기본 이미지 ${index + 1}`}
+            onClick={() => setSelectedImageIndex(index)}
+            selected={selectedImageIndex === index}
+          />
+        ))}
+      </ImageGrid>
+      <SubmitButton onClick={handleSubmit}>프로필 생성하기</SubmitButton>
+    </Container>
+  );
+};
+
+export default CreateProfileForm;

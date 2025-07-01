@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.jobis.domain.ProfileVO;
 import org.jobis.domain.UserVO;
 import org.jobis.mapper.JshMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,5 +63,15 @@ public class JshServiceImple implements JshService{
         param.put("pw", pw);
 
         return jsmMapper.loginUser(param);
+	}
+	
+	@Override
+	public ProfileVO getProfileByUno(int uno) {
+		return jsmMapper.getProfileByUno(uno);
+	}
+	
+	@Override
+	public boolean createProfile(ProfileVO profileVO) {
+		return jsmMapper.createProfile(profileVO) > 0 ? true : false;
 	}
 }

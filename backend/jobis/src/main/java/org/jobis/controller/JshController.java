@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpSession;
 
+import org.jobis.domain.ProfileVO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.JshService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +83,63 @@ public class JshController {
 	        result.put("message", "아이디 또는 비밀번호가 일치하지 않습니다.");
 	    }
 
+	    return result;
+	}
+	
+	// 로그인 정보 확인
+	@GetMapping("/getUser")
+	@ResponseBody
+	public UserVO getUser(HttpSession session) {
+	    UserVO User = (UserVO) session.getAttribute("User");
+	    
+	    if (User != null) {
+	        return User;
+	    } else {
+	        return null; // 세션이 없으면 프론트에서 리디렉션 처리
+	    }
+	}
+	
+	// 프로필 계정 확인
+	@GetMapping("/checkProfile")
+	@ResponseBody
+	public Map<String, Object> checkProfile(HttpSession session) {
+	    UserVO User = (UserVO) session.getAttribute("User");
+
+	    Map<String, Object> result = new HashMap<>();
+	    if (User == null) {
+	        result.put("exists", false);
+	        return result;
+	    }
+
+	    ProfileVO profile = jshservice.getProfileByUno(User.getUno());
+	    if (profile != null) {
+	        result.put("exists", true);
+	        result.put("nickname", profile.getNickname());
+	    } else {
+	        result.put("exists", false);
+	    }
+
+	    return result;
+	}
+	
+	// 프로필 생성
+	@PostMapping("/createProfile")
+	@ResponseBody
+	public Map<String, Object> createProfile(@RequestBody ProfileVO profileVO, HttpSession session) {
+	    UserVO User = (UserVO) session.getAttribute("User");
+	    Map<String, Object> result = new HashMap<>();
+
+	    if (User == null) {
+	        result.put("success", false);
+	        result.put("message", "로그인이 필요합니다.");
+	        return result;
+	    }
+
+	    profileVO.setUno(User.getUno());
+	    boolean created = jshservice.createProfile(profileVO);
+
+	    result.put("success", created);
+	    result.put("message", created ? "프로필 생성 완료" : "생성 실패");
 	    return result;
 	}
 }

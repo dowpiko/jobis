@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const AppLayout = styled.div`
   display: flex;
@@ -158,6 +159,24 @@ const Main = styled.main`
 
 function UserSidebar({ children }) {
   const navigate = useNavigate();
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    axios.get('/jsh/getUser')
+      .then(res => {
+        if (res.data && res.data.name) {
+          setUserName(res.data.name);
+        } else {
+          alert('로그인이 필요합니다.');
+          navigate('/');
+        }
+      })
+      .catch(err => {
+        console.error('프로필 정보 가져오기 실패', err);
+        alert('세션 오류');
+        navigate('/');
+      });
+  }, [navigate]);
 
   return (
     <AppLayout>
@@ -170,7 +189,7 @@ function UserSidebar({ children }) {
         <Profile>
           <ProfileInfo>
             <ProfileImg src="https://via.placeholder.com/48" alt="profile" />
-            <ProfileName>HamanJo</ProfileName>
+            <ProfileName>{userName}</ProfileName>
           </ProfileInfo>
           <ProfileActions>
             <ProfileButton onClick={() => navigate('/graphPage')}>마이페이지</ProfileButton>

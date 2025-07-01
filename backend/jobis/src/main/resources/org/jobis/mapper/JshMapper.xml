@@ -27,5 +27,15 @@
 	    WHERE id = #{id}
 	      AND pw = #{pw}
 	</select>
-
+	
+	<select id="getProfileByUno" parameterType="int" resultType="org.jobis.domain.ProfileVO">
+	    SELECT *
+	    FROM tbl_uprofile
+	    WHERE uno = #{uno}
+	</select>
+	
+	<insert id="createProfile" parameterType="org.jobis.domain.ProfileVO">
+	    INSERT INTO tbl_uprofile (uno, nickname, profileimage)
+	    VALUES (#{uno}, #{nickname}, #{profileimage})
+	</insert>
 </mapper>

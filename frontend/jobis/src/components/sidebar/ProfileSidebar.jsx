@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const AppLayout = styled.div`
   display: flex;
@@ -91,6 +92,9 @@ const ProfileButton = styled.button`
   color: #FFFFFF;
   font-size: 13px;
   cursor: pointer;
+  width: ${({ full }) => (full ? '100%' : 'auto')};
+  text-align: center;
+  margin: ${({ full }) => (full ? '8px auto' : '0')};
 
   &:hover {
     background-color: #5C8BC4;
@@ -158,6 +162,24 @@ const Main = styled.main`
 
 function ProfileSidebar({ children }) {
   const navigate = useNavigate();
+  const [nickname, setNickname] = useState(null); // null이면 로딩 중
+  const [hasProfile, setHasProfile] = useState(false);
+
+  useEffect(() => {
+    axios.get('/jsh/checkProfile')
+      .then(res => {
+        if (res.data.exists) {
+          setHasProfile(true);
+          setNickname(res.data.nickname);
+        } else {
+          setHasProfile(false);
+        }
+      })
+      .catch(err => {
+        console.error('프로필 확인 실패:', err);
+        alert('프로필 정보를 불러오지 못했습니다.');
+      });
+  }, []);
 
   return (
     <AppLayout>
@@ -168,13 +190,21 @@ function ProfileSidebar({ children }) {
         </TopBar>
 
         <Profile>
-          <ProfileInfo>
-            <ProfileImg src="https://via.placeholder.com/48" alt="profile" />
-            <ProfileName>HamanJo</ProfileName>
-          </ProfileInfo>
-          <ProfileActions>
-            <ProfileButton onClick={() => navigate('/')}>로그아웃</ProfileButton>
-          </ProfileActions>
+          {hasProfile ? (
+            <>
+              <ProfileInfo>
+                <ProfileImg src="https://via.placeholder.com/48" alt="profile" />
+                <ProfileName>{nickname || '이름 없음'}</ProfileName>
+              </ProfileInfo>
+              <ProfileActions>
+                <ProfileButton onClick={() => navigate('/')}>로그아웃</ProfileButton>
+              </ProfileActions>
+            </>
+          ) : (
+            <ProfileButton full onClick={() => navigate('/createProfileForm')}>
+              프로필 생성
+            </ProfileButton>
+          )}
         </Profile>
 
         <Menu>
