@@ -1,8 +1,20 @@
 import React, { useState } from 'react';
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+
+const GlobalStyles = createGlobalStyle`
+  .fc-event-hover {
+    background-color: #90C4EB !important;
+    cursor: pointer !important;
+  }
+
+  .fc-event-hover .fc-event-title {
+    color: #000000 !important;
+  }
+`;
 
 const Page = styled.div`
   width: 100%;
@@ -48,11 +60,6 @@ const CalendarContainer = styled.div`
   border-radius: 8px;
   padding: 16px;
   overflow: hidden;
-
-  .react-calendar {
-    width: 100%;
-    border: none;
-  }
 `;
 
 const ScheduleList = styled.div`
@@ -90,36 +97,132 @@ const CancelButton = styled.button`
   }
 `;
 
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+`;
+
+const ModalContent = styled.div`
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  max-width: 400px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+`;
+
+const CloseButton = styled.button`
+  background-color: #ccc;
+  border: none;
+  padding: 8px 12px;
+  margin-top: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+`;
+
 function ScheduleManager() {
-  const navigate = useNavigate();
-  const discordPage = () => navigate('/discordPage');
-  const [date, setDate] = useState(new Date());
+  const scheduleData = [1, 2, 3, 4].map(item => ({
+    title: `모의 면접 (${10 + item}시)`,
+    date: `2025-07-${String(item).padStart(2, '0')}`,
+    extendedProps: {
+      partner: `Partner${item}`
+    }
+  }));
+
+  const [events] = useState(scheduleData);
+  const [modalData, setModalData] = useState(null);
+
+  const handleEventClick = (clickInfo) => {
+    const { title, startStr, extendedProps } = clickInfo.event;
+    setModalData({
+      date: startStr,
+      title,
+      partner: extendedProps.partner
+    });
+  };
+
+  const handleMouseEnter = (info) => {
+    info.el.classList.add('fc-event-hover');
+  };
+
+  const handleMouseLeave = (info) => {
+    info.el.classList.remove('fc-event-hover');
+  };
 
   return (
-    <Page>
-      <Container>
-        <Section>
-          <SectionTitle>날짜 관리</SectionTitle>
-          <CalendarContainer>
-            <Calendar onChange={setDate} value={date} />
-          </CalendarContainer>
-        </Section>
+    <>
+      <GlobalStyles />
+      <Page>
+        <Container>
+          <Section>
+            <SectionTitle>날짜 관리</SectionTitle>
+            <CalendarContainer>
+              <FullCalendar
+                plugins={[dayGridPlugin, interactionPlugin]}
+                initialView="dayGridMonth"
+                locale="ko"
+                events={events}
+                dateClick={(info) => console.log('선택한 날짜:', info.dateStr)}
+                eventClick={handleEventClick}
+                eventMouseEnter={handleMouseEnter}
+                eventMouseLeave={handleMouseLeave}
+                height="auto"
+              />
+            </CalendarContainer>
+          </Section>
 
-        <Divider />
+          <Divider />
 
-        <Section>
-          <SectionTitle>일정 관리</SectionTitle>
-          <ScheduleList>
-            {[1, 2, 3, 4].map(item => (
-              <ScheduleItem key={item} onClick={discordPage}>
-                <span>2025년 7월 {item}일 {10 + item}시 모의 면접</span>
-                <CancelButton>취소</CancelButton>
-              </ScheduleItem>
-            ))}
-          </ScheduleList>
-        </Section>
-      </Container>
-    </Page>
+          <Section>
+            <SectionTitle>일정 관리</SectionTitle>
+            <ScheduleList>
+              {scheduleData.map((event, idx) => {
+                const dateStr = new Date(event.date).toISOString().split('T')[0];
+                const timeStr = event.title.match(/\((.*?)\)/)?.[1] || '';
+
+                return (
+                  <ScheduleItem
+                    key={idx}
+                    onClick={() =>
+                      setModalData({
+                        date: dateStr,
+                        title: event.title,
+                        partner: event.extendedProps.partner
+                      })
+                    }
+                  >
+                    <span>
+                      {new Date(event.date).getFullYear()}년{' '}
+                      {new Date(event.date).getMonth() + 1}월{' '}
+                      {new Date(event.date).getDate()}일 {timeStr} 모의 면접
+                    </span>
+                    <CancelButton onClick={(e) => e.stopPropagation()}>취소</CancelButton>
+                  </ScheduleItem>
+                );
+              })}
+            </ScheduleList>
+          </Section>
+        </Container>
+
+        {modalData && (
+          <ModalOverlay onClick={() => setModalData(null)}>
+            <ModalContent onClick={(e) => e.stopPropagation()}>
+              <h3>{modalData.title}</h3>
+              <p>📅 날짜: {modalData.date}</p>
+              <p>👥 상대방: {modalData.partner}</p>
+              <CloseButton onClick={() => setModalData(null)}>닫기</CloseButton>
+            </ModalContent>
+          </ModalOverlay>
+        )}
+      </Page>
+    </>
   );
 }
 
