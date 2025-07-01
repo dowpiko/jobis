@@ -35,5 +35,4 @@ public class AiServiceImpl implements AiService {
 					.flatMap(c -> c.outputText().map(t -> t.text())))
 				.orElse("[No response]");
 	}
-	
 }
