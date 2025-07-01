@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import categories from '../../data/categories';
+import axios from 'axios';
 
 const FormWrapper = styled.div`
   width: 100%;
@@ -104,14 +105,25 @@ const SectionLabel = styled.div`
   margin: 10px 0 6px;
   color: #1F2A37;
 `;
+function getCurrentDate() {
+  const now = new Date();
+  return now.toISOString().split('T')[0]; // YYYY-MM-DD 형식으로 반환
+}
 const CreateAiInterview = () => {
   const navigate = useNavigate();
+  const [titlePlaceHolder, setTiltePlaceHolder] = useState('제목');
+  const [titleValue, setTitleValue] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedSubCategory, setSelectedSubCategory] = useState('');
   const [selectedSkills, setSelectedSkills] = useState([]);
-  const [interviewType, setInterviewType] = useState('');
   const [companyType, setCompanyType] = useState('');
   const [careerLevel, setCareerLevel] = useState('');
+
+  const categoryRef = useRef(null);
+  const subCategoryRef = useRef(null);
+  const skillsRef = useRef(null);
+  const companyTypeRef = useRef(null);
+  const carrerLevelRef = useRef(null);
 
   const categoryList = categories.map(cat => cat.category);
   const subCategories = selectedCategory
@@ -121,14 +133,21 @@ const CreateAiInterview = () => {
   const selectedSubCatObj = subCategories.find(sub => sub.name === selectedSubCategory);
   const skills = selectedSubCatObj?.skills || [];
 
+  const handleTitleChange = (e) =>{
+    setTitleValue(e.target.value);
+  }
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
     setSelectedSubCategory('');
   };
 
   const handleSubCategoryChange = (e) => {
-    setSelectedSubCategory(e.target.value);
+    const value = e.target.value;
+    setSelectedSubCategory(value);
+    setTiltePlaceHolder(`${getCurrentDate()} ${value} 면접`);
     setSelectedSkills([]);
+    setCompanyType('');
+    setCareerLevel('');
   };
 
   const handleSkillToggle = (skill) => {
@@ -138,9 +157,6 @@ const CreateAiInterview = () => {
         : [...prev, skill]
     );
   };
-  const handleInterviewTypeChange = (e) => {
-    setInterviewType(e.target.value);
-  };
   const handleCompanyTypeChange = (e) => {
     setCompanyType(e.target.value);
   };
@@ -149,17 +165,67 @@ const CreateAiInterview = () => {
     setCareerLevel(e.target.value);
   };
   const goToAiChat = () => {
-    console.log("Selected:", selectedCategory, selectedSubCategory, interviewType, selectedSkills);
+    let title = titleValue ? titleValue : titlePlaceHolder;
+    if(!selectedCategory){
+      alert('대분류를 선택해 주세요!');
+      categoryRef.current.focus();
+      return;
+    }
+    if(!selectedSubCategory){
+      alert('세부분류를 선택해 주세요!');
+      subCategoryRef.current.focus();
+      return;
+    }
+    if(!companyType){
+      alert('지원 기업 형태를 선택해 주세요!');
+      companyTypeRef.current.focus();
+      return;
+    }
+    if(!careerLevel){
+      alert('경력 여부를 선택해 주세요!');
+      companyTypeRef.current.focus();
+      return;
+    }
+    const surveyData = {
+      title,
+      category: selectedCategory,
+      subCategory: selectedSubCategory,
+      skills: selectedSkills,
+      companyType,
+      careerLevel,
+      date: getCurrentDate()
+    };
 
-    navigate('/AiChat');
+    async function submitSurvey() {
+    try {
+        const res = await axios.post("http://localhost:9090/ymj/saveSurveyResult", surveyData, {
+          withCredentials: true,  // 세션 쿠키 전달을 위한 옵션
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        if(res.data === "ok") {
+          sessionStorage.setItem("surveyTitle", title);  // 세션처럼 저장
+          navigate('/AiChat');
+        }
+      } catch (err) {
+        console.error("❌ 서버 오류:", err);
+        alert("서버 통신 중 문제가 발생했습니다.");
+      }
+    }
+    submitSurvey();
   };
 
   return (
     <FormWrapper>
-      <TitleInput type="text" placeholder="제목" />
+      <TitleInput type="text" placeholder={titlePlaceHolder} value={titleValue} onChange={handleTitleChange}/>
 
       <SectionLabel>대분류</SectionLabel>
-      <CategorySelect value={selectedCategory} onChange={handleCategoryChange}>
+      <CategorySelect 
+      value={selectedCategory} 
+      onChange={handleCategoryChange}
+      ref={categoryRef}
+      >
         <option value="">--카테고리 선택--</option>
         {categoryList.map(cat => (
           <option key={cat} value={cat}>{cat}</option>
@@ -169,7 +235,11 @@ const CreateAiInterview = () => {
       {selectedCategory && (
         <>
           <SectionLabel>세부분류</SectionLabel>
-          <CategorySelect value={selectedSubCategory} onChange={handleSubCategoryChange}>
+          <CategorySelect 
+          value={selectedSubCategory} 
+          onChange={handleSubCategoryChange}
+          ref={subCategoryRef}
+          >
             <option value="">--서브카테고리 선택--</option>
             {subCategories.map(sub => (
               <option key={sub.name} value={sub.name}>{sub.name}</option>
@@ -181,7 +251,11 @@ const CreateAiInterview = () => {
         <>
           {/* 👇 기업 형태 */}
           <SectionLabel>지원 기업 형태</SectionLabel>
-          <CategorySelect value={companyType} onChange={handleCompanyTypeChange}>
+          <CategorySelect 
+          value={companyType} 
+          onChange={handleCompanyTypeChange}
+          ref={companyTypeRef}
+          >
             <option value="">--지원 기업 형태 선택--</option>
             <option value="대기업">대기업</option>
             <option value="중소기업">중소기업</option>
@@ -191,7 +265,11 @@ const CreateAiInterview = () => {
 
           {/* 👇 경력 여부 */}
           <SectionLabel>경력 여부</SectionLabel>
-          <CategorySelect value={careerLevel} onChange={handleCareerLevelChange}>
+          <CategorySelect 
+          value={careerLevel} 
+          onChange={handleCareerLevelChange}
+          ref={carrerLevelRef}
+          >
             <option value="">--경력 선택--</option>
             <option value="신입">신입</option>
             <option value="1~3년">1~3년</option>
@@ -199,19 +277,9 @@ const CreateAiInterview = () => {
             <option value="7년 이상">7년 이상</option>
           </CategorySelect>
 
-          {/* 👇 면접 유형 */}
-          <SectionLabel>면접 유형</SectionLabel>
-          <CategorySelect value={interviewType} onChange={handleInterviewTypeChange}>
-            <option value="">--면접 유형 선택--</option>
-            <option value="직무 면접">직무 면접</option>
-            <option value="인성 면접">인성 면접</option>
-            <option value="케이스 면접">케이스 면접</option>
-            <option value="기술 면접">기술 면접</option>
-          </CategorySelect>
-
           {/* 👇 기술 스택 */}
           <SectionLabel>기술 스택</SectionLabel>
-          <CheckBoxGroup>
+          <CheckBoxGroup ref={skillsRef}>
             {skills.map(skill => (
               <CheckBoxLabel key={skill}>
                 <input

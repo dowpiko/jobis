@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Container = styled.div`
   width: 100%;
@@ -78,6 +78,8 @@ const IconButton = styled.button`
 
 const AiChat = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
 
   const graphPage = () => {
     navigate('/graphPage');
@@ -85,7 +87,7 @@ const AiChat = () => {
 
   return (
     <Container>
-      <Title>제목</Title>
+      <Title>{sessionStorage.getItem("surveyTitle")}</Title>
       <InputContainer>
         <Input type="text" placeholder="채팅을 입력하세요." />
         <SendButton>▶️</SendButton>

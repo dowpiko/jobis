@@ -1,6 +1,8 @@
 package org.jobis.service;
 
+import java.util.function.Consumer;
+
 public interface AiService {
 
-	public String getResult(String prompt);
+	public void streamResultAsync(String prompt, Consumer<String> onTextChunk, Runnable onComplete);
 }
