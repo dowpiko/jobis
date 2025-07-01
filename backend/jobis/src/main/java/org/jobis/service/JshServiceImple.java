@@ -1,5 +1,7 @@
 package org.jobis.service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.jobis.domain.UserVO;
@@ -51,5 +53,14 @@ public class JshServiceImple implements JshService{
             return true;
         }
         return false;
+	}
+	
+	@Override
+	public UserVO loginUser(String id, String pw) {
+		Map<String, Object> param = new HashMap<>();
+        param.put("id", id);
+        param.put("pw", pw);
+
+        return jsmMapper.loginUser(param);
 	}
 }

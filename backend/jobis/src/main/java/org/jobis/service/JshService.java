@@ -13,4 +13,6 @@ public interface JshService {
 	public void sendVerificationCode(String email);
 	
 	public boolean verifyCode(String email, String inputCode);
+	
+	public UserVO loginUser(String id, String pw);
 }

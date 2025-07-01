@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import FindPwModal from './modal/FindPwModal';
 import ResetPwModal from './modal/ResetPwModal'; 
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Wrapper = styled.div`
   position: fixed;
@@ -103,12 +104,28 @@ const Options = styled.div`
 `;
 
 const Login = () => {
-  const [modalStep, setModalStep] = useState(null); // null | 'id' | 'resetPw'
+  const [modalStep, setModalStep] = useState(null);
+  const [id, setId] = useState('');
+  const [pw, setPw] = useState('');
   const navigate = useNavigate();
 
   const companyMain = () => navigate('/companyMain');
-  const profile = () => navigate('/profile');
   const signUpPage = () => navigate('/signUp');
+
+  const handleUserLogin = async () => {
+    try {
+      const res = await axios.post('/jsh/login', { id, pw });
+      if (res.data.success) {
+        alert('로그인 성공!');
+        navigate('/profile');
+      } else {
+        alert(res.data.message || '아이디 또는 비밀번호가 일치하지 않습니다.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('서버 오류 발생');
+    }
+  };
 
   return (
     <>
@@ -117,13 +134,23 @@ const Login = () => {
           <Title>login</Title>
           <FormGroup>
             <Label htmlFor="userId">ID :</Label>
-            <Input type="text" id="userId" />
+            <Input
+              type="text"
+              id="userId"
+              value={id}
+              onChange={(e) => setId(e.target.value)}
+            />
           </FormGroup>
           <FormGroup>
             <Label htmlFor="userPw">PW :</Label>
-            <Input type="password" id="userPw" />
+            <Input
+              type="password"
+              id="userPw"
+              value={pw}
+              onChange={(e) => setPw(e.target.value)}
+            />
           </FormGroup>
-          <Button onClick={profile}>user login</Button>
+          <Button onClick={handleUserLogin}>user login</Button>
           <Button onClick={companyMain}>company login</Button>
           <Options>
             <span onClick={() => setModalStep('id')}>ID/PW 찾기</span> |

@@ -68,11 +68,8 @@
           {/* 프로필 선택(AI or 화상채팅)  */}
           <Route
             path="/profile"
-            element={
-              
-                <UserSidebar>
-                    <Profile/>
-                </UserSidebar>
+            element={              
+              <Profile/>
             }
           />
           

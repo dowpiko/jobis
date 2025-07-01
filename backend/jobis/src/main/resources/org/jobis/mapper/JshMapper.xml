@@ -21,5 +21,11 @@
 	        'user'
 	    )
 	</insert>
+	
+	<select id="loginUser" parameterType="map" resultType="org.jobis.domain.UserVO">
+	    SELECT * FROM tbl_user
+	    WHERE id = #{id}
+	      AND pw = #{pw}
+	</select>
 
 </mapper>
