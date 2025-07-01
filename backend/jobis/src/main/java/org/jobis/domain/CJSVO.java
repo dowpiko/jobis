@@ -1,7 +1,5 @@
 package org.jobis.domain;
 import java.util.Date;
-import java.time.LocalDateTime;
-import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,10 +20,12 @@ public class CJSVO {
 	private int member;
 	private String r_title;
 	private String r_tag;
-	private LocalDateTime r_regdate;
-	@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-	private LocalDateTime sch_date;
+	private Date r_regdate;
+	private String sch_date;
 	private int enabled;
+	
+	// tbl_user에서 name가져오기
+	private String leader_name;
 	
 
 }

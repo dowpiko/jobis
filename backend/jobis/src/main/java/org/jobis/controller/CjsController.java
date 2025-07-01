@@ -1,20 +1,27 @@
 package org.jobis.controller;
 
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
 import org.jobis.domain.CJSVO;
+import org.jobis.domain.UserVO;
 import org.jobis.service.UserChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 import lombok.extern.log4j.Log4j;
 
 @Log4j
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/cjs")
 
 public class CjsController {
 	
@@ -24,12 +31,30 @@ public class CjsController {
 	
 	// userchat insert
 	@PostMapping("/insertUserChat")
-	public String register(@RequestBody CJSVO cjsvo) {
-		 log.info("¹ÞÀº µ¥ÀÌÅÍ ¡æ " + cjsvo);
-		
-		String result = ucservice.register(cjsvo) > 0 ? "success" : "fail";
-		
-		return result;
+	public ResponseEntity<String> register(@RequestBody CJSVO cjsvo, HttpSession session) {
+	    UserVO user = (UserVO) session.getAttribute("User");
+	    System.out.println("ì„¸ì…˜ ìœ ì €: " + user);
+
+	    if (user == null) {
+	        return new ResponseEntity<>("ì„¸ì…˜ ë§Œë£Œ", HttpStatus.UNAUTHORIZED);
+	    }
+
+	    cjsvo.setLeader(user.getUno());
+
+	    int result = ucservice.register(cjsvo);
+	    return new ResponseEntity<>(result > 0 ? "success" : "fail", HttpStatus.OK);
 	}
+
+	
+	// ìœ ì €ì±„íŒ… ê°€ì ¸ì˜¤ê¸°
+	@GetMapping(value = "/getUserChat", produces = MediaType.APPLICATION_JSON_VALUE)
+	public List<CJSVO> getUserChat(){
+		
+		List<CJSVO> chatList =ucservice.getUserChat(); 
+		return chatList;
+	}
+	
+
+
 	
 }

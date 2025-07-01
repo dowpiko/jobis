@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import DatePicker from 'react-datepicker'; // 날짜 선택
 import { ko } from 'date-fns/locale';    // 달력 한글로 만들기
@@ -162,60 +162,66 @@ const DiscordPage = () => {
   const [title,setTitle] = useState('');
   const [chatList, setChatList] = useState([]);
 
+  const fetchChatList = () => {
+    fetch('/getUserChat')
+      .then((res) => res.json())
+      .then((data) => {
+          console.log('서버에서 받은 데이터:', data); // ✅ 확인용
+        const parsed = data.map((chat) => ({
+          ...chat,
+          sch_date: new Date(chat.sch_date), // 문자열 → Date 객체로 변환
+        }));
+        setChatList(parsed);
+      });
+  };
+  useEffect(() => {
+    fetchChatList();
+  }, []);
+  
+
   const handleCreateChat = () => {
-  const formattedDate = selectedDate.toLocaleString('sv-SE', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  }).replace(' ', 'T');
+    if (!selectedDate || !title.trim()) {
+    alert('제목과 날짜를 모두 입력하세요');
+    return;
+  }
+  const formattedDate = selectedDate.toISOString().slice(0, 19).replace('T', ' ');
 
   const payload = {
     r_title: title,
     r_tag: '직종 중 택1',
-    leader: 1,
-    member: 2,
     sch_date: formattedDate,
   };
 
-  fetch('/cjs/insertUserChat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
 
-  setChatList((prev) => [
-    ...prev,
-    {
-      id: Date.now(),
-      title,
-      date: selectedDate,
-    },
-  ]);
+//   세션 만료되면 alert
+  fetch('/insertUserChat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'include',
+  body: JSON.stringify(payload),
+})
+  .then(res => {
+    if (res.status === 401) {
+      alert('세션이 만료되었습니다. 다시 로그인해주시기 바랍니다.');
+      window.location.href = '/'; // 로그인 페이지로 이동
+      return;
+    }
+    return res.text();
+  })
+  .then(text => {
+    if (text === 'success') {
+      fetchChatList();
+    }
+  })
+  .catch(err => console.error('Insert 요청 에러:', err));
+
+
+ 
   setTitle('');
   setSelectedDate(null);
 };
 
 
-
-    // const handleCreateChat =()=>{
-    //   if(!title || !selectedDate){
-    //     alert('제목 또는 날짜를 입력해주세요.');
-    //     return;
-    //   }
-    //    setChatList((prev) => [
-    //   ...prev,
-    //   {
-    //     id: Date.now(),
-    //     title,
-    //     date: selectedDate,
-    //   },
-    // ]);
-    // setTitle('');
-    // setSelectedDate(null);
-    // };
 
   return (
     <Wrapper>
@@ -232,21 +238,23 @@ const DiscordPage = () => {
         <ChatBox>
           <ChatTime>금일 16:00 시</ChatTime>
         </ChatBox>
-        {/* 동적 채팅 출력 */}
-          {/* {chatList.map((chat) => (
-            <ChatBubble key={chat.id}>
+        {/* 버튼 출력 */}
+          {chatList.map((chat) => (
+            <ChatBubble key={chat.cno}>
               <Avatar src="https://via.placeholder.com/40" alt="avatar" />
+              <div>{chat.leader_name}</div>
+              
               <BubbleContainer>
-                <Bubble>{chat.title}</Bubble>
+                <Bubble>{chat.r_title}</Bubble>
                 <MeetingInfo>
                     일시:{' '}
-                    {chat.date.toLocaleDateString('ko-KR', {
+                    {chat.sch_date.toLocaleDateString('ko-KR', {
                       year: 'numeric',
                       month: '2-digit',
                       day: '2-digit',
                     })}{' '}
                     |{' '}
-                    {chat.date.toLocaleTimeString('ko-KR', {
+                    {chat.sch_date.toLocaleTimeString('ko-KR', {
                       hour: '2-digit',
                       minute: '2-digit',
                       hour12: false,
@@ -256,7 +264,7 @@ const DiscordPage = () => {
                 </MeetingInfo>
               </BubbleContainer>
             </ChatBubble>
-          ))} */}
+          ))}
 
         <InputSection>
           <InputRow>

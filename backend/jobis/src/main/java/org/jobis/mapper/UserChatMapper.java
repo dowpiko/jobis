@@ -1,10 +1,16 @@
 package org.jobis.mapper;
 
+import java.util.List;
+
 import org.jobis.domain.CJSVO;
 
 public interface UserChatMapper {
 	
-	// À¯ÀúÃ¤ÆÃ »ğÀÔÇÏ±â
+	// ìœ ì €ì±„íŒ… insert
 	public int register(CJSVO cjsvo);
+	
+	// ìœ ì €ì±„íŒ… ë¶ˆëŸ¬ì˜¤ê¸°
+	public List<CJSVO> getUserChat();
+	
 
 }
