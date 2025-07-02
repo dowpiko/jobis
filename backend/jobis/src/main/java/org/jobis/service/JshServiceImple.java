@@ -39,6 +39,9 @@ public class JshServiceImple implements JshService{
     @Value("${naver.redirect.uri}")
     private String redirectUri;
     
+    @Value("${spring.mail.username}")
+    private String email;
+    
     @Override
     public boolean checkId(String id) {    	
     	return jsmMapper.findUserId(id) == 0 ? true : false;
@@ -58,7 +61,7 @@ public class JshServiceImple implements JshService{
 	    message.setTo(email);
 	    message.setSubject("이메일 인증 코드");
 	    message.setText("인증코드: " + code);
-	    message.setFrom("tjdgus3877@naver.com");
+	    message.setFrom(email);
 	    mailSender.send(message);	
 	}
 	
