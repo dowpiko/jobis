@@ -92,9 +92,9 @@ const ProfileButton = styled.button`
   color: #FFFFFF;
   font-size: 13px;
   cursor: pointer;
-  width: ${({ full }) => (full ? '100%' : 'auto')};
+  width: ${({ $full }) => ($full ? '100%' : 'auto')};
   text-align: center;
-  margin: ${({ full }) => (full ? '8px auto' : '0')};
+  margin: ${({ $full }) => ($full ? '8px auto' : '0')};
 
   &:hover {
     background-color: #5C8BC4;
@@ -180,6 +180,7 @@ function ProfileSidebar({ children }) {
         alert('프로필 정보를 불러오지 못했습니다.');
       });
   }, []);
+  
 
   return (
     <AppLayout>
@@ -201,7 +202,7 @@ function ProfileSidebar({ children }) {
               </ProfileActions>
             </>
           ) : (
-            <ProfileButton full onClick={() => navigate('/createProfileForm')}>
+            <ProfileButton $full onClick={() => navigate('/createProfileForm')}>
               프로필 생성
             </ProfileButton>
           )}

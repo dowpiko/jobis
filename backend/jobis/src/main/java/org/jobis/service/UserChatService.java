@@ -12,4 +12,7 @@ public interface UserChatService {
 	
 	// 유저채팅 불러오기
 	public List<CJSVO> getUserChat();
+	
+	// member로 참여하기
+	
 }

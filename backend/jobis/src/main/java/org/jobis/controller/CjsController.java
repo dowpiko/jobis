@@ -5,7 +5,6 @@ import java.util.List;
 import javax.servlet.http.HttpSession;
 
 import org.jobis.domain.CJSVO;
-import org.jobis.domain.ChatMessageDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.UserChatService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,12 +13,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 
 import lombok.extern.log4j.Log4j;
@@ -63,13 +59,9 @@ public class CjsController {
 		return chatList;
 	}
 	
-	// websocket용
-	@MessageMapping("/sendMessage") // 클라이언트에서 보낼 경로
-    @SendTo("/topic/public") // 구독하고 있는 클라이언트들에게 전송
-    public ChatMessageDTO send(ChatMessageDTO message) {
-        System.out.println("받은 메시지: " + message.getContent());
-        return message;
-    }
+	// 모의면접에 member로 참여하기
+	
+
 
 
 	
