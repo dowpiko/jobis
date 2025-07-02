@@ -9,6 +9,7 @@ import org.jobis.domain.ProfileVO;
 import org.jobis.domain.UserVO;
 import org.jobis.mapper.JshMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -27,7 +28,16 @@ public class JshServiceImple implements JshService{
 
     @Autowired private StringRedisTemplate redisTemplate;
     
-    @Autowired private JshMapper jsmMapper;
+    @Autowired private JshMapper jsmMapper;   
+
+	@Value("${naver.client.id}")
+    private String clientId;
+
+    @Value("${naver.client.secret}")
+    private String clientSecret;
+
+    @Value("${naver.redirect.uri}")
+    private String redirectUri;
     
     @Override
     public boolean checkId(String id) {    	
@@ -80,11 +90,7 @@ public class JshServiceImple implements JshService{
 	@Override
 	public boolean createProfile(ProfileVO profileVO) {
 		return jsmMapper.createProfile(profileVO) > 0 ? true : false;
-	}
-	
-	private final String clientId = "7sLoLuG8ZvfOsumVewkd";
-    private final String clientSecret = "2XNtNgbnVE";
-    private final String redirectUri = "http://localhost:3000/naver/callback";
+	}	
 
     @Override
     public Map<String, Object> loginWithNaver(String code) {

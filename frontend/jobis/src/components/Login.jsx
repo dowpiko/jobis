@@ -150,8 +150,8 @@ const Login = () => {
   };
 
   const handleNaverLogin = () => {
-    const NAVER_CLIENT_ID = '7sLoLuG8ZvfOsumVewkd';
-    const REDIRECT_URI = encodeURIComponent('http://localhost:3000/naver/callback');
+    const NAVER_CLIENT_ID = process.env.REACT_APP_NAVER_CLIENT_ID;
+    const REDIRECT_URI = encodeURIComponent(process.env.REACT_APP_NAVER_REDIRECT_URI);
     const STATE = Math.random().toString(36).substring(2);
 
     const naverAuthUrl =
