@@ -16,4 +16,6 @@ public interface JshMapper {
 	public ProfileVO getProfileByUno(int uno);
 	
 	public int createProfile(ProfileVO profileVO);
+	
+	public UserVO getUserById(String id);
 }

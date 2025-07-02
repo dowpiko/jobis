@@ -161,6 +161,21 @@ function UserSidebar({ children }) {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
 
+  const handleProfile = async () => {
+    try {
+      const res = await axios.get('/jsh/checkProfile');
+      if (res.data.exists) {
+        navigate('/scheduleManager');
+      } else {
+        navigate('/createProfile');
+      }
+    } catch (err) {
+      console.error('프로필 확인 실패:', err);
+      alert('세션이 만료되었거나 오류가 발생했습니다.');
+      navigate('/');
+    }
+  };
+
   useEffect(() => {
     axios.get('/jsh/getUser')
       .then(res => {
@@ -183,7 +198,7 @@ function UserSidebar({ children }) {
       <Sidebar>
         <TopBar>
           <Logo onClick={() => navigate('/profile')}>🌐Jobis</Logo>
-          <ModeToggle onClick={() => navigate('/scheduleManager')}>↔️</ModeToggle>
+          <ModeToggle onClick={() => navigate(handleProfile)}>↔️</ModeToggle>
         </TopBar>
 
         <Profile>

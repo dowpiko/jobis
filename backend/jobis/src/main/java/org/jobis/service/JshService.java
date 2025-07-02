@@ -1,5 +1,7 @@
 package org.jobis.service;
 
+import java.util.Map;
+
 import org.jobis.domain.ProfileVO;
 import org.jobis.domain.UserVO;
 import org.springframework.stereotype.Service;
@@ -20,4 +22,12 @@ public interface JshService {
 	public ProfileVO getProfileByUno(int uno);
 	
 	public boolean createProfile(ProfileVO profileVO);
+	
+	public Map<String, Object> loginWithNaver(String code);
+	
+	public String getAccessToken(String code);
+	
+	public Map<String, Object> getUserProfile(String accessToken);
+	
+	public UserVO getUserById(String id);
 }

@@ -23,6 +23,7 @@
   import ProfileSidebar from './components/sidebar/ProfileSidebar';
 import CreateProfile from './components/chat/CreateProfile';
 import CreateProfileForm from './components/chat/CreateProfileForm';
+import NaverCallback from './components/NaverCallback';
 
 
 
@@ -46,6 +47,14 @@ import CreateProfileForm from './components/chat/CreateProfileForm';
                 <Login />
             }
           />
+
+          {/* 콜백 경로 */}
+          <Route 
+            path="/naver/callback" 
+            element={
+              <NaverCallback />
+              } 
+          />  
 
           {/* 개인 회원가입 */}
           <Route

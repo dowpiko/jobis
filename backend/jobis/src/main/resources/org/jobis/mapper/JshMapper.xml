@@ -38,4 +38,8 @@
 	    INSERT INTO tbl_uprofile (uno, nickname, profileimage)
 	    VALUES (#{uno}, #{nickname}, #{profileimage})
 	</insert>
+	
+	<select id="getUserById" parameterType="String" resultType="org.jobis.domain.UserVO">
+		SELECT * FROM tbl_user WHERE id = #{id}
+	</select>
 </mapper>

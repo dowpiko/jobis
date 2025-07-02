@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import FindPwModal from './modal/FindPwModal';
 import ResetPwModal from './modal/ResetPwModal'; 
@@ -102,6 +102,28 @@ const Options = styled.div`
     }
   }
 `;
+const NaverLoginWrapper = styled.button`
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+
+  &:hover img {
+    filter: brightness(1.1);
+    transform: scale(1.02);
+    transition: all 0.2s ease-in-out;
+  }
+`;
+
+const NaverImg = styled.img`
+  height: 50px;
+  width: auto;
+  border-radius: 4px;
+
+  @media (max-width: 768px) {
+    height: 42px;
+  }
+`;
 
 const Login = () => {
   const [modalStep, setModalStep] = useState(null);
@@ -125,6 +147,18 @@ const Login = () => {
       console.error(err);
       alert('서버 오류 발생');
     }
+  };
+
+  const handleNaverLogin = () => {
+    const NAVER_CLIENT_ID = '7sLoLuG8ZvfOsumVewkd';
+    const REDIRECT_URI = encodeURIComponent('http://localhost:3000/naver/callback');
+    const STATE = Math.random().toString(36).substring(2);
+
+    const naverAuthUrl =
+      `https://nid.naver.com/oauth2.0/authorize?response_type=code` +
+      `&client_id=${NAVER_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&state=${STATE}`;
+
+    window.location.href = naverAuthUrl;
   };
 
   return (
@@ -152,6 +186,12 @@ const Login = () => {
           </FormGroup>
           <Button onClick={handleUserLogin}>user login</Button>
           <Button onClick={companyMain}>company login</Button>
+          <NaverLoginWrapper onClick={handleNaverLogin}>
+            <NaverImg
+              src="https://static.nid.naver.com/oauth/big_g.PNG"
+              alt="네이버 로그인"
+            />
+          </NaverLoginWrapper>
           <Options>
             <span onClick={() => setModalStep('id')}>ID/PW 찾기</span> |
             <span onClick={signUpPage}>회원가입</span>
@@ -159,7 +199,6 @@ const Login = () => {
         </LoginBox>
       </Wrapper>
 
-      {/* 모달 렌더링 */}
       {modalStep === 'id' && (
         <FindPwModal onClose={() => setModalStep(null)} onSubmit={() => setModalStep('resetPw')} />
       )}

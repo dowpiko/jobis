@@ -10,6 +10,7 @@ import org.jobis.domain.ProfileVO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.JshService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -142,5 +143,18 @@ public class JshController {
 	    result.put("message", created ? "프로필 생성 완료" : "생성 실패");
 	    return result;
 	}
+	
+	@PostMapping("/naver")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> naverLogin(@RequestBody Map<String, String> body, HttpSession session) {
+        String code = body.get("code");
+        Map<String, Object> userProfile  = jshservice.loginWithNaver(code);
+        
+        String userId = (String) userProfile.get("email");
+        UserVO userVO = jshservice.getUserById(userId);
+        session.setAttribute("User", userVO);
+        
+        return ResponseEntity.ok(userProfile );
+    }
 }
 
