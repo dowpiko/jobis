@@ -36,7 +36,7 @@ const MessageRow = styled.div`
   display: flex;
   margin-bottom: 12px;
   align-items: flex-start;
-  justify-content: ${({ isAi }) => (isAi ? 'flex-start' : 'flex-end')};
+  justify-content: ${({ $isAi }) => ($isAi ? 'flex-start' : 'flex-end')};
 `;
 
 const ProfileImage = styled.img`
@@ -292,15 +292,28 @@ const AiChat = () => {
 
   const handleSend = () => {
     if (!inputText.trim()) return;
+
+    const messageToSend = inputText.trim();
+
     const now = Date.now();
-    setMessages(prev => [
+    setMessages(prev =>[
       ...prev,
-      { id: now, isAi: false, text: inputText.trim() }
+      {id: now, isAi:false, text: messageToSend}
     ]);
+
     setInputText('');
-    if (textAreaRef.current) {
+
+    if(textAreaRef.current){
       textAreaRef.current.style.height = '40px';
       textAreaRef.current.style.overflowY = 'hidden';
+    }
+
+    if(readyState === ReadyState.OPEN){
+      setIsStreaming(true);
+      setCurrentStream('');
+      sendMessage(messageToSend);
+    }else{
+      console.warn('WebSocket이 연결되어 있지 않습니다.');
     }
   };
 
@@ -338,24 +351,23 @@ const AiChat = () => {
     }
   }, [messages, currentStream]);
 
-  useEffect(()=>{
-    if(lastMessage != null){
+  useEffect(() => {
+    if (lastMessage != null) {
       const data = lastMessage.data;
 
-      // 종료 신호 감지
-      if(data === '[DONE]'){
-        setMessages(prev =>[
+      // [DONE]이 아니라면 그냥 메시지 추가
+      if (data && data !== '[DONE]') {
+        setMessages(prev => [
           ...prev,
-          {id:Date.now(), isAi:true, text: currentStream}
+          { id: Date.now(), isAi: true, text: data }
         ]);
-        setCurrentStream('');
-        setIsStreaming(false);
-        return;
       }
-      if(!isStreaming) setIsStreaming(true);
-      setCurrentStream(prev => prev+data);
+
+      // 스트리밍 아니므로 상태 초기화
+      setCurrentStream('');
+      setIsStreaming(false);
     }
-  }, [lastMessage, currentStream, isStreaming]);
+  }, [lastMessage]);
   return (
     <Container>
       {started && (
@@ -375,7 +387,7 @@ const AiChat = () => {
       {started ? (
         <ChatContainer ref={scrollRef}>
           {messages.map(msg => (
-            <MessageRow key={msg.id} isAi={msg.isAi}>
+            <MessageRow key={msg.id} $isAi={msg.isAi}>
               {msg.isAi ? (
                 <>
                   <ProfileImage src="/img/robot.png" alt="bot" />
@@ -413,7 +425,7 @@ const AiChat = () => {
             placeholder= "답변을 입력하세요."
             maxLength={300}
             rows={1}
-            isLimitExceeded={isLimitExceeded}
+            $isLimitExceeded={isLimitExceeded}
           />
 
           {isLimitExceeded && (
