@@ -90,6 +90,18 @@ public class CjsController {
 		
 	}
 	
+	// react에서는 세션정보를 직접 못받아와서 여기서 따로 보내줘야된다해서 넣는거
+	@ResponseBody
+	@GetMapping("/getMyUno")
+	public ResponseEntity<Integer> getMyUno(HttpSession session) {
+	    UserVO user = (UserVO) session.getAttribute("User");
+
+	    if (user == null) {
+	        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+	    }
+
+	    return new ResponseEntity<>(user.getUno(), HttpStatus.OK);
+	}
 
 
 

@@ -59,16 +59,11 @@ const ChatBox = styled.div`
   background-color: #fff; // (선택) 가시성 향상
 `;
 
-const ChatTime = styled.small`
-  color: #6b7280;
-  margin-bottom: 8px;
-  display: block;
-`;
-
 const ChatBubble = styled.div`
   display: flex;
   align-items: flex-start;
   margin-bottom: 14px;
+  flex-direction: ${(props) => (props.isMine ? 'row-reverse' : 'row')};
 `;
 
 const Avatar = styled.img`
@@ -81,10 +76,11 @@ const Avatar = styled.img`
 const BubbleContainer = styled.div`
   display: flex;
   flex-direction: column;
+  align-items: ${(props) => (props.isMine ? 'flex-end' : 'flex-start')};
 `;
 
 const Bubble = styled.div`
-  background-color: #ffffff;
+   background-color: ${(props) => (props.isMine ? '#d1eaff' : '#ffffff')};
   border: 1px solid #b0bccb;
   padding: 10px 14px;
   border-radius: 12px;
@@ -168,8 +164,9 @@ const DiscordPage = () => {
   const [chatList, setChatList] = useState([]);
   const [showModal,setShowModal] =useState(false);
   const [selectedChat,setSelectedChat] = useState(null);
-  const [visibleCount, setVisibleCount] = useState(8);   // 로드시 버튼 수
+  const [visibleCount, setVisibleCount] = useState(9);   // 로드시 버튼 수
   const [isAtBottom, setIsAtBottom] = useState(true);    // 스크롤 위치 상태 저장
+  const [myUno, setMyUno] = useState(() => window.myUno);
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
 
@@ -247,6 +244,7 @@ const DiscordPage = () => {
   };
 
 
+
 //   세션 만료되면 alert
   fetch('/insertUserChat', {
   method: 'POST',
@@ -275,6 +273,23 @@ const DiscordPage = () => {
   setTitle('');
   setSelectedDate(null);
 };
+
+ // 세션 uno랑 leader랑 비교
+ useEffect(() => {
+   fetch('/getMyUno', { credentials: 'include' })
+     .then(res => {
+       if (res.status === 401) {
+         alert('로그인 상태가 아닙니다.');
+         window.location.href = '/';
+         return;
+       }
+       return res.json();
+     })
+     .then(uno => {
+       if (uno !== undefined) setMyUno(uno);
+     })
+     .catch(err => console.error('세션 uno 가져오기 실패:', err));
+ }, []);
 
 const handleOnConfirm = () => {
   if (!selectedChat) return;
@@ -311,7 +326,7 @@ const handleOnConfirm = () => {
       alert('서버 오류가 발생했습니다.');
     });
 };
-
+  
   return (
      <Wrapper>
       <Container>
@@ -319,44 +334,50 @@ const handleOnConfirm = () => {
           <Title>‘박말선’님과의 화상 채팅 일정</Title>
           <JoinButton>회의 참여</JoinButton>
         </Header>
-
         <ChatBox ref={scrollRef} onScroll={handleScroll}> {/* ✅ 스크롤 감지 */}
-          {visibleChats.map((chat) => (
-            <ChatBubble key={chat.cno}>
-              <Avatar src="https://via.placeholder.com/40" alt="avatar" />
-              <div>{chat.leader_name}</div>
-              <BubbleContainer>
-                <Bubble>{chat.r_title}</Bubble>
-                <MeetingInfo>
-                  일시:{' '}
-                  {chat.sch_date.toLocaleDateString('ko-KR', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                  })}{' '}
-                  |{' '}
-                  {chat.sch_date.toLocaleTimeString('ko-KR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false,
-                  })}
-                  <PeopleCount>{chat.member ? '1/1' : '0/1'} 👥</PeopleCount>
-                  {chat.member ? (
-                    <span style={{ marginLeft: '10px', color: 'red' }}>인원이 꽉 찼습니다</span>
-                  ) : (
-                    <ActionButton
-                      onClick={() => {
-                        setSelectedChat(chat);
-                        setShowModal(true);
-                      }}
-                    >
-                      참가
-                    </ActionButton>
-                  )}
-                </MeetingInfo>
-              </BubbleContainer>
-            </ChatBubble>
-          ))}
+          {visibleChats.map((chat) => {
+            const isMine = chat.leader === myUno;
+            return (
+              <ChatBubble key={chat.cno} isMine={isMine}>
+                {!isMine && <Avatar src="https://via.placeholder.com/40" alt="avatar" />}
+                {!isMine && <div>{chat.leader_name}</div>}
+                <BubbleContainer isMine={isMine}>
+                  <Bubble isMine={isMine}>{chat.r_title}</Bubble>
+                  <MeetingInfo>
+                    일시:{' '}
+                    {chat.sch_date.toLocaleDateString('ko-KR', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                    })}{' '}
+                    |{' '}
+                    {chat.sch_date.toLocaleTimeString('ko-KR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false,
+                    })}
+                    <PeopleCount>{chat.member ? '1/1' : '0/1'} 👥</PeopleCount>
+
+                    {/* 참가 버튼 조건 분기 */}
+                    {!isMine && (
+                      chat.member ? (
+                        <span style={{ marginLeft: '10px', color: 'red' }}>인원이 꽉 찼습니다</span>
+                      ) : (
+                        <ActionButton
+                          onClick={() => {
+                            setSelectedChat(chat);
+                            setShowModal(true);
+                          }}
+                        >
+                          참가
+                        </ActionButton>
+                      )
+                    )}
+                  </MeetingInfo>
+                </BubbleContainer>
+              </ChatBubble>
+            );
+          })}
         </ChatBox>
 
         <InputSection>
