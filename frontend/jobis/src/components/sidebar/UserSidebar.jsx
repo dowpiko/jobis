@@ -203,7 +203,7 @@ function UserSidebar({ children }) {
 
         <Profile>
           <ProfileInfo>
-            <ProfileImg src="https://via.placeholder.com/48" alt="profile" />
+            <ProfileImg src="/img/user.svg" alt="profile" />
             <ProfileName>{userName}</ProfileName>
           </ProfileInfo>
           <ProfileActions>

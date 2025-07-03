@@ -3,8 +3,9 @@ import styled from 'styled-components';
 import DatePicker from 'react-datepicker'; // 날짜 선택
 import { ko } from 'date-fns/locale';    // 달력 한글로 만들기
 import 'react-datepicker/dist/react-datepicker.css';
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
+import JoinInterviewModal from '../modal/JoinInterviewModal';
+// import { Client } from '@stomp/stompjs';
+// import SockJS from 'sockjs-client';
 
 const Wrapper = styled.div`
   display: flex;
@@ -158,13 +159,12 @@ const DateRow = styled.div`
   gap: 10px;
 `;
 
-
 const DiscordPage = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [title,setTitle] = useState('');
   const [chatList, setChatList] = useState([]);
-  const [stompClient, setStompClient] = useState(null);
-  const [messages, setMessages] = useState([]);
+  const [showModal,setShowModal] =useState(false);
+  const [selectedChat,setSelectedChat] = useState(null);
 
   const fetchChatList = () => {
     fetch('/getUserChat')
@@ -179,16 +179,27 @@ const DiscordPage = () => {
       });
   };
   useEffect(() => {
-    fetchChatList();
+    const fetchChatList = () => {
+      fetch('/getUserChat')
+        .then((res) => res.json())
+        .then((data) => {
+          const parsed = data.map((chat) => ({
+            ...chat,
+            sch_date: new Date(chat.sch_date), // ✅ 문자열 → Date 변환
+          }));
+          setChatList(parsed);
+        });
+    };
+    fetchChatList(); 
+    const interval = setInterval(fetchChatList, 5000); 
+    return () => clearInterval(interval);
   }, []);
   
-
   const handleCreateChat = () => {
     if (!selectedDate || !title.trim()) {
     alert('제목과 날짜를 모두 입력하세요');
     return;
   }
-
 
   const formattedDate = selectedDate.toISOString().slice(0, 19).replace('T', ' ');
 
@@ -227,53 +238,10 @@ const DiscordPage = () => {
   setSelectedDate(null);
 };
 
-// ------------------------웹소캣 코드 영역 --------------------------
 
-useEffect(() => {
-  const socket = new SockJS('http://localhost:9090/ws'); // ✅ 백엔드에서 설정한 endpoint
-  const client = new Client({
-    webSocketFactory: () => socket,
-    debug: (str) => console.log('[STOMP]', str),
-    onConnect: () => {
-      console.log('✅ 웹소켓 연결 성공');
 
-      client.subscribe('/topic/public', (msg) => {
-        const received = JSON.parse(msg.body);
-        console.log('📩 메시지 수신:', received);
 
-        // 예시 메시지 표시용
-        setMessages(prev => [...prev, received]);
-      });
-    },
-    onStompError: (frame) => {
-      console.error('🔴 STOMP 에러', frame);
-    }
-  });
 
-  client.activate();
-  setStompClient(client);
-
-  return () => {
-    if (client.connected) {
-      client.deactivate();
-    }
-  };
-}, []);   //----------여기까지--------------------
-  // 이것도 웹소켓용
-  const sendTestMessage = () => {
-  if (!stompClient || !stompClient.connected) {
-    alert('웹소켓 연결 안 됨');
-    return;
-  }
-  stompClient.publish({
-    destination: '/app/sendMessage',
-    body: JSON.stringify({
-      sender: 'React사용자',
-      content: '테스트 메시지입니다',
-      time: new Date().toLocaleTimeString(),
-    })
-  });
-};     // 여기까지
 
   return (
     <Wrapper>
@@ -312,7 +280,12 @@ useEffect(() => {
                       hour12: false,
                     })}
                   <PeopleCount>0/1 👥</PeopleCount>
-                  <ActionButton>참가</ActionButton>
+                  <ActionButton onClick={() => {
+                    setSelectedChat(chat);
+                    setShowModal(true);
+                  }}>
+                    참가
+                  </ActionButton>
                 </MeetingInfo>
               </BubbleContainer>
             </ChatBubble>
@@ -336,15 +309,11 @@ useEffect(() => {
             timeCaption="시간"       
           />
           <SendButton onClick={handleCreateChat}>모집하기</SendButton>
-          <SendButton onClick={sendTestMessage}>테스트 메시지 보내기</SendButton>
         </DateRow>
         </InputSection>
+        {/* 모달 */}
+        {showModal && <JoinInterviewModal onClose={() => setShowModal(false)} chat = {selectedChat} />}
       </Container>
-      {messages.map((msg, idx) => (
-  <p key={idx}>
-    💬 <b>{msg.sender}</b>: {msg.content} ({msg.time})
-  </p>
-))}
     </Wrapper>
   );
 };

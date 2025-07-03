@@ -6,8 +6,17 @@ export const regexRules = {
 };
 
 export const validateField = (name, value, compareValue = '') => {
-  if (!value.trim()) return '';
-
+  if (!value.trim()) {
+    switch (name) {
+      case 'id': return '아이디를 입력해주세요';
+      case 'pw': return '비밀번호를 입력해주세요';
+      case 'confirmPassword': return '비밀번호 확인을 입력해주세요';
+      case 'name': return '이름을 입력해주세요';
+      case 'email': return '이메일을 입력해주세요';
+      default: return '값을 입력해주세요';
+    }
+  }
+  
   switch (name) {
     case 'id':
       return regexRules.id.test(value) ? '' : '아이디는 영문/숫자 5~15자';
