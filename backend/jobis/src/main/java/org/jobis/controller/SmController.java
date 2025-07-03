@@ -1,6 +1,7 @@
 package org.jobis.controller;
 
 import org.jobis.domain.CUserVO;
+import org.jobis.domain.InterViewBCVO;
 import org.jobis.service.SmService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -42,5 +43,17 @@ public class SmController {
 	public int insertCUser(@RequestBody CUserVO cuvo) {
 		System.out.println(cuvo);
 		return service.insertCUser(cuvo);
+	}
+	
+	/* ----------------------------------------------------------------------------------- */
+	
+	// 면접 공고 등록
+	@PostMapping("/insertInterView")
+	@ResponseBody
+	public int insertInterView(@RequestBody InterViewBCVO ivbc) {
+		// uno 수정하기
+		ivbc.setUno(2);
+		System.out.println(ivbc);
+		return service.insertInterView(ivbc);
 	}
 }

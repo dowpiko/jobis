@@ -1,6 +1,7 @@
 package org.jobis.service;
 
 import org.jobis.domain.CUserVO;
+import org.jobis.domain.InterViewBCVO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -15,4 +16,9 @@ public interface SmService {
 	
 	// 기업 등록
 	public int insertCUser(CUserVO cuvo);
+	
+	/* ----------------------------------------------------------------------------------- */
+	
+	// 면접 공고 등록
+	public int insertInterView(InterViewBCVO ivbc);
 }

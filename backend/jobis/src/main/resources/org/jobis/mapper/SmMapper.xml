@@ -22,4 +22,16 @@
 		  );
 	  END;
 	</insert>
+	
+	<insert id="insertInterView" parameterType="org.jobis.domain.InterViewBCVO">
+		INSERT INTO TBL_OFFERS VALUES (
+			SEQ_ONO.NEXTVAL,
+			#{uno},
+			#{title},
+			#{tag},
+			#{content},
+			#{activedays},
+			sysdate		
+		)
+	</insert>
 </mapper>

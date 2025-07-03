@@ -9,6 +9,7 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.jobis.domain.CUserVO;
+import org.jobis.domain.InterViewBCVO;
 import org.jobis.mapper.SmMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -89,4 +90,12 @@ public class SmServiceImple implements SmService {
     public int insertCUser(CUserVO cuvo) {
     	return mapper.insertCUser(cuvo);
     };
+    
+    /* ----------------------------------------------------------------------------------- */
+    
+	// 면접 공고 등록    
+    @Override
+    public int insertInterView(InterViewBCVO ivbc) {
+    	return mapper.insertInterView(ivbc);
+    }
 }

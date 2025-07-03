@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import categories from '../../data/categories'; // 🔹 직무 데이터
+import axios from 'axios';
 
 const Container = styled.div`
   flex-grow: 1;
@@ -20,7 +22,7 @@ const Title = styled.h2`
 `;
 
 const QuestionListWrapper = styled.div`
-  max-height: 600px;
+  height: 307px;
   overflow-y: auto;
   margin-bottom: 20px;
   padding-right: 8px;
@@ -63,6 +65,22 @@ const Input = styled.input`
   }
 `;
 
+const Select = styled.select`
+  width: 100%;
+  height: 36px;
+  margin-bottom: 16px;
+  padding: 6px 10px;
+  border: 1px solid #b0bccb;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: #fff;
+
+  &:hover {
+    border-color: #5c8bc4;
+    background-color: #f0f4f8;
+  }
+`;
+
 const AddButton = styled.button`
   background-color: #5c8bc4;
   border: none;
@@ -97,32 +115,165 @@ const SubmitButton = styled.button`
   }
 `;
 
-const NoticeProgress = () => {
-  const [questions, setQuestions] = useState(['', '', '', '']);
-  const navigate = useNavigate();
+const FlexRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+`;
 
+const NoticeProgress = () => {
+  const navigate = useNavigate();
+  const [title, setTitle] = useState('');
+  const [category, setCategory] = useState('');
+  const [subCategory, setSubCategory] = useState('');
+  const [content, setContent] = useState(['', '', '', '']);
+  const [isLoading, setIsLoading] = useState(false);
+  // 시작 날짜
+  const [startDate] = useState(() => {
+  const today = new Date();
+    return today.toISOString().split('T')[0];
+  });
+  // 종료 날짜
+  const [activedays, setActivedays] = useState(() => {
+    const today = new Date();
+    today.setDate(today.getDate() + 5);
+    return today.toISOString().split('T')[0];
+  });
+
+  // date max 값 계산용
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + 14);
+  const maxDateStr = maxDate.toISOString().split('T')[0];
+  // date min 값 계산용
+  const minEndDate = new Date();
+  minEndDate.setDate(minEndDate.getDate() + 5);
+  const minEndDateStr = minEndDate.toISOString().split('T')[0];
+
+  const subCategories = category
+    ? categories.find((cat) => cat.category === category)?.subCategories || []
+    : [];
+
+  useEffect(() => {
+    if (title.trim() === '' && category && subCategory) {
+      setTitle(`${category}(${subCategory})`);
+    }
+  }, [category, subCategory]);
+  
+  // 질문 추가
   const handleChange = (i, v) => {
-    const arr = [...questions];
+    const arr = [...content];
     arr[i] = v;
-    setQuestions(arr);
+    setContent(arr);
   };
 
   const handleAdd = () => {
-    if (questions.length < 15) setQuestions([...questions, '']);
+    if (content.length < 15) setContent([...content, '']);
   };
 
-  const handleSubmit = () => {
-    console.log('등록된 질문:', questions);
-    alert('질문이 등록되었습니다.');
-    navigate('/companyMain');
+  // 질문 등록
+  const handleSubmit = async () => {
+    if (isLoading) return;
+
+    if (!title.trim()) return alert('제목을 입력하세요.');
+    if (!category) return alert('대분류를 선택하세요.');
+    if (!subCategory) return alert('세부분류를 선택하세요.');
+    const tag = `${category} (${subCategory})`;
+
+    const cleanedContent = content.filter(item => item && item.trim() !== '').join('\n');
+    
+    const payload = {
+      title,
+      tag,
+      content: cleanedContent,
+      activedays
+    };
+
+    setIsLoading(true);
+
+    try {
+      const res = await axios.post('http://localhost:9090/sm/insertInterView', payload);
+
+      if (res.status === 200) {
+        alert("면접 등록 성공");
+        navigate('/companyMain');
+      } else {
+        alert("면접 등록 실패");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("서버 접속 실패");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <Container>
-      <Title>공고 질문 등록</Title>
+      <Title>면접 질문 등록</Title>
+
+      <Label>제목</Label>
+      <Input
+        type="text"
+        placeholder="면접 제목 입력"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        style={{ marginBottom: '16px' }}
+        onBlur={() => {
+          if (title.trim() === '' && category && subCategory) {
+            setTitle(`${category}(${subCategory})`);
+          }
+        }}
+      />
+
+      <Label>대분류</Label>
+      <Select
+        value={category}
+        onChange={(e) => {
+          setCategory(e.target.value);
+          setSubCategory('');
+        }}
+      >
+        <option value="">-- 직군 선택 --</option>
+        {categories.map((cat) => (
+          <option key={cat.category} value={cat.category}>
+            {cat.category}
+          </option>
+        ))}
+      </Select>
+
+      {category && (
+        <>
+          <Label>세부분류</Label>
+          <Select
+            value={subCategory}
+            onChange={(e) => setSubCategory(e.target.value)}
+          >
+            <option value="">-- 세부분류 선택 --</option>
+            {subCategories.map((sub) => (
+              <option key={sub.name} value={sub.name}>
+                {sub.name}
+              </option>
+            ))}
+          </Select>
+        </>
+      )}
+
+      <Label>진행 기간 (5일 ~ 14일)</Label>
+      <FlexRow>
+        <Input type="date" value={startDate} disabled />
+        <span>~</span>
+        <Input
+          type="date"
+          value={activedays}
+          min={minEndDateStr}
+          max={maxDateStr}
+          onChange={(e) => setActivedays(e.target.value)}
+        />
+      </FlexRow>
 
       <QuestionListWrapper>
-        {questions.map((q, idx) => (
+        {content.map((q, idx) => (
           <QuestionGroup key={idx}>
             <Label>Q. {idx + 1}</Label>
             <Input
@@ -134,11 +285,13 @@ const NoticeProgress = () => {
         ))}
       </QuestionListWrapper>
 
-      {questions.length < 15 && (
+      {content.length < 15 && (
         <AddButton onClick={handleAdd}>+ 질문 추가 (최대 15개)</AddButton>
       )}
 
-      <SubmitButton onClick={handleSubmit}>등록</SubmitButton>
+      <SubmitButton onClick={handleSubmit} disabled={isLoading}>
+        {isLoading ? '등록 중...' : '등록'}
+      </SubmitButton>
     </Container>
   );
 };
