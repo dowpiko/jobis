@@ -10,6 +10,7 @@ import org.jobis.domain.ProfileVO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.JshService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -155,6 +156,24 @@ public class JshController {
         session.setAttribute("User", userVO);
         
         return ResponseEntity.ok(userProfile );
+    }
+	
+	@PostMapping("/kakao")
+    @ResponseBody
+    public ResponseEntity<?> kakaoCallback(@RequestBody Map<String, String> body, HttpSession session) {
+        String code = body.get("code");
+
+        try {
+            Map<String, Object> userProfile = jshservice.handleKakaoLogin(code);
+            String userId = (String) userProfile.get("email");
+            UserVO userVO = jshservice.getUserById(userId);
+            session.setAttribute("User", userVO);
+            return ResponseEntity.ok(userProfile);
+        } catch (Exception e) {
+            return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("success", false, "message", "카카오 인증 실패"));
+        }
     }
 }
 

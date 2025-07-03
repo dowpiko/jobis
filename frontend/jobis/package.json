@@ -19,6 +19,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^17.0.0",
     "express": "^5.1.0",
+    "kakao-js-sdk": "^1.2.3",
     "nodemailer": "^7.0.4",
     "react": "^19.1.0",
     "react-calendar": "^6.0.0",
@@ -57,5 +58,8 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:9090"
+  "proxy": "http://localhost:9090",
+  "devDependencies": {
+    "@types/kakao-js-sdk": "^1.39.5"
+  }
 }

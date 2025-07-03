@@ -30,4 +30,6 @@ public interface JshService {
 	public Map<String, Object> getUserProfile(String accessToken);
 	
 	public UserVO getUserById(String id);
+	
+	public Map<String, Object> handleKakaoLogin(String code);
 }

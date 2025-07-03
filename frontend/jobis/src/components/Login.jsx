@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import FindPwModal from './modal/FindPwModal';
-import ResetPwModal from './modal/ResetPwModal'; 
+import ResetPwModal from './modal/ResetPwModal';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { initKakao } from 'kakao-js-sdk';
 
 const Wrapper = styled.div`
   position: fixed;
@@ -52,21 +53,20 @@ const Label = styled.label`
 `;
 
 const Input = styled.input`
-  width: 70%;
+  width: 350px;
   padding: 8px;
   font-size: 15px;
   border: 1px solid #B0BCCB;
   border-radius: 4px;
   background-color: #F1F5F9;
   color: #1F2A37;
+  pointer-events: all;
 
   &:focus {
     border-color: #4376B6;
     background-color: #ffffff;
     outline: none;
   }
-  width: 350px;
-  pointer-events: all;
 `;
 
 const Button = styled.button`
@@ -102,6 +102,7 @@ const Options = styled.div`
     }
   }
 `;
+
 const NaverLoginWrapper = styled.button`
   background: transparent;
   border: none;
@@ -125,11 +126,41 @@ const NaverImg = styled.img`
   }
 `;
 
+const KakaoLoginWrapper = styled.button`
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  margin-top: 10px;
+
+  &:hover img {
+    filter: brightness(1.1);
+    transform: scale(1.02);
+    transition: all 0.2s ease-in-out;
+  }
+`;
+
+const KakaoImg = styled.img`
+  height: 50px;
+  width: auto;
+  border-radius: 4px;
+
+  @media (max-width: 768px) {
+    height: 42px;
+  }
+`;
+
 const Login = () => {
   const [modalStep, setModalStep] = useState(null);
   const [id, setId] = useState('');
   const [pw, setPw] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    initKakao(process.env.REACT_APP_KAKAO_JS_KEY)
+      .then(() => console.log('✅ Kakao SDK Initialized'))
+      .catch(console.error);
+  }, []);
 
   const companyMain = () => navigate('/companyMain');
   const signUpPage = () => navigate('/signUp');
@@ -161,11 +192,20 @@ const Login = () => {
     window.location.href = naverAuthUrl;
   };
 
+  const handleKakaoLogin = () => {
+    const REST_API_KEY = process.env.REACT_APP_KAKAO_JS_KEY;
+    const REDIRECT_URI = process.env.REACT_APP_KAKAO_REDIRECT_URI;
+    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
+
+    window.location.href = kakaoAuthUrl;
+  };
+
   return (
     <>
       <Wrapper blur={modalStep !== null}>
         <LoginBox>
           <Title>login</Title>
+
           <FormGroup>
             <Label htmlFor="userId">ID :</Label>
             <Input
@@ -175,6 +215,7 @@ const Login = () => {
               onChange={(e) => setId(e.target.value)}
             />
           </FormGroup>
+
           <FormGroup>
             <Label htmlFor="userPw">PW :</Label>
             <Input
@@ -184,14 +225,24 @@ const Login = () => {
               onChange={(e) => setPw(e.target.value)}
             />
           </FormGroup>
+
           <Button onClick={handleUserLogin}>user login</Button>
           <Button onClick={companyMain}>company login</Button>
+
           <NaverLoginWrapper onClick={handleNaverLogin}>
             <NaverImg
               src="https://static.nid.naver.com/oauth/big_g.PNG"
               alt="네이버 로그인"
             />
           </NaverLoginWrapper>
+
+          <KakaoLoginWrapper onClick={handleKakaoLogin}>
+            <KakaoImg
+              src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png"
+              alt="카카오 로그인"
+            />
+          </KakaoLoginWrapper>
+
           <Options>
             <span onClick={() => setModalStep('id')}>ID/PW 찾기</span> |
             <span onClick={signUpPage}>회원가입</span>
@@ -203,11 +254,10 @@ const Login = () => {
         <FindPwModal onClose={() => setModalStep(null)} onSubmit={() => setModalStep('resetPw')} />
       )}
       {modalStep === 'resetPw' && (
-        <ResetPwModal onClose={() => setModalStep(null)} userId="exampleUserId" />
+        <ResetPwModal onClose={() => setModalStep(null)} userId={id} />
       )}
     </>
   );
 };
 
 export default Login;
-

@@ -24,6 +24,7 @@
 import CreateProfile from './components/chat/CreateProfile';
 import CreateProfileForm from './components/chat/CreateProfileForm';
 import NaverCallback from './components/NaverCallback';
+import KakaoCallback from './components/KakaoCallback';
 
 
 
@@ -48,12 +49,20 @@ import NaverCallback from './components/NaverCallback';
             }
           />
 
-          {/* 콜백 경로 */}
+          {/* 네이버 로그인 콜백 경로 */}
           <Route 
             path="/naver/callback" 
             element={
               <NaverCallback />
-              } 
+            } 
+          />
+
+          {/* 카카오 로그인 콜백 경로 */}
+          <Route 
+            path="/kakao/callback"
+           element={
+              <KakaoCallback/>
+            } 
           />  
 
           {/* 개인 회원가입 */}
