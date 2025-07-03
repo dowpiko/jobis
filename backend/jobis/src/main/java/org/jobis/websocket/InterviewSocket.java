@@ -11,6 +11,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.jobis.config.CustomSpringConfigurator;
+import org.jobis.service.AiService;
 import org.jobis.service.InterviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,8 +21,10 @@ import org.springframework.stereotype.Component;
 public class InterviewSocket {
 	
 	private Session session;
+//	@Autowired
+//	private InterviewService interviewService;
 	@Autowired
-	private InterviewService interviewService;
+	private AiService aiService;
 	
 	@OnOpen
 	public void onOpen(Session session) {
@@ -30,10 +33,26 @@ public class InterviewSocket {
 	}
 	
 	@OnMessage
-	public void onMesssage(String message) throws IOException{
+	public void onMessage(String message) throws IOException{
 		System.out.println("수신 메시지 : " + message);
-		String response = interviewService.generateAnswer(message);
-		session.getBasicRemote().sendText(response);
+		aiService.streamResultAsync(
+				message,
+				chunk ->{
+					try {
+						session.getBasicRemote().sendText(chunk);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				},
+				() -> {
+					try {
+						session.getBasicRemote().sendText("[DONE]");
+					} catch (Exception e2) {
+						e2.printStackTrace();
+					}
+				}
+				);
+		
 	}
 	
 	@OnClose

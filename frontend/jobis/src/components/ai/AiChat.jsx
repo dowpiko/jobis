@@ -58,7 +58,7 @@ const MessageBubble = styled.div`
   max-width: 1050px;
   width: fit-content;
   word-break: break-word;
-  margin: ${({ isAi }) => (isAi ? '0 0 0 8px' : '0 8px 0 0')};
+  margin: ${({ $isAi }) => ($isAi ? '0 0 0 8px' : '0 8px 0 0')};
   white-space: pre-wrap; // ✅ 이거 추가!
 `;
 
@@ -232,9 +232,10 @@ const AiChat = () => {
   const navigate = useNavigate();
   const [started, setStarted] = useState(false);
   const [messages, setMessages] = useState([]);
-  const [currentStream, setCurrentStream] = useState('');
   const [inputText, setInputText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [currentStream, setCurrentStream] = useState('');
+  const currentStreamRef = useRef('');
   const textAreaRef = useRef(null);
   const scrollRef = useRef(null);
   const sendButtonRef = useRef(null);
@@ -352,18 +353,22 @@ const AiChat = () => {
   }, [messages, currentStream]);
 
   useEffect(() => {
-    if (lastMessage != null) {
-      const data = lastMessage.data;
+    if(!lastMessage) return;
 
-      // [DONE]이 아니라면 그냥 메시지 추가
-      if (data && data !== '[DONE]') {
-        setMessages(prev => [
-          ...prev,
-          { id: Date.now(), isAi: true, text: data }
-        ]);
-      }
+    
+    const data = lastMessage.data;
+    console.log("🧾 WebSocket 수신: ", data);  
 
-      // 스트리밍 아니므로 상태 초기화
+    if (data && data !== '[DONE]') {
+      currentStreamRef.current += data;
+      setCurrentStream(currentStreamRef.current); // UI에 표시만 함
+      console.log("📢 누적된 currentStream:", currentStreamRef.current);
+    } else if (data === '[DONE]') {
+      setMessages(prev => [
+        ...prev,
+        { id: Date.now(), isAi: true, text: currentStreamRef.current }
+      ]);
+      currentStreamRef.current = '';
       setCurrentStream('');
       setIsStreaming(false);
     }
@@ -402,8 +407,8 @@ const AiChat = () => {
             </MessageRow>
           ))}
 
-          {currentStream && (
-            <MessageRow isAi={true}>
+          {isStreaming && (
+            <MessageRow $isAi={true}>
               <ProfileImage src="/img/robot.png" alt="bot" />
               <AiMessageBubble>{currentStream}</AiMessageBubble>
             </MessageRow>

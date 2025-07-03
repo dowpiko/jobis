@@ -20,6 +20,7 @@
     "dotenv": "^17.0.0",
     "express": "^5.1.0",
     "kakao-js-sdk": "^1.2.3",
+    "nanoid": "^5.1.5",
     "nodemailer": "^7.0.4",
     "react": "^19.1.0",
     "react-calendar": "^6.0.0",
