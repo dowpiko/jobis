@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { ReactComponent as GptMicIcon } from '../../assets/icons/GptMicIcon.svg'
 import useWebSocket, { ReadyState } from 'react-use-websocket';
+import { nanoid } from 'nanoid';
 
 const Container = styled.div`
   position: relative;
@@ -34,10 +35,12 @@ const ChatContainer = styled.div`
 
 const MessageRow = styled.div`
   display: flex;
-  margin-bottom: 12px;
+  margin-bottom: 24px; // ✅ 간격 2배 늘림
   align-items: flex-start;
   justify-content: ${({ $isAi }) => ($isAi ? 'flex-start' : 'flex-end')};
 `;
+
+
 
 const ProfileImage = styled.img`
   width: 56px;
@@ -296,10 +299,9 @@ const AiChat = () => {
 
     const messageToSend = inputText.trim();
 
-    const now = Date.now();
     setMessages(prev =>[
       ...prev,
-      {id: now, isAi:false, text: messageToSend}
+      {id: nanoid(), isAi:false, text: messageToSend}
     ]);
 
     setInputText('');
@@ -353,26 +355,34 @@ const AiChat = () => {
   }, [messages, currentStream]);
 
   useEffect(() => {
-    if(!lastMessage) return;
+    if (!lastMessage || typeof lastMessage.data !== 'string') return;
 
-    
     const data = lastMessage.data;
-    console.log("🧾 WebSocket 수신: ", data);  
+    console.log("🧾 WebSocket 수신: ", data);
 
-    if (data && data !== '[DONE]') {
-      currentStreamRef.current += data;
-      setCurrentStream(currentStreamRef.current); // UI에 표시만 함
-      console.log("📢 누적된 currentStream:", currentStreamRef.current);
-    } else if (data === '[DONE]') {
+  if (data === '[DONE]') {
+    if (currentStreamRef.current.trim()) {
+      const finalText = currentStreamRef.current;
+
       setMessages(prev => [
         ...prev,
-        { id: Date.now(), isAi: true, text: currentStreamRef.current }
+        { id: nanoid(), isAi: true, text: finalText }
       ]);
-      currentStreamRef.current = '';
-      setCurrentStream('');
-      setIsStreaming(false);
+
+      // ⚠️ 즉시 비우지 말고 setTimeout으로 약간 지연
+      setTimeout(() => {
+        currentStreamRef.current = '';
+        setCurrentStream('');
+        setIsStreaming(false);
+      }, 0);
+    }
+  } else {
+      currentStreamRef.current += data;
+      setCurrentStream(currentStreamRef.current);
+      console.log("📢 누적된 currentStream:", currentStreamRef.current);
     }
   }, [lastMessage]);
+
   return (
     <Container>
       {started && (
