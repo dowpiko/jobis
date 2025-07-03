@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.jobis.mapper.SmMapper">
+	<select id="findUserId" parameterType="String" resultType="int">
+		SELECT COUNT(*) FROM tbl_user WHERE id=#{id}
+	</select>
+	
+	<insert id="insertCUser" parameterType="org.jobis.domain.CUserVO">
+  
+	  <selectKey keyProperty="uno" resultType="int" order="BEFORE" statementType="STATEMENT">
+	    SELECT SEQ_UNO.NEXTVAL FROM DUAL
+	  </selectKey>
+	  
+	  BEGIN
+		  INSERT INTO TBL_USER (UNO, ID, PW, EMAIL)
+		  VALUES (#{uno}, #{id}, #{pw}, #{email});
+		
+		  INSERT INTO TBL_CINFO VALUES (
+		    #{uno}, #{corpNm}, #{bzno}, #{enpRprFnm}, #{enpBsadr}, #{sicNm}, #{enpEmpeCnt}
+		  );
+	  END;
+	</insert>
+</mapper>
