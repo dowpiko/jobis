@@ -2,7 +2,9 @@ package org.jobis.mapper;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Param;
 import org.jobis.domain.CJSVO;
+import org.jobis.domain.UserVO;
 
 public interface UserChatMapper {
 	
@@ -12,5 +14,10 @@ public interface UserChatMapper {
 	// 유저채팅 불러오기
 	public List<CJSVO> getUserChat();
 	
+	// member로 참여하기
+	public int joinChat(@Param("cno") int cno, @Param("member") int member);
+	
+	// 이름 가져오기
+	public UserVO getNameByUno();
 
 }

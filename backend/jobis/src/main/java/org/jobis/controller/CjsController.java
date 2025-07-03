@@ -56,10 +56,39 @@ public class CjsController {
 	public List<CJSVO> getUserChat(){
 		
 		List<CJSVO> chatList =ucservice.getUserChat(); 
+		
+		
 		return chatList;
 	}
 	
 	// 모의면접에 member로 참여하기
+	@ResponseBody
+	@PostMapping("/joinChat")
+	public ResponseEntity<String>joinChat(@RequestBody CJSVO cjsvo, HttpSession session) {
+		UserVO user = (UserVO) session.getAttribute("User");
+		System.out.println("세션 유저: " + user);
+
+		if (user == null) {
+	        return new ResponseEntity<>("세션 만료", HttpStatus.UNAUTHORIZED);
+	    }
+
+		
+	     try {
+	            int result = ucservice.joinChat(cjsvo.getCno() ,user.getUno());
+
+	            if (result > 0) {
+	                return ResponseEntity.ok("참여 완료");
+	            } else {
+	                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                                     .body("참여 실패");
+	            }
+	        } catch (Exception e) {
+	        	e.printStackTrace(); // 콘솔 로그
+	            String errorMessage = "서버 오류: " + e.getClass().getSimpleName() + " - " + e.getMessage();
+	            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+	        }
+		
+	}
 	
 
 

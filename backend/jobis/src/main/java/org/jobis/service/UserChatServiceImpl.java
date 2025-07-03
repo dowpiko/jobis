@@ -3,6 +3,7 @@ package org.jobis.service;
 import java.util.List;
 
 import org.jobis.domain.CJSVO;
+import org.jobis.domain.UserVO;
 import org.jobis.mapper.UserChatMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,16 @@ public class UserChatServiceImpl implements UserChatService {
 		
 		return ucMapper.getUserChat();
 	}
-	
-	
+	// 채팅 참여하기
+	@Override
+	public int joinChat(int cno,int member) {
+		
+		return ucMapper.joinChat(cno,member);
+	}
+	// 이름 가져오기
+	@Override
+	public UserVO getNameByUno() {
+		
+		return ucMapper.getNameByUno();
+	}
 }

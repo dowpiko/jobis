@@ -27,27 +27,24 @@
 	</insert>
 	
 	<!-- 유저 채팅 불러오기 -->
-<!-- 	<select id="getUserChat" resultType="org.jobis.domain.CJSVO">
-		SELECT * FROM tbl_userchat ORDER BY cno DESC
-	</select> -->
-	
-	<select id="getUserChat" resultMap="UserChatMap">
-	  SELECT 
-	    uc.*, 
-	    u.name AS leader_name
+	<select id="getUserChat" resultType="org.jobis.domain.CJSVO">
+	  SELECT uc.*, u.name AS leader_name
 	  FROM tbl_userchat uc
-	  JOIN tbl_user u ON uc.leader = u.uno
+	  LEFT JOIN tbl_user u ON uc.leader = u.uno
 	  ORDER BY uc.cno DESC
+		<!-- SELECT * FROM tbl_userchat ORDER BY cno DESC -->
 	</select>
 	
-	<resultMap id="UserChatMap" type="org.jobis.domain.CJSVO">
-	  <id property="cno" column="cno"/>
-	  <result property="r_title" column="r_title"/>
-	  <result property="r_tag" column="r_tag"/>
-	  <result property="leader" column="leader"/>
-	  <result property="r_regdate" column="r_regdate"/>
-	  <result property="sch_date" column="sch_date"/>
-	  <result property="enabled" column="enabled"/>
-	  <result property="leader_name" column="leader_name"/>
-	</resultMap>
+	<!-- 이름 가져오기 -->
+	<select id="getNameByUno" resultType="org.jobis.domain.UserVO">
+		SELECT * FROM tbl_user where uno=#{uno}
+	</select>
+	
+	<!-- 채팅 참여하기 -->
+	<update id="joinChat">
+		UPDATE tbl_userchat
+		SET member = #{member}
+		WHERE cno = #{cno}
+	</update>
+
 </mapper>

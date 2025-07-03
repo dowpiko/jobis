@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import styled from 'styled-components';
 import DatePicker from 'react-datepicker'; // 날짜 선택
 import { ko } from 'date-fns/locale';    // 달력 한글로 만들기
@@ -52,8 +52,11 @@ const JoinButton = styled.button`
 
 const ChatBox = styled.div`
   flex: 1;
+  max-height: 650px;     // ✅ 스크롤 제한 높이 추가
   overflow-y: auto;
   padding-bottom: 10px;
+  border: 1px solid #ccc; // (선택) 시각적으로 구분
+  background-color: #fff; // (선택) 가시성 향상
 `;
 
 const ChatTime = styled.small`
@@ -165,6 +168,11 @@ const DiscordPage = () => {
   const [chatList, setChatList] = useState([]);
   const [showModal,setShowModal] =useState(false);
   const [selectedChat,setSelectedChat] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(8);   // 로드시 버튼 수
+  const [isAtBottom, setIsAtBottom] = useState(true);    // 스크롤 위치 상태 저장
+  const scrollRef = useRef(null);
+  const prevChatListLength = useRef(0);
+
 
   const fetchChatList = () => {
     fetch('/getUserChat')
@@ -174,27 +182,56 @@ const DiscordPage = () => {
         const parsed = data.map((chat) => ({
           ...chat,
           sch_date: new Date(chat.sch_date), // 문자열 → Date 객체로 변환
-        }));
+        }))
+        .reverse();
         setChatList(parsed);
       });
   };
   useEffect(() => {
-    const fetchChatList = () => {
-      fetch('/getUserChat')
-        .then((res) => res.json())
-        .then((data) => {
-          const parsed = data.map((chat) => ({
-            ...chat,
-            sch_date: new Date(chat.sch_date), // ✅ 문자열 → Date 변환
-          }));
-          setChatList(parsed);
-        });
-    };
     fetchChatList(); 
     const interval = setInterval(fetchChatList, 5000); 
     return () => clearInterval(interval);
   }, []);
-  
+
+  // 처음 로드시 스크롤 맨 아래로
+  useEffect(() => {
+    const box = scrollRef.current;
+    if (box && chatList.length > 0 ) {
+      setTimeout(() => {
+        box.scrollTop = box.scrollHeight;
+      }, 0);
+    }
+  }, []); 
+
+
+    // ❸ 스크롤 위로 → 더 과거 추가
+  const handleScroll = () => {
+    const box = scrollRef.current;
+    const isBottom = Math.abs(box.scrollHeight - box.scrollTop - box.clientHeight) <= 1;
+    
+    setIsAtBottom(isBottom);
+
+    if (box.scrollTop === 0 && visibleCount < chatList.length) {
+      const prevHeight = box.scrollHeight;
+      setVisibleCount((prev) => Math.min(prev + 5, chatList.length));
+      setTimeout(() => {
+        box.scrollTop = box.scrollHeight - prevHeight + 0.5;
+      }, 0);
+    }
+  };
+  useEffect(() => {
+    const box = scrollRef.current;
+    const newMessagesAdded = chatList.length > prevChatListLength.current;
+    if (isAtBottom && newMessagesAdded) {
+        setTimeout(() => {
+          box.scrollTop = box.scrollHeight;
+        }, 0);
+    }
+     prevChatListLength.current = chatList.length;
+  }, [chatList, isAtBottom]);
+  const visibleChats = chatList.slice(-visibleCount);
+
+
   const handleCreateChat = () => {
     if (!selectedDate || !title.trim()) {
     alert('제목과 날짜를 모두 입력하세요');
@@ -228,6 +265,7 @@ const DiscordPage = () => {
   .then(text => {
     if (text === 'success') {
       fetchChatList();
+      setVisibleCount(7); // 다시 7개부터 시작
     }
   })
   .catch(err => console.error('Insert 요청 에러:', err));
@@ -238,81 +276,121 @@ const DiscordPage = () => {
   setSelectedDate(null);
 };
 
+const handleOnConfirm = () => {
+  if (!selectedChat) return;
 
-
-
-
+  fetch('/joinChat', {
+    method: 'POST',
+    credentials: 'include', // 세션 유지
+    headers: {
+      'Accept': 'text/plain;charset=UTF-8', 
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ cno: selectedChat.cno })
+  })
+    .then((res) => {
+      if (res.status === 401) {
+        alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+        window.location.href = '/';
+        return;
+      }
+      return res.text(); 
+    })
+    .then((text) => {
+      if (!text) return;
+      if (text === '참여 완료') {
+        alert('성공적으로 참여했습니다!');
+        setShowModal(false);
+        fetchChatList(); // 채팅 목록 갱신
+      } else {
+        alert(`참여에 실패했습니다: ${text}`);
+      }
+    })
+    .catch((err) => {
+      console.error('참여 요청 실패:', err);
+      alert('서버 오류가 발생했습니다.');
+    });
+};
 
   return (
-    <Wrapper>
+     <Wrapper>
       <Container>
-        {/* 
-        header랑  chattime은 그냥 알림 표시
-        시간 되면 알림표시가 뜨게 하는 방식으로 
-         */}
         <Header>
           <Title>‘박말선’님과의 화상 채팅 일정</Title>
           <JoinButton>회의 참여</JoinButton>
         </Header>
 
-        <ChatBox>
-          <ChatTime>금일 16:00 시</ChatTime>
-        </ChatBox>
-        {/* 버튼 출력 */}
-          {chatList.map((chat) => (
+        <ChatBox ref={scrollRef} onScroll={handleScroll}> {/* ✅ 스크롤 감지 */}
+          {visibleChats.map((chat) => (
             <ChatBubble key={chat.cno}>
               <Avatar src="https://via.placeholder.com/40" alt="avatar" />
               <div>{chat.leader_name}</div>
-              
               <BubbleContainer>
                 <Bubble>{chat.r_title}</Bubble>
                 <MeetingInfo>
-                    일시:{' '}
-                    {chat.sch_date.toLocaleDateString('ko-KR', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                    })}{' '}
-                    |{' '}
-                    {chat.sch_date.toLocaleTimeString('ko-KR', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: false,
-                    })}
-                  <PeopleCount>0/1 👥</PeopleCount>
-                  <ActionButton onClick={() => {
-                    setSelectedChat(chat);
-                    setShowModal(true);
-                  }}>
-                    참가
-                  </ActionButton>
+                  일시:{' '}
+                  {chat.sch_date.toLocaleDateString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                  })}{' '}
+                  |{' '}
+                  {chat.sch_date.toLocaleTimeString('ko-KR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                  })}
+                  <PeopleCount>{chat.member ? '1/1' : '0/1'} 👥</PeopleCount>
+                  {chat.member ? (
+                    <span style={{ marginLeft: '10px', color: 'red' }}>인원이 꽉 찼습니다</span>
+                  ) : (
+                    <ActionButton
+                      onClick={() => {
+                        setSelectedChat(chat);
+                        setShowModal(true);
+                      }}
+                    >
+                      참가
+                    </ActionButton>
+                  )}
                 </MeetingInfo>
               </BubbleContainer>
             </ChatBubble>
           ))}
+        </ChatBox>
 
         <InputSection>
           <InputRow>
-            <Input placeholder="제목 입력"  value={title} onChange={(e)=>setTitle(e.target.value)}/>
+            <Input
+              placeholder="제목 입력"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
           </InputRow>
 
-        <DateRow>
-          <StyledDatePicker
-            selected={selectedDate}
-            onChange={(date) => setSelectedDate(date)}
-            placeholderText="날짜 선택"
-            dateFormat="yyyy-MM-dd HH:mm"
-            showTimeSelect         // ✅ 시간 선택 UI 표시
-            timeIntervals={30}     // ✅ 30분 간격 선택
-            timeFormat="HH:mm"     // ✅ 24시간 형식으로 시간 표시
-            locale={ko}
-            timeCaption="시간"       
-          />
-          <SendButton onClick={handleCreateChat}>모집하기</SendButton>
-        </DateRow>
+          <DateRow>
+            <StyledDatePicker
+              selected={selectedDate}
+              onChange={(date) => setSelectedDate(date)}
+              placeholderText="날짜 선택"
+              dateFormat="yyyy-MM-dd HH:mm"
+              showTimeSelect         // ✅ 시간 선택 UI 표시
+              timeIntervals={30}     // ✅ 30분 간격 선택
+              timeFormat="HH:mm"     // ✅ 24시간 형식으로 시간 표시
+              locale={ko}
+              timeCaption="시간"
+            />
+            <SendButton onClick={handleCreateChat}>모집하기</SendButton>
+          </DateRow>
         </InputSection>
-        {/* 모달 */}
-        {showModal && <JoinInterviewModal onClose={() => setShowModal(false)} chat = {selectedChat} />}
+
+        {showModal && (
+          <JoinInterviewModal
+            onClose={() => setShowModal(false)}
+            chat={selectedChat}
+            onConfirm={handleOnConfirm}
+          />
+        )}
       </Container>
     </Wrapper>
   );

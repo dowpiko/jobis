@@ -3,6 +3,7 @@ package org.jobis.service;
 import java.util.List;
 
 import org.jobis.domain.CJSVO;
+import org.jobis.domain.UserVO;
 import org.springframework.stereotype.Service;
 @Service
 public interface UserChatService {
@@ -14,5 +15,8 @@ public interface UserChatService {
 	public List<CJSVO> getUserChat();
 	
 	// member로 참여하기
+	public int joinChat(int cno, int member);
 	
+	// 이름 가져오기
+	public UserVO getNameByUno();
 }

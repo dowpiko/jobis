@@ -67,7 +67,7 @@ const ConfirmButton = styled.button`
   }
 `;
 
-const Modal = ({  onClose, chat, onConfirm}) => {
+const Modal = ({ onClose, chat, onConfirm}) => {
   return (
     <ModalOverlay>
       <ModalWrapper>
