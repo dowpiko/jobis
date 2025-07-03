@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { ReactComponent as GptMicIcon } from '../../assets/icons/GptMicIcon.svg'
+import useWebSocket, { ReadyState } from 'react-use-websocket';
 
 const Container = styled.div`
   position: relative;
@@ -226,20 +227,6 @@ const ClearButton = styled.button`
     color: #000;
   }
 `;
-// 스트리밍 시뮬레이션 함수
-const streamResultAsync = (prompt, onChunk, onComplete) => {
-  const question = "이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...이것은 단지 플레이스홀더 텍스트로 사용되기 위한 예시 문장일 뿐이며...";
-  let index = 0;
-  const interval = setInterval(() => {
-    if (index < question.length) {
-      onChunk(question[index]);
-      index++;
-    } else {
-      clearInterval(interval);
-      onComplete();
-    }
-  }, 5);
-};
 
 const AiChat = () => {
   const navigate = useNavigate();
@@ -247,28 +234,44 @@ const AiChat = () => {
   const [messages, setMessages] = useState([]);
   const [currentStream, setCurrentStream] = useState('');
   const [inputText, setInputText] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const textAreaRef = useRef(null);
   const scrollRef = useRef(null);
   const sendButtonRef = useRef(null);
   const isLimitExceeded = inputText.length >= 300;
 
+  // 웹소켓 관련 코드
+  const SOCKET_URL = "ws://localhost:9090/ws/interview"; // websocket 주소
+
+  const{
+    sendMessage,      //문자열을 서버(WebSocket)로 전송하는 함수
+    lastMessage,      //마지막으로 수신한 메시지 객체 (이벤트 발생 시 업데이트됨)
+    readyState,       //WebSocket 연결 상태 (0: 연결 중, 1: 열림, 2: 닫힘 준비, 3: 닫힘) 숫자로 나옴
+  } = useWebSocket(SOCKET_URL, {
+    share:true,
+    shouldReconnect: () => true,
+    reconnectAttempts: 5,
+    onOpen: () => {
+      console.log('WebSocket 연결됨');
+    },
+    onError: (event) => {
+      console.error('WebSocket 에러', event);
+    },
+  });
+
+
   const startInterview = () => {
     setStarted(true);
-    setIsStreaming(true);
-    let tempStream = '';
-    streamResultAsync("면접 시작", (chunk) => {
-      tempStream += chunk;
-      setCurrentStream(tempStream);
-    }, () => {
-      setMessages(prev => [
-        ...prev,
-        { id: Date.now(), isAi: true, text: tempStream }
-      ]);
+
+    // WebSocket 연결이 열려있는 경우에만
+    if(readyState === ReadyState.OPEN){
+      setIsStreaming(true);
       setCurrentStream('');
-      setIsStreaming(false);
-    });
+      sendMessage('안녕GPT! 반가워!');
+    } else{
+      console.warn("WebSocket 연결이 아직 열리지 않았습니다.");
+      
+    }
   };
 
   const handleInputChange = (e) => {
@@ -315,7 +318,6 @@ const AiChat = () => {
     }
   };
 
-  const toggleRecording = () => setIsRecording(prev => !prev);
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -329,12 +331,31 @@ const AiChat = () => {
     alert("마이크 버튼 클릭");
   }
 
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, currentStream]);
 
+  useEffect(()=>{
+    if(lastMessage != null){
+      const data = lastMessage.data;
+
+      // 종료 신호 감지
+      if(data === '[DONE]'){
+        setMessages(prev =>[
+          ...prev,
+          {id:Date.now(), isAi:true, text: currentStream}
+        ]);
+        setCurrentStream('');
+        setIsStreaming(false);
+        return;
+      }
+      if(!isStreaming) setIsStreaming(true);
+      setCurrentStream(prev => prev+data);
+    }
+  }, [lastMessage, currentStream, isStreaming]);
   return (
     <Container>
       {started && (
