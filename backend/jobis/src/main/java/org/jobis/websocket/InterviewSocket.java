@@ -12,7 +12,6 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.jobis.config.CustomSpringConfigurator;
 import org.jobis.service.AiService;
-import org.jobis.service.InterviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,8 +20,7 @@ import org.springframework.stereotype.Component;
 public class InterviewSocket {
 	
 	private Session session;
-//	@Autowired
-//	private InterviewService interviewService;
+	
 	@Autowired
 	private AiService aiService;
 	
