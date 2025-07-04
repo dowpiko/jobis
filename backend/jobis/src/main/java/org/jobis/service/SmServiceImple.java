@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.jobis.domain.CUserVO;
 import org.jobis.domain.InterViewBCVO;
+import org.jobis.domain.UserVO;
 import org.jobis.mapper.SmMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -97,5 +98,22 @@ public class SmServiceImple implements SmService {
     @Override
     public int insertInterView(InterViewBCVO ivbc) {
     	return mapper.insertInterView(ivbc);
+    }
+    
+    // 진행 중 / 마감
+    @Override
+    public List<InterViewBCVO> progress(int check) {
+    	return mapper.progress(check);
+    }
+    
+    // 공고 지원한 사람 데이터
+    public List<UserVO> selectByOno(int ono) {
+    	return mapper.selectByOno(ono);
+    }
+    
+    // 해당 공고 가져오기
+    @Override
+    public InterViewBCVO oneInterViewByOno(int ono) {
+    	return mapper.oneInterViewByOno(ono);
     }
 }

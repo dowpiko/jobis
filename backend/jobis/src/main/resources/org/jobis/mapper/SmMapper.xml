@@ -3,10 +3,12 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.jobis.mapper.SmMapper">
+	<!-- 아이디 중복 확인 -->
 	<select id="findUserId" parameterType="String" resultType="int">
 		SELECT COUNT(*) FROM tbl_user WHERE id=#{id}
 	</select>
 	
+	<!-- 기업 등록 -->
 	<insert id="insertCUser" parameterType="org.jobis.domain.CUserVO">
   
 	  <selectKey keyProperty="uno" resultType="int" order="BEFORE" statementType="STATEMENT">
@@ -23,15 +25,59 @@
 	  END;
 	</insert>
 	
+	<!-- 면접 공고 등록 -->
 	<insert id="insertInterView" parameterType="org.jobis.domain.InterViewBCVO">
 		INSERT INTO TBL_OFFERS VALUES (
 			SEQ_ONO.NEXTVAL,
 			#{uno},
-			#{title},
-			#{tag},
-			#{content},
-			#{activedays},
-			sysdate		
+			#{o_title},
+			#{o_tag},
+			#{o_content},
+			#{o_activedays},
+			SYSDATE		
 		)
 	</insert>
+	
+	<!-- 진행 중 / 마감 -->
+	<select id="progress" resultType="org.jobis.domain.InterViewBCVO" parameterType="int">
+	    SELECT *
+	    FROM TBL_OFFERS
+	    WHERE
+	    <choose>
+	        <when test="_parameter == 1">
+	            o_activedays &gt;= SYSDATE
+	        </when>
+	        <when test="_parameter == 0">
+	            o_activedays &lt;= SYSDATE
+	        </when>
+	        <otherwise>
+	            o_activedays &gt;= SYSDATE
+	        </otherwise>
+	    </choose>
+	</select>
+	
+	<!-- 공고 지원한 사람 데이터 -->
+	<select id="selectByOno" resultType="org.jobis.domain.User_InterViewDTO" parameterType="int">
+		SELECT 
+	        s.ONO,
+	        s.UNO,
+	        s.O_TITLE,
+	        s.O_TAG,
+	        s.O_CONTENT,
+	        s.O_REGDATE,
+	        u.NAME,
+	        u.BIRTHDATE,
+	        u.EMAIL
+	    FROM 
+	        TBL_SUBMISSIONS s
+	    JOIN 
+	        TBL_USER u ON s.UNO = u.UNO
+	    WHERE 
+	        s.ONO = #{ono}
+	</select>
+	
+	<!-- 해당 공고 가져오기 -->
+	<select id="oneInterViewByOno" parameterType="int" resultType="org.jobis.domain.InterViewBCVO">
+		SELECT * FROM TBL_OFFERS WHERE ono = #{ono}
+	</select>
 </mapper>

@@ -9,11 +9,14 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InterViewBCVO {
+public class User_InterViewDTO {
 	private int ono;
 	private int uno;
 	private String o_title;
 	private String o_tag;
-	private Date o_activedays;
 	private String o_content;
+	private Date o_regdate;
+	private String name;
+	private Date birthdate;
+	private String email;
 }

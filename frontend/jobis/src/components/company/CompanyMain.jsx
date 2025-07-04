@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import ApplicantDetailView from './ApplicantDetailView';  // ✅ 반드시 import
 
 const Container = styled.div`
   flex-grow: 1;
@@ -41,11 +43,9 @@ const RegisterButton = styled.button`
   padding: 8px 16px;
   background-color: #5c8bc4;
   color: white;
-  font-size: 14px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.2s;
 
   &:hover {
     background-color: #4376b6;
@@ -103,7 +103,6 @@ const ApplicantItem = styled.div`
   font-size: 14px;
   border-bottom: 1px solid #b0bccb;
   cursor: pointer;
-  transition: background-color 0.2s;
 
   &:hover {
     background-color: #d4eaf4;
@@ -114,68 +113,143 @@ const ApplicantItem = styled.div`
   }
 `;
 
+const PostInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const InfoText = styled.span`
+  font-size: 13px;
+  color: #555;
+`;
+
 const CompanyMain = () => {
-  const [activeTab, setActiveTab] = useState('progress');
+  const [check, setCheck] = useState(1);
   const [expanded, setExpanded] = useState([]);
+  const [post, setPost] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [applicants, setApplicants] = useState([]);
+  const [selectedApplicant, setSelectedApplicant] = useState(null);
   const navigate = useNavigate();
+
+  const getRemainingDays = (timestamp) => {
+    const today = new Date();
+    const targetDate = new Date(timestamp);
+    const timeDiff = targetDate.getTime() - today.getTime();
+    const dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+    return dayDiff > 0 ? `${dayDiff}일 남음` : '마감';
+  };
 
   const noticeProgress = () => {
     navigate('/noticeProgress');
   };
 
-  const progressPosts = [
-    { id: 1, title: '진행중 공고 A', applicants: Array.from({ length: 10 }, () => '지원자 미리보기') },
-    { id: 2, title: '진행중 공고 B', applicants: Array.from({ length: 6 }, () => '지원자 미리보기') },
-  ];
-
-  const closedPosts = [
-    { id: 3, title: '마감 공고 X', applicants: Array.from({ length: 4 }, () => '지원자 미리보기') },
-    { id: 4, title: '마감 공고 Y', applicants: Array.from({ length: 4 }, () => '지원자 미리보기') },
-  ];
-
-  const posts = activeTab === 'progress' ? progressPosts : closedPosts;
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`http://localhost:9090/sm/progress?check=${check}`);
+      const sortedData = res.data.slice().sort((a, b) => a.o_activedays - b.o_activedays);
+      setPost(sortedData);
+      setExpanded(new Array(sortedData.length).fill(false));
+      setApplicants(new Array(sortedData.length).fill([]));
+    } catch (err) {
+      console.error(err);
+      setPost([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setExpanded(new Array(posts.length).fill(false));
-  }, [activeTab]);
+    fetchData();
+  }, [check]);
 
-  const toggleExpand = (index) => {
-    setExpanded((prev) => prev.map((val, i) => (i === index ? !val : val)));
+  const toggleExpand = async (index, ono) => {
+    setExpanded(prev => prev.map((val, i) => (i === index ? !val : val)));
+    if (!expanded[index]) {
+      try {
+        const res = await axios.get(`http://localhost:9090/sm/selectByOno?ono=${ono}`);
+        const newApplicants = [...applicants];
+        newApplicants[index] = res.data;
+        setApplicants(newApplicants);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const formatDate = (timestamp) => {
+    if (!timestamp) return '-';
+    const date = new Date(timestamp);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+
+  const handleApplicantClick = (applicant) => {
+    setSelectedApplicant(applicant);
+  };
+
+  const handleBack = () => {
+    setSelectedApplicant(null);
   };
 
   return (
     <Container>
-      <HeaderRow>
-        <TabMenu>
-          <Tab first active={activeTab === 'progress'} onClick={() => setActiveTab('progress')}>
-            진행중
-          </Tab>
-          <Tab last active={activeTab === 'closed'} onClick={() => setActiveTab('closed')}>
-            마감
-          </Tab>
-        </TabMenu>
-        <RegisterButton onClick={noticeProgress}>공고등록</RegisterButton>
-      </HeaderRow>
+      {selectedApplicant ? (
+        <ApplicantDetailView applicant={selectedApplicant} onBack={handleBack} />
+      ) : (
+        <>
+          <HeaderRow>
+            <TabMenu>
+              <Tab first active={check === 1} onClick={() => setCheck(1)}>진행중</Tab>
+              <Tab last active={check === 0} onClick={() => setCheck(0)}>마감</Tab>
+            </TabMenu>
+            <RegisterButton onClick={noticeProgress}>공고등록</RegisterButton>
+          </HeaderRow>
 
-      {posts.map((post, idx) => (
-        <PostContainer key={post.id}>
-          <PostHeader>
-            <PostTitle>
-              <input type="checkbox" />
-              {post.title}
-            </PostTitle>
-            <ToggleButton onClick={() => toggleExpand(idx)}>▼</ToggleButton>
-          </PostHeader>
+          {loading ? (
+            <div>로딩 중...</div>
+          ) : post.length === 0 ? (
+            <div>데이터가 없습니다.</div>
+          ) : (
+            post.map((item, idx) => (
+              <PostContainer key={idx}>
+                <PostHeader>
+                  <PostTitle>
+                    <input type="checkbox" />
+                    {item.o_title || '제목 없음'}
+                  </PostTitle>
+                  <PostInfo>
+                    <InfoText>
+                      만료일: {formatDate(item.o_activedays)} ({getRemainingDays(item.o_activedays)})
+                    </InfoText>
+                    <ToggleButton onClick={() => toggleExpand(idx, item.ono)}>
+                      {expanded[idx] ? '▲' : '▼'}
+                    </ToggleButton>
+                  </PostInfo>
+                </PostHeader>
 
-          {expanded[idx] && post.applicants.length > 0 && (
-            <ApplicantList>
-              {post.applicants.map((a, i) => (
-                <ApplicantItem key={i}>{a}</ApplicantItem>
-              ))}
-            </ApplicantList>
+                {expanded[idx] && (
+                  <ApplicantList>
+                    {applicants[idx] && applicants[idx].length > 0 ? (
+                      applicants[idx].map((applicant, i) => (
+                        <ApplicantItem key={i} onClick={() => handleApplicantClick(applicant)}>
+                          이름: {applicant.name} &nbsp;&nbsp;|&nbsp;&nbsp; 
+                          생년월일: {formatDate(applicant.birthdate)} &nbsp;&nbsp;|&nbsp;&nbsp; 
+                          이메일: {applicant.email} &nbsp;&nbsp;|&nbsp;&nbsp; 
+                          지원 날짜: {formatDate(applicant.o_regdate)}
+                        </ApplicantItem>
+                      ))
+                    ) : (
+                      <ApplicantItem>지원자 없음</ApplicantItem>
+                    )}
+                  </ApplicantList>
+                )}
+              </PostContainer>
+            ))
           )}
-        </PostContainer>
-      ))}
+        </>
+      )}
     </Container>
   );
 };

@@ -124,10 +124,10 @@ const FlexRow = styled.div`
 
 const NoticeProgress = () => {
   const navigate = useNavigate();
-  const [title, setTitle] = useState('');
+  const [o_title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [subCategory, setSubCategory] = useState('');
-  const [content, setContent] = useState(['', '', '', '']);
+  const [o_content, setContent] = useState(['', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   // 시작 날짜
   const [startDate] = useState(() => {
@@ -135,7 +135,7 @@ const NoticeProgress = () => {
     return today.toISOString().split('T')[0];
   });
   // 종료 날짜
-  const [activedays, setActivedays] = useState(() => {
+  const [o_activedays, setO_activedays] = useState(() => {
     const today = new Date();
     today.setDate(today.getDate() + 5);
     return today.toISOString().split('T')[0];
@@ -155,38 +155,38 @@ const NoticeProgress = () => {
     : [];
 
   useEffect(() => {
-    if (title.trim() === '' && category && subCategory) {
+    if (o_title.trim() === '' && category && subCategory) {
       setTitle(`${category}(${subCategory})`);
     }
   }, [category, subCategory]);
   
   // 질문 추가
   const handleChange = (i, v) => {
-    const arr = [...content];
+    const arr = [...o_content];
     arr[i] = v;
     setContent(arr);
   };
 
   const handleAdd = () => {
-    if (content.length < 15) setContent([...content, '']);
+    if (o_content.length < 15) setContent([...o_content, '']);
   };
 
   // 질문 등록
   const handleSubmit = async () => {
     if (isLoading) return;
 
-    if (!title.trim()) return alert('제목을 입력하세요.');
+    if (!o_title.trim()) return alert('제목을 입력하세요.');
     if (!category) return alert('대분류를 선택하세요.');
     if (!subCategory) return alert('세부분류를 선택하세요.');
-    const tag = `${category} (${subCategory})`;
+    const o_tag = `${category} (${subCategory})`;
 
-    const cleanedContent = content.filter(item => item && item.trim() !== '').join('\n');
+    const cleanedContent = o_content.filter(item => item && item.trim() !== '').join('\n');
     
     const payload = {
-      title,
-      tag,
-      content: cleanedContent,
-      activedays
+      o_title,
+      o_tag,
+      o_content: cleanedContent,
+      o_activedays
     };
 
     setIsLoading(true);
@@ -216,11 +216,11 @@ const NoticeProgress = () => {
       <Input
         type="text"
         placeholder="면접 제목 입력"
-        value={title}
+        value={o_title}
         onChange={(e) => setTitle(e.target.value)}
         style={{ marginBottom: '16px' }}
         onBlur={() => {
-          if (title.trim() === '' && category && subCategory) {
+          if (o_title.trim() === '' && category && subCategory) {
             setTitle(`${category}(${subCategory})`);
           }
         }}
@@ -265,15 +265,15 @@ const NoticeProgress = () => {
         <span>~</span>
         <Input
           type="date"
-          value={activedays}
+          value={o_activedays}
           min={minEndDateStr}
           max={maxDateStr}
-          onChange={(e) => setActivedays(e.target.value)}
+          onChange={(e) => setO_activedays(e.target.value)}
         />
       </FlexRow>
 
       <QuestionListWrapper>
-        {content.map((q, idx) => (
+        {o_content.map((q, idx) => (
           <QuestionGroup key={idx}>
             <Label>Q. {idx + 1}</Label>
             <Input
@@ -285,7 +285,7 @@ const NoticeProgress = () => {
         ))}
       </QuestionListWrapper>
 
-      {content.length < 15 && (
+      {o_content.length < 15 && (
         <AddButton onClick={handleAdd}>+ 질문 추가 (최대 15개)</AddButton>
       )}
 
