@@ -40,20 +40,25 @@
 	
 	<!-- 진행 중 / 마감 -->
 	<select id="progress" resultType="org.jobis.domain.InterViewBCVO" parameterType="int">
-	    SELECT *
-	    FROM TBL_OFFERS
+	    SELECT
+	        o.*,
+	        (SELECT COUNT(*)
+	         FROM TBL_SUBMISSIONS s
+	         WHERE s.ONO = o.ONO) AS applicantCount
+	    FROM
+	        TBL_OFFERS o
 	    WHERE
-	    <choose>
-	        <when test="_parameter == 1">
-	            o_activedays &gt;= SYSDATE
-	        </when>
-	        <when test="_parameter == 0">
-	            o_activedays &lt;= SYSDATE
-	        </when>
-	        <otherwise>
-	            o_activedays &gt;= SYSDATE
-	        </otherwise>
-	    </choose>
+	        <choose>
+	            <when test="_parameter == 1">
+	                o.o_activedays &gt;= SYSDATE
+	            </when>
+	            <when test="_parameter == 0">
+	                o.o_activedays &lt;= SYSDATE
+	            </when>
+	            <otherwise>
+	                o.o_activedays &gt;= SYSDATE
+	            </otherwise>
+	        </choose>
 	</select>
 	
 	<!-- 공고 지원한 사람 데이터 -->
@@ -75,6 +80,15 @@
 	    WHERE 
 	        s.ONO = #{ono}
 	</select>
+	
+	<!-- 공고 삭제 -->
+	<delete id="deleteByOno" parameterType="java.util.List">
+	    DELETE FROM tbl_offers
+	    WHERE ono IN
+	    <foreach item="ono" collection="onoList" open="(" separator="," close=")">
+	        #{ono}
+	    </foreach>
+	</delete>
 	
 	<!-- 해당 공고 가져오기 -->
 	<select id="oneInterViewByOno" parameterType="int" resultType="org.jobis.domain.InterViewBCVO">

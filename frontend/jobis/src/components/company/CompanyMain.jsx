@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import ApplicantDetailView from './ApplicantDetailView';  // ✅ 반드시 import
+import ApplicantDetailView from './ApplicantDetailView';
 
 const Container = styled.div`
   flex-grow: 1;
@@ -113,6 +113,21 @@ const ApplicantItem = styled.div`
   }
 `;
 
+const ApplicantRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const ApplicantName = styled.span`
+  font-weight: 600;
+`;
+
+const ApplicantDate = styled.span`
+  font-size: 13px;
+  color: #666;
+`;
+
 const PostInfo = styled.div`
   display: flex;
   align-items: center;
@@ -132,13 +147,20 @@ const CompanyMain = () => {
   const [applicants, setApplicants] = useState([]);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const navigate = useNavigate();
+  const [selectedOnos, setSelectedOnos] = useState([]);
 
   const getRemainingDays = (timestamp) => {
     const today = new Date();
     const targetDate = new Date(timestamp);
     const timeDiff = targetDate.getTime() - today.getTime();
     const dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-    return dayDiff > 0 ? `${dayDiff}일 남음` : '마감';
+    return dayDiff > 0 ? `D - ${dayDiff}` : '마감';
+  };
+
+  const getBirthYear = (timestamp) => { 
+    if (!timestamp) return '-';
+    const date = new Date(timestamp);
+    return `${date.getFullYear()}년생`;
   };
 
   const noticeProgress = () => {
@@ -193,6 +215,37 @@ const CompanyMain = () => {
     setSelectedApplicant(null);
   };
 
+  const deleteProgress = async () => {
+    if (selectedOnos.length === 0) {
+      alert('삭제할 공고를 선택하세요.');
+      return;
+    }
+
+    const query = selectedOnos.map(id => `onos=${id}`).join('&');
+    const url = `http://localhost:9090/sm/deleteByOno?${query}`;
+
+    try {
+      const confirmDelete = window.confirm('※지원자의 정보가 사라집니다. 삭제 하시겠습니까?※');
+      if (!confirmDelete) return;
+
+      await axios.get(url);
+      alert('삭제되었습니다.');
+      fetchData();
+      setSelectedOnos([]);
+    } catch (err) {
+      console.error(err);
+      alert('삭제에 실패했습니다.');
+    }
+  };
+
+  const handleCheckboxChange = (ono, checked) => {
+    if (checked) {
+      setSelectedOnos(prev => [...prev, ono]);
+    } else {
+      setSelectedOnos(prev => prev.filter(id => id !== ono));
+    }
+  };
+
   return (
     <Container>
       {selectedApplicant ? (
@@ -204,7 +257,10 @@ const CompanyMain = () => {
               <Tab first active={check === 1} onClick={() => setCheck(1)}>진행중</Tab>
               <Tab last active={check === 0} onClick={() => setCheck(0)}>마감</Tab>
             </TabMenu>
-            <RegisterButton onClick={noticeProgress}>공고등록</RegisterButton>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <RegisterButton onClick={deleteProgress}>삭제</RegisterButton>
+              <RegisterButton onClick={noticeProgress}>공고등록</RegisterButton>
+            </div>
           </HeaderRow>
 
           {loading ? (
@@ -216,12 +272,17 @@ const CompanyMain = () => {
               <PostContainer key={idx}>
                 <PostHeader>
                   <PostTitle>
-                    <input type="checkbox" />
+                    <input
+                      type="checkbox"
+                      checked={selectedOnos.includes(item.ono)}
+                      onChange={(e) => handleCheckboxChange(item.ono, e.target.checked)}
+                    />
                     {item.o_title || '제목 없음'}
                   </PostTitle>
                   <PostInfo>
                     <InfoText>
-                      만료일: {formatDate(item.o_activedays)} ({getRemainingDays(item.o_activedays)})
+                      지원자 : {item.applicantCount ?? 0}명 &nbsp;&nbsp;|&nbsp;&nbsp; 
+                      만료일 : {formatDate(item.o_activedays)} ({getRemainingDays(item.o_activedays)})
                     </InfoText>
                     <ToggleButton onClick={() => toggleExpand(idx, item.ono)}>
                       {expanded[idx] ? '▲' : '▼'}
@@ -234,10 +295,12 @@ const CompanyMain = () => {
                     {applicants[idx] && applicants[idx].length > 0 ? (
                       applicants[idx].map((applicant, i) => (
                         <ApplicantItem key={i} onClick={() => handleApplicantClick(applicant)}>
-                          이름: {applicant.name} &nbsp;&nbsp;|&nbsp;&nbsp; 
-                          생년월일: {formatDate(applicant.birthdate)} &nbsp;&nbsp;|&nbsp;&nbsp; 
-                          이메일: {applicant.email} &nbsp;&nbsp;|&nbsp;&nbsp; 
-                          지원 날짜: {formatDate(applicant.o_regdate)}
+                          <ApplicantRow>
+                            <span>
+                              •&nbsp;&nbsp;<ApplicantName>{applicant.name}</ApplicantName>&nbsp;({getBirthYear(applicant.birthdate)})
+                            </span>
+                            <ApplicantDate>지원일: {formatDate(applicant.o_regdate)}</ApplicantDate>
+                          </ApplicantRow>
                         </ApplicantItem>
                       ))
                     ) : (

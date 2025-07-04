@@ -16,4 +16,5 @@ public class InterViewBCVO {
 	private String o_tag;
 	private Date o_activedays;
 	private String o_content;
+	private int applicantCount;
 }

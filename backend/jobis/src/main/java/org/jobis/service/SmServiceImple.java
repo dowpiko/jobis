@@ -111,6 +111,13 @@ public class SmServiceImple implements SmService {
     	return mapper.selectByOno(ono);
     }
     
+    // 공고 삭제
+    @Transactional
+    @Override
+    public int deleteByOno(List<Integer> onoList) {
+    	return mapper.deleteByOno(onoList);
+    }
+    
     // 해당 공고 가져오기
     @Override
     public InterViewBCVO oneInterViewByOno(int ono) {

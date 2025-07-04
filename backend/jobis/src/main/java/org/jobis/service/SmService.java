@@ -31,6 +31,10 @@ public interface SmService {
 	// 공고 지원한 사람 데이터
 	public List<UserVO> selectByOno(int ono);
 	
+	// 공고 삭제
+	public int deleteByOno(List<Integer> onoList);
+	
 	// 해당 공고 가져오기
 	public InterViewBCVO oneInterViewByOno(int ono);
+	
 }

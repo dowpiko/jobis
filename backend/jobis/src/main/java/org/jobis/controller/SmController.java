@@ -71,6 +71,13 @@ public class SmController {
 		return service.selectByOno(ono);
 	}
 	
+	// 공고 삭제
+	@GetMapping("/deleteByOno")
+	public int deleteByOno(@RequestParam(value = "onos") List<Integer> onoList){
+		System.out.println("받은 ono 목록: " + onoList);
+		return service.deleteByOno(onoList);
+	}
+	
 	// 해당 공고 가져오기
 	@GetMapping("oneInterViewByOno")
 	public InterViewBCVO oneInterViewByOno(int ono) {

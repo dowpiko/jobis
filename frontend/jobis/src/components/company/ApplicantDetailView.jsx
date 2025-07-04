@@ -116,19 +116,17 @@ const ApplicantDetailView = ({ applicant, onBack }) => {
   return (
     <DetailContainer>
       <HeaderRow>
-        <Title>{applicant.name} 상세 정보</Title>
+        <Title>면접 Q&A</Title>
         <BackButton onClick={onBack}>뒤로가기</BackButton>
       </HeaderRow>
 
       <InfoSection>
-        <InfoRow><strong>이름:</strong> {applicant.name}</InfoRow>
-        <InfoRow><strong>생년월일:</strong> {formatDate(applicant.birthdate)}</InfoRow>
+        <InfoRow><strong>이름:</strong> {applicant.name}&nbsp;&nbsp;({formatDate(applicant.birthdate)})</InfoRow>
         <InfoRow><strong>이메일:</strong> {applicant.email}</InfoRow>
-        <InfoRow><strong>지원 날짜:</strong> {formatDate(applicant.o_regdate)}</InfoRow>
+        <InfoRow><strong>지원일:</strong> {formatDate(applicant.o_regdate)}</InfoRow>
       </InfoSection>
 
       <InfoSection>
-        <QATitle>면접 Q&A</QATitle>
         <QASectionWrapper>
           {questions.length > 0 ? (
             questions.map((q, index) => (
