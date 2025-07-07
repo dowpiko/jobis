@@ -14,6 +14,7 @@ const AppLayout = styled.div`
 
 const Sidebar = styled.aside`
   width: 280px;
+  height: 100vh;           /* 화면 전체 높이 고정 */
   background-color: #DCE3EA;
   border-right: 1px solid #B0BCCB;
   display: flex;
@@ -103,6 +104,8 @@ const ProfileButton = styled.button`
 `;
 
 const Menu = styled.nav`
+  flex: 1;                 /* 남은 vertical 공간 모두 차지 */
+  overflow-y: auto;        /* 내부 스크롤 활성화 */
   display: flex;
   flex-direction: column;
   gap: 12px;

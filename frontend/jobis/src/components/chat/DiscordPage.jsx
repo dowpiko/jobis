@@ -15,6 +15,31 @@ const Wrapper = styled.div`
   background-color: #f8f9fa;
   font-family: sans-serif;
 `;
+const TitleInputWrapper = styled.div`       
+  display: flex;
+  margin-bottom: 10px;
+`; 
+
+const PrefixInput = styled.input`          
+  flex: 0 0 auto;
+  background-color: #f0f0f0;
+  border: 1px solid #b0bccb;
+  border-radius: 6px 0 0 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: #444;
+  cursor: default;
+`;
+
+const SuffixInput = styled.input`          
+  flex: 1;
+  border: 1px solid #b0bccb;
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: #1f2a37;
+`;
 
 const Container = styled.div`
   flex-grow: 1;
@@ -159,27 +184,37 @@ const DateRow = styled.div`
 `;
 
 const DiscordPage = () => {
+  const location = useLocation();
+  const category = location.state?.category || '전체';   
+  const matched = categories.find(c => c.category === category); 
+  const subList = matched?.subCategories || [];  
+
   const [selectedDate, setSelectedDate] = useState(null);
-  const [title,setTitle] = useState('');
+  // const [title,setTitle] = useState('');
   const [chatList, setChatList] = useState([]);
   const [showModal,setShowModal] =useState(false);
   const [selectedChat,setSelectedChat] = useState(null);
   const [visibleCount, setVisibleCount] = useState(9);   // 로드시 버튼 수
   const [isAtBottom, setIsAtBottom] = useState(true);    // 스크롤 위치 상태 저장
   const [myUno, setMyUno] = useState(() => window.myUno);
+  const [selectedSub, setSelectedSub] = useState(subList[0]?.name || '');
+  const [titleSuffix, setTitleSuffix] = useState('');  
 
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
   const socketRef = useRef(null);
-  const location = useLocation();
-  const jobTag = location.state?.job || '전체';  
   const navigate = useNavigate();
+
+   useEffect(() => {
+    if (subList.length > 0) setSelectedSub(subList[0].name);
+    else setSelectedSub('');
+  }, [category, subList]);
 
 
   const fetchChatList = () => {
-     const url = jobTag === '전체'
+     const url = category === '전체'
       ? '/getUserChat'
-      : `/getUserChatByTag?r_tag=${encodeURIComponent(jobTag)}`;
+      : `/getUserChatByTag?r_tag=${encodeURIComponent(category)}`;
     fetch(url,{ credentials: 'include' })
       .then((res) => res.json())
       .then(data => {
@@ -194,7 +229,7 @@ const DiscordPage = () => {
   };
   useEffect(() => {
     fetchChatList(); 
-  }, [jobTag]);
+  }, [category  ]);
 
   // 처음 로드시 스크롤 맨 아래로
   useEffect(() => {
@@ -236,15 +271,15 @@ const DiscordPage = () => {
 
 
   const handleCreateChat = () => {
-    if (!selectedDate || !title.trim()) {
+    if (!selectedDate || !titleSuffix.trim()) {
     alert('제목과 날짜를 모두 입력하세요');
     return;
     }
 
     const formattedDate = selectedDate.toISOString().slice(0, 19).replace('T', ' ');
     const payload = {
-      r_title: title,
-      r_tag: jobTag,
+      r_title: `{${selectedSub}} ${titleSuffix}`,
+      r_tag: category,
       sch_date: formattedDate,
       leader : myUno,
     };
@@ -272,7 +307,7 @@ const DiscordPage = () => {
       .catch(err => console.error('Insert 요청 에러:', err));
 
 
-      setTitle('');
+      setTitleSuffix('');
       setSelectedDate(null);
 };
 
@@ -330,33 +365,74 @@ const handleOnConfirm = () => {
 };
 // websocket 관련
 useEffect(() => {
-  const socket = new WebSocket("ws://localhost:9090/ws/userChat"); 
+  // 1) URL을 변수로 뽑아서, 콘솔에도 URL을 찍습니다.
+  const wsUrl = 'ws://localhost:9090/ws/userChat';
+  console.log('▶️ 웹소켓 연결 시도:', wsUrl);
+
+  // 2) WebSocket 생성
+  const socket = new WebSocket(wsUrl);
   socketRef.current = socket;
 
   socket.onopen = () => {
-    console.log("✅ WebSocket 연결됨");
-   
-  };  
+    console.log('✅ WebSocket 연결됨:', wsUrl);
+  };
 
   socket.onmessage = (event) => {
-    const message = JSON.parse(event.data);
-    console.log("📩 실시간 메시지 수신:", message);
-    setChatList((prev) => [...prev, {
-      ...message,
-      sch_date: new Date(message.sch_date),
-    }]);
+    try {
+      const message = JSON.parse(event.data);
+      console.log('📩 실시간 메시지 수신:', message);
+      setChatList(prev => [
+        ...prev,
+        { ...message, sch_date: new Date(message.sch_date) }
+      ]);
+    } catch (e) {
+      console.error('⚠️ 메시지 파싱 실패:', e);
+    }
   };
 
   socket.onerror = (err) => {
-    console.error("⚠️ WebSocket 오류:", err);
+    console.error('⚠️ WebSocket 오류:', err);
   };
 
-  socket.onclose = () => {
-    console.log("❌ WebSocket 연결 종료");
+  socket.onclose = (evt) => {
+    console.log(`❌ WebSocket 연결 종료 (code=${evt.code}, reason=${evt.reason})`);
   };
 
-  return () => socket.close();
-}, []);
+  // 3) cleanup: 언마운트 시 연결 닫기
+  return () => {
+    console.log('🛑 WebSocket 연결 닫음:', wsUrl);
+    socket.close();
+  };
+}, [category]);  
+
+// useEffect(() => {
+//   const socket = new WebSocket("ws://localhost:9090/ws/userChat"); 
+//   socketRef.current = socket;
+//    console.log('▶️웹소켓 연결 시도:', socket);
+
+//   socket.onopen = () => {
+//     console.log("✅ WebSocket 연결됨",socket);
+//   };  
+
+//   socket.onmessage = (event) => {
+//     const message = JSON.parse(event.data);
+//     console.log("📩 실시간 메시지 수신:", message);
+//     setChatList((prev) => [...prev, {
+//       ...message,
+//       sch_date: new Date(message.sch_date),
+//     }]);
+//   };
+
+//   socket.onerror = (err) => {
+//     console.error("⚠️ WebSocket 오류:", err);
+//   };
+
+//   socket.onclose = () => {
+//     console.log("❌ WebSocket 연결 종료");
+//   };
+
+//   return () => socket.close();
+// }, []);
 
   const handleJoin = () => {
       navigate('/video');
@@ -367,7 +443,7 @@ useEffect(() => {
       <Container>
         <Header>
           <Title>‘박말선’님과의 화상 채팅 일정</Title>
-          <Title>태그 : {jobTag}</Title>
+          <Title>태그 : {category}</Title>
           <JoinButton onClick={handleJoin}>회의 참여</JoinButton>
         </Header>
         <ChatBox ref={scrollRef} onScroll={handleScroll}> {/* ✅ 스크롤 감지 */}
@@ -417,13 +493,30 @@ useEffect(() => {
         </ChatBox>
 
         <InputSection>
-          <InputRow>
-            <Input
-              placeholder="제목 입력"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
+         <InputRow>
+            <select
+              value={selectedSub}
+              onChange={e => setSelectedSub(e.target.value)}
+              /* ... 스타일 ... */
+            >
+              {subList.map(sub => (
+                <option key={sub.name} value={sub.name}>
+                  {sub.name}
+                </option>
+              ))}
+            </select>
           </InputRow>
+           <TitleInputWrapper>                                          
+            <PrefixInput
+              readOnly
+              value={`[${selectedSub}]`}                              
+            />
+            <SuffixInput
+              placeholder="제목을 입력하세요"                            
+              value={titleSuffix}                                      
+              onChange={e => setTitleSuffix(e.target.value)}          
+            />
+          </TitleInputWrapper>  
 
           <DateRow>
             <StyledDatePicker
