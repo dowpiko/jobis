@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import categories from '../data/categories';  
+import categories from '../../data/categories';  
 
 const AppLayout = styled.div`
   display: flex;
@@ -222,14 +222,24 @@ function ProfileSidebar({ children }) {
         <Menu>
           <MenuItem onClick={() => navigate('/scheduleManager')}>🏠 일정 관리</MenuItem>
           <MenuItem onClick={() => navigate('/discordPage')}>💬 대기방 목록</MenuItem>
-          {jobCategories.map((job, index) => (
+          {categories.map(cat => (
+            <MenuItem
+              key={cat.category}
+              onClick={() =>
+                navigate('/discordPage', { state: { category: cat.category } })
+              }
+            >
+              🛠️ {cat.category} 방
+            </MenuItem>
+          ))}
+          {/* {jobCategories.map((job, index) => (
             <MenuItem
               key={cat.category}
               onClick={() => navigate('/discordPage', { state: cat.category })}
             >
               🛠️ {job} 방
             </MenuItem>
-          ))}
+          ))} */}
         </Menu>
 
         <Footer>

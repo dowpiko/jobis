@@ -5,7 +5,7 @@ import { ko } from 'date-fns/locale';    // 달력 한글로 만들기
 import 'react-datepicker/dist/react-datepicker.css';
 import JoinInterviewModal from '../modal/JoinInterviewModal';
 import { useLocation } from 'react-router-dom';
-import categories from '../data/categories';  
+import categories from '../../data/categories';  
 
 const Wrapper = styled.div`
   display: flex;
