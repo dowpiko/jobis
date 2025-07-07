@@ -216,5 +216,64 @@ public class JshController {
 	            .body(Map.of("success", false, "message", "카카오 인증 실패"));
 	    }
 	}
+	
+	@PostMapping("/google/check")
+	@ResponseBody
+	public ResponseEntity<?> checkGoogleUser(@RequestBody Map<String, String> body, HttpSession session) {
+	    String code = body.get("code");
+
+	    try {
+	        Map<String, String> tokenInfo = jshservice.getGoogleEmail(code);
+	        String email = tokenInfo.get("email");
+	        String accessToken = tokenInfo.get("accessToken");
+
+	        if (email == null || accessToken == null) {
+	            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                .body(Map.of("success", false, "message", "이메일 또는 토큰 확인 실패"));
+	        }
+
+	        UserVO userVO = jshservice.getUserById(email);
+	        if (userVO != null) {
+	            session.setAttribute("User", userVO);
+	            return ResponseEntity.ok(Map.of(
+	                "exists", true,
+	                "email", email,
+	                "accessToken", accessToken
+	            ));
+	        } else {
+	            return ResponseEntity.ok(Map.of(
+	                "exists", false,
+	                "email", email,
+	                "accessToken", accessToken
+	            ));
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return ResponseEntity
+	            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+	            .body(Map.of("success", false, "message", "구글 확인 실패"));
+	    }
+	}
+
+	@PostMapping("/google")
+	@ResponseBody
+	public ResponseEntity<?> googleCallback(@RequestBody Map<String, String> body, HttpSession session) {
+	    String email = body.get("email");
+	    String accessToken = body.get("accessToken");
+	    String birth = body.get("birth");
+
+	    try {
+	        UserVO userVO = jshservice.handleGoogleLogin(accessToken, email, birth);
+	        session.setAttribute("User", userVO);
+
+	        return ResponseEntity.ok(Map.of("success", true, "user", userVO));
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return ResponseEntity
+	            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+	            .body(Map.of("success", false, "message", "구글 인증 실패"));
+	    }
+	}
+
 }
 

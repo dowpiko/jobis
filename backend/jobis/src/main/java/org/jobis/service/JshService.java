@@ -34,4 +34,8 @@ public interface JshService {
 	public UserVO handleKakaoLogin(String accessToken, String code, String birth);
 	
 	public Map<String, String> getKakaoEmail(String code);
+	
+	public Map<String, String> getGoogleEmail(String code);
+	
+	public UserVO handleGoogleLogin(String accessToken, String email, String birth);
 }

@@ -55,6 +55,15 @@ public class JshServiceImple implements JshService{
     @Value("${kakao.redirect-uri}")
     private String kRedirectUri;
     
+    @Value("${google.client.id}")
+    private String googleClientId;
+
+    @Value("${google.client.secret}")
+    private String googleClientSecret;
+
+    @Value("${google.redirect.uri}")
+    private String gRedirectUri;
+    
     @Override
     public boolean checkId(String id) {    	
     	return jsmMapper.findUserId(id) == 0 ? true : false;
@@ -250,6 +259,79 @@ public class JshServiceImple implements JshService{
             System.err.println("🔴 [Kakao] 사용자 등록 중 오류");
             e.printStackTrace();
             throw new RuntimeException("카카오 회원가입 실패");
+        }
+    }
+    
+    @Override
+    public Map<String, String> getGoogleEmail(String code) {
+        try {
+            RestTemplate rt = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("grant_type", "authorization_code");
+            params.add("client_id", googleClientId);         // 🔐 설정 필요
+            params.add("client_secret", googleClientSecret); // 🔐 설정 필요
+            params.add("redirect_uri", gRedirectUri);
+            params.add("code", code);
+
+            HttpEntity<MultiValueMap<String, String>> tokenRequest = new HttpEntity<>(params, headers);
+            ResponseEntity<Map> tokenResponse = rt.postForEntity("https://oauth2.googleapis.com/token", tokenRequest, Map.class);
+
+            String accessToken = (String) tokenResponse.getBody().get("access_token");
+
+            HttpHeaders profileHeaders = new HttpHeaders();
+            profileHeaders.set("Authorization", "Bearer " + accessToken);
+            HttpEntity<?> profileRequest = new HttpEntity<>(profileHeaders);
+
+            ResponseEntity<Map> profileResponse = rt.exchange(
+                "https://www.googleapis.com/oauth2/v3/userinfo", HttpMethod.GET, profileRequest, Map.class);
+
+            String email = (String) profileResponse.getBody().get("email");
+
+            return Map.of("accessToken", accessToken, "email", email);
+        } catch (HttpClientErrorException e) {
+            System.err.println("🔴 [Google] 토큰 또는 이메일 요청 실패");
+            System.err.println("Status Code: " + e.getStatusCode());
+            System.err.println("Response Body: " + e.getResponseBodyAsString());
+            throw new RuntimeException("구글 인증 실패");
+        }
+    }
+    
+    @Override
+    public UserVO handleGoogleLogin(String accessToken, String email, String birth) {
+        try {
+            RestTemplate rt = new RestTemplate();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + accessToken);
+            HttpEntity<?> profileRequest = new HttpEntity<>(headers);
+
+            ResponseEntity<Map> profileResponse = rt.exchange(
+                "https://www.googleapis.com/oauth2/v3/userinfo", HttpMethod.GET, profileRequest, Map.class);
+
+            String name = (String) profileResponse.getBody().get("name");
+
+            UserVO userVO = new UserVO();
+            userVO.setId(email);
+            userVO.setEmail(email);
+            userVO.setName(name + "Google");
+            userVO.setPw("google");
+
+            if (birth != null && !birth.isEmpty()) {
+                userVO.setBirthdate(Date.valueOf(birth));
+            }
+
+            if (jsmMapper.findUserId(userVO.getId()) == 0) {
+                jsmMapper.registerUser(userVO);
+            }
+
+            return jsmMapper.getUserById(email);
+        } catch (Exception e) {
+            System.err.println("🔴 [Google] 사용자 등록 중 오류");
+            e.printStackTrace();
+            throw new RuntimeException("구글 회원가입 실패");
         }
     }
     

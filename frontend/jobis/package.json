@@ -59,14 +59,8 @@
       "last 1 safari version"
     ]
   },
-  "proxy": {
-    "/ws": {
-      "target": "http://localhost:9090",
-      "ws": true
-    }
-  },
   "devDependencies": {
     "@types/kakao-js-sdk": "^1.39.5"
-  }
-  
+  },
+  "proxy": "http://localhost:9090"  
 }

@@ -150,6 +150,30 @@ const KakaoImg = styled.img`
   }
 `;
 
+const GoogleLoginWrapper = styled.button`
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  margin-top: 10px;
+
+  &:hover img {
+    filter: brightness(1.1);
+    transform: scale(1.02);
+    transition: all 0.2s ease-in-out;
+  }
+`;
+
+const GoogleImg = styled.img`
+  height: 50px;
+  width: auto;
+  border-radius: 4px;
+
+  @media (max-width: 768px) {
+    height: 42px;
+  }
+`;
+
 const Login = () => {
   const [modalStep, setModalStep] = useState(null);
   const [id, setId] = useState('');
@@ -200,6 +224,20 @@ const Login = () => {
     window.location.href = kakaoAuthUrl;
   };
 
+  const handleGoogleLogin = () => {
+    const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    const REDIRECT_URI = encodeURIComponent(process.env.REACT_APP_GOOGLE_REDIRECT_URI);
+    const SCOPE = encodeURIComponent('email profile');
+    const RESPONSE_TYPE = 'code';
+
+    const googleAuthUrl =
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${REDIRECT_URI}` +
+      `&response_type=${RESPONSE_TYPE}&scope=${SCOPE}`;
+
+    window.location.href = googleAuthUrl;
+  };
+
   return (
     <>
       <Wrapper blur={modalStep !== null}>
@@ -242,6 +280,13 @@ const Login = () => {
               alt="카카오 로그인"
             />
           </KakaoLoginWrapper>
+
+          <GoogleLoginWrapper onClick={handleGoogleLogin}>
+            <GoogleImg
+              src="https://developers.google.com/identity/images/btn_google_signin_light_normal_web.png"
+              alt="구글 로그인"
+            />
+          </GoogleLoginWrapper>
 
           <Options>
             <span onClick={() => setModalStep('id')}>ID/PW 찾기</span> |
