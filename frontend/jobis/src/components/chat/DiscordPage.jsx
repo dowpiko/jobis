@@ -239,7 +239,6 @@ const DiscordPage = () => {
     }
 
     const formattedDate = selectedDate.toISOString().slice(0, 19).replace('T', ' ');
-
     const payload = {
       r_title: title,
       r_tag: '직종 중 택1',
@@ -331,12 +330,13 @@ const handleOnConfirm = () => {
 };
 // websocket 관련
 useEffect(() => {
-  const socket = new WebSocket("ws://localhost:9090/ws/userChat"); //localhost:
+  const socket = new WebSocket("ws://localhost:9090/ws/userChat"); 
   socketRef.current = socket;
 
   socket.onopen = () => {
     console.log("✅ WebSocket 연결됨");
-  };
+   
+  };  
 
   socket.onmessage = (event) => {
     const message = JSON.parse(event.data);

@@ -28,6 +28,7 @@ public class UserChatSocket {
     public void onOpen(Session session) {
         sessions.add(session);
         System.out.println("✅ 채팅 소켓 연결됨: " + session.getId());
+        System.out.println("현재 접속자 수: " + sessions.size());
     }
     @OnMessage
     public void onMessage(String message, Session session) throws IOException {
@@ -35,16 +36,15 @@ public class UserChatSocket {
         try {
             ObjectMapper mapper = new ObjectMapper();
             CJSVO cjsvo = mapper.readValue(message, CJSVO.class);
-
-            // 사용자 정보 추출 (예: HttpSession에서 가져올 수 없는 경우 토큰 등 활용)
-            // 여기서는 예시로 leader를 999로 고정
-            cjsvo.setLeader(999);
+            
 
             int result = ucservice.register(cjsvo); // DB 저장
             if (result > 0) {
                 // 저장된 cno를 다시 가져오려면 getUserChat()에서 마지막 값 추출 가능
                 List<CJSVO> updatedList = ucservice.getUserChat();
+                System.out.println("업데이트 리스트 크기: " + updatedList.size());
                 CJSVO saved = updatedList.get(0); // reverse 되어 있으니 가장 최근 값
+                System.out.println("브로드캐스트할 메시지: " + mapper.writeValueAsString(saved));
 
                 String payload = mapper.writeValueAsString(saved);
                 for (Session s : sessions) {
