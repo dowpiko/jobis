@@ -21,6 +21,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -178,11 +179,7 @@ public class JshServiceImple implements JshService{
     }
     
     @Override
-    public Map<String, Object> handleKakaoLogin(String code, String birth) {
-    	System.out.println("[Kakao Debug] code = " + code);
-    	System.out.println("[Kakao Debug] client_id = " + kakaoApiKey);
-    	System.out.println("[Kakao Debug] redirect_uri = " + kRedirectUri);
-    	
+    public Map<String, String> getKakaoEmail(String code) {
         try {
             RestTemplate rt = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
@@ -195,8 +192,7 @@ public class JshServiceImple implements JshService{
             params.add("code", code);
 
             HttpEntity<MultiValueMap<String, String>> tokenRequest = new HttpEntity<>(params, headers);
-            ResponseEntity<Map> tokenResponse = rt.postForEntity(
-                "https://kauth.kakao.com/oauth/token", tokenRequest, Map.class);
+            ResponseEntity<Map> tokenResponse = rt.postForEntity("https://kauth.kakao.com/oauth/token", tokenRequest, Map.class);
 
             String accessToken = (String) tokenResponse.getBody().get("access_token");
 
@@ -205,73 +201,55 @@ public class JshServiceImple implements JshService{
             HttpEntity<?> profileRequest = new HttpEntity<>(profileHeaders);
 
             ResponseEntity<Map> profileResponse = rt.exchange(
-                "https://kapi.kakao.com/v2/user/me",
-                HttpMethod.GET,
-                profileRequest,
-                Map.class);
+                "https://kapi.kakao.com/v2/user/me", HttpMethod.GET, profileRequest, Map.class);
+
+            Map kakaoAccount = (Map) profileResponse.getBody().get("kakao_account");
+            String email = (String) kakaoAccount.get("email");
+
+            return Map.of("accessToken", accessToken, "email", email);
+        } catch (HttpClientErrorException e) {
+            System.err.println("🔴 [Kakao] 토큰 또는 이메일 요청 실패");
+            System.err.println("Status Code: " + e.getStatusCode());
+            System.err.println("Response Body: " + e.getResponseBodyAsString());
+            throw new RuntimeException("카카오 인증 실패");
+        }
+    }
+
+    @Override
+    public UserVO handleKakaoLogin(String accessToken, String email, String birth) {
+        try {
+            RestTemplate rt = new RestTemplate();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + accessToken);
+            HttpEntity<?> profileRequest = new HttpEntity<>(headers);
+
+            ResponseEntity<Map> profileResponse = rt.exchange(
+                "https://kapi.kakao.com/v2/user/me", HttpMethod.GET, profileRequest, Map.class);
 
             Map kakaoAccount = (Map) profileResponse.getBody().get("kakao_account");
             Map profile = (Map) kakaoAccount.get("profile");
-
-            String email = (String) kakaoAccount.get("email");
             String nickname = (String) profile.get("nickname");
 
             UserVO userVO = new UserVO();
             userVO.setId(email);
             userVO.setEmail(email);
-            userVO.setName(nickname);
+            userVO.setName(nickname + "Test");
             userVO.setPw("kakao");
-            
+
             if (birth != null && !birth.isEmpty()) {
-                userVO.setBirthdate(Date.valueOf(birth)); // yyyy-MM-dd 포맷
+                userVO.setBirthdate(Date.valueOf(birth));
             }
 
             if (jsmMapper.findUserId(userVO.getId()) == 0) {
                 jsmMapper.registerUser(userVO);
             }
 
-            return Map.of("success", true, "email", userVO.getEmail(), "name", userVO.getName());
+            return jsmMapper.getUserById(email);
         } catch (Exception e) {
+            System.err.println("🔴 [Kakao] 사용자 등록 중 오류");
             e.printStackTrace();
-            throw new RuntimeException("카카오 인증 처리 실패");
-        }
-    }
-    
-    @Override
-    public String getKakaoEmail(String code) {
-        try {
-            RestTemplate rt = new RestTemplate();
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-            params.add("grant_type", "authorization_code");
-            params.add("client_id", kakaoApiKey);
-            params.add("redirect_uri", kRedirectUri);
-            params.add("code", code);
-
-            HttpEntity<MultiValueMap<String, String>> tokenRequest = new HttpEntity<>(params, headers);
-            ResponseEntity<Map> tokenResponse = rt.postForEntity(
-                "https://kauth.kakao.com/oauth/token", tokenRequest, Map.class);
-
-            String accessToken = (String) tokenResponse.getBody().get("access_token");
-
-            HttpHeaders profileHeaders = new HttpHeaders();
-            profileHeaders.set("Authorization", "Bearer " + accessToken);
-            HttpEntity<?> profileRequest = new HttpEntity<>(profileHeaders);
-
-            ResponseEntity<Map> profileResponse = rt.exchange(
-                "https://kapi.kakao.com/v2/user/me",
-                HttpMethod.GET,
-                profileRequest,
-                Map.class);
-
-            Map kakaoAccount = (Map) profileResponse.getBody().get("kakao_account");
-            return (String) kakaoAccount.get("email");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException("카카오 회원가입 실패");
         }
     }
     
