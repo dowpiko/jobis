@@ -4,8 +4,10 @@ import DatePicker from 'react-datepicker'; // 날짜 선택
 import { ko } from 'date-fns/locale';    // 달력 한글로 만들기
 import 'react-datepicker/dist/react-datepicker.css';
 import JoinInterviewModal from '../modal/JoinInterviewModal';
+//  import useWebSocket from '../useWebSocket';
 // import { Client } from '@stomp/stompjs';
 // import SockJS from 'sockjs-client';
+
 
 const Wrapper = styled.div`
   display: flex;
@@ -63,7 +65,7 @@ const ChatBubble = styled.div`
   display: flex;
   align-items: flex-start;
   margin-bottom: 14px;
-  flex-direction: ${(props) => (props.isMine ? 'row-reverse' : 'row')};
+  flex-direction: ${(props) => (props.$isMine ? 'row-reverse' : 'row')};
 `;
 
 const Avatar = styled.img`
@@ -76,11 +78,11 @@ const Avatar = styled.img`
 const BubbleContainer = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: ${(props) => (props.isMine ? 'flex-end' : 'flex-start')};
+  align-items: ${(props) => (props.$isMine ? 'flex-end' : 'flex-start')};
 `;
 
 const Bubble = styled.div`
-   background-color: ${(props) => (props.isMine ? '#d1eaff' : '#ffffff')};
+   background-color: ${(props) => (props.$isMine ? '#d1eaff' : '#ffffff')};
   border: 1px solid #b0bccb;
   padding: 10px 14px;
   border-radius: 12px;
@@ -169,6 +171,7 @@ const DiscordPage = () => {
   const [myUno, setMyUno] = useState(() => window.myUno);
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
+  const socketRef = useRef(null);
 
 
   const fetchChatList = () => {
@@ -186,8 +189,8 @@ const DiscordPage = () => {
   };
   useEffect(() => {
     fetchChatList(); 
-    const interval = setInterval(fetchChatList, 5000); 
-    return () => clearInterval(interval);
+    // const interval = setInterval(fetchChatList, 5000); 
+    // return () => clearInterval(interval);
   }, []);
 
   // 처음 로드시 스크롤 맨 아래로
@@ -233,45 +236,45 @@ const DiscordPage = () => {
     if (!selectedDate || !title.trim()) {
     alert('제목과 날짜를 모두 입력하세요');
     return;
-  }
-
-  const formattedDate = selectedDate.toISOString().slice(0, 19).replace('T', ' ');
-
-  const payload = {
-    r_title: title,
-    r_tag: '직종 중 택1',
-    sch_date: formattedDate,
-  };
-
-
-
-//   세션 만료되면 alert
-  fetch('/insertUserChat', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  credentials: 'include',
-  body: JSON.stringify(payload),
-})
-  .then(res => {
-    if (res.status === 401) {
-      alert('세션이 만료되었습니다. 다시 로그인해주시기 바랍니다.');
-      window.location.href = '/'; // 로그인 페이지로 이동
-      return;
     }
-    return res.text();
-  })
-  .then(text => {
-    if (text === 'success') {
-      fetchChatList();
-      setVisibleCount(7); // 다시 7개부터 시작
-    }
-  })
-  .catch(err => console.error('Insert 요청 에러:', err));
+
+    const formattedDate = selectedDate.toISOString().slice(0, 19).replace('T', ' ');
+
+    const payload = {
+      r_title: title,
+      r_tag: '직종 중 택1',
+      sch_date: formattedDate,
+      leader : myUno,
+    };
+    //   세션 만료되면 alert
+      fetch('/insertUserChat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    })
+      .then(res => {
+        if (res.status === 401) {
+          alert('세션이 만료되었습니다. 다시 로그인해주시기 바랍니다.');
+          window.location.href = '/'; // 로그인 페이지로 이동
+          return;
+        }
+        return res.text();
+      })
+      .then(text => {
+        if (text === 'success') {
+          fetchChatList();
+          setVisibleCount(9); // 다시 9개부터 시작
+          if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+            socketRef.current.send(JSON.stringify(payload));
+          }
+        }
+      })
+      .catch(err => console.error('Insert 요청 에러:', err));
 
 
- 
-  setTitle('');
-  setSelectedDate(null);
+      setTitle('');
+      setSelectedDate(null);
 };
 
  // 세션 uno랑 leader랑 비교
@@ -326,6 +329,35 @@ const handleOnConfirm = () => {
       alert('서버 오류가 발생했습니다.');
     });
 };
+// websocket 관련
+useEffect(() => {
+  const socket = new WebSocket("ws://localhost:9090/ws/userChat");
+  socketRef.current = socket;
+
+  socket.onopen = () => {
+    console.log("✅ WebSocket 연결됨");
+  };
+
+  socket.onmessage = (event) => {
+    const message = JSON.parse(event.data);
+    console.log("📩 실시간 메시지 수신:", message);
+    setChatList((prev) => [...prev, {
+      ...message,
+      sch_date: new Date(message.sch_date),
+    }]);
+  };
+
+  socket.onerror = (err) => {
+    console.error("⚠️ WebSocket 오류:", err);
+  };
+
+  socket.onclose = () => {
+    console.log("❌ WebSocket 연결 종료");
+  };
+
+  return () => socket.close();
+}, []);
+
   
   return (
      <Wrapper>
@@ -338,11 +370,11 @@ const handleOnConfirm = () => {
           {visibleChats.map((chat) => {
             const isMine = chat.leader === myUno;
             return (
-              <ChatBubble key={chat.cno} isMine={isMine}>
+              <ChatBubble key={chat.cno} $isMine={isMine}>
                 {!isMine && <Avatar src="https://via.placeholder.com/40" alt="avatar" />}
                 {!isMine && <div>{chat.leader_name}</div>}
-                <BubbleContainer isMine={isMine}>
-                  <Bubble isMine={isMine}>{chat.r_title}</Bubble>
+                <BubbleContainer $isMine={isMine}>
+                  <Bubble $isMine={isMine}>{chat.r_title}</Bubble>
                   <MeetingInfo>
                     일시:{' '}
                     {chat.sch_date.toLocaleDateString('ko-KR', {
