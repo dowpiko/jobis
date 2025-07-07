@@ -1,5 +1,6 @@
 package org.jobis.controller;
 
+import java.sql.Date;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -158,21 +159,50 @@ public class JshController {
         return ResponseEntity.ok(userProfile );
     }
 	
-	@PostMapping("/kakao")
+    @PostMapping("/kakao")
     @ResponseBody
     public ResponseEntity<?> kakaoCallback(@RequestBody Map<String, String> body, HttpSession session) {
         String code = body.get("code");
+        String birth = body.get("birth");
 
         try {
-            Map<String, Object> userProfile = jshservice.handleKakaoLogin(code);
+            Map<String, Object> userProfile = jshservice.handleKakaoLogin(code, birth);
             String userId = (String) userProfile.get("email");
             UserVO userVO = jshservice.getUserById(userId);
+
             session.setAttribute("User", userVO);
-            return ResponseEntity.ok(userProfile);
+            return ResponseEntity.ok(Map.of("success", true, "user", userVO));
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("success", false, "message", "카카오 인증 실패"));
+        }
+    }
+    
+    @PostMapping("/kakao/check")
+    @ResponseBody
+    public ResponseEntity<?> checkKakaoUser(@RequestBody Map<String, String> body, HttpSession session) {
+        String code = body.get("code");
+
+        try {
+            String email = jshservice.getKakaoEmail(code);
+            if (email == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "message", "이메일 확인 실패"));
+            }
+
+            UserVO userVO = jshservice.getUserById(email);
+            if (userVO != null) {
+                session.setAttribute("User", userVO);
+                return ResponseEntity.ok(Map.of("exists", true));
+            } else {
+                return ResponseEntity.ok(Map.of("exists", false));
+            }
+        } catch (Exception e) {
+            return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("success", false, "message", "카카오 확인 실패"));
         }
     }
 }

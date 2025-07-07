@@ -33,6 +33,9 @@ public class JshServiceImple implements JshService{
     
     @Autowired private JshMapper jsmMapper;   
 
+    @Value("${spring.mail.username}")
+    private String mailSenderAddress;
+    
 	@Value("${naver.client.id}")
     private String clientId;
 
@@ -70,7 +73,7 @@ public class JshServiceImple implements JshService{
 	    message.setTo(email);
 	    message.setSubject("이메일 인증 코드");
 	    message.setText("인증코드: " + code);
-	    message.setFrom(email);
+	    message.setFrom(mailSenderAddress);
 	    mailSender.send(message);	
 	}
 	
@@ -175,9 +178,12 @@ public class JshServiceImple implements JshService{
     }
     
     @Override
-    public Map<String, Object> handleKakaoLogin(String code) {
-    	try {
-            // 1️⃣ 액세스 토큰 요청
+    public Map<String, Object> handleKakaoLogin(String code, String birth) {
+    	System.out.println("[Kakao Debug] code = " + code);
+    	System.out.println("[Kakao Debug] client_id = " + kakaoApiKey);
+    	System.out.println("[Kakao Debug] redirect_uri = " + kRedirectUri);
+    	
+        try {
             RestTemplate rt = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -194,7 +200,6 @@ public class JshServiceImple implements JshService{
 
             String accessToken = (String) tokenResponse.getBody().get("access_token");
 
-            // 2️⃣ 사용자 정보 요청
             HttpHeaders profileHeaders = new HttpHeaders();
             profileHeaders.set("Authorization", "Bearer " + accessToken);
             HttpEntity<?> profileRequest = new HttpEntity<>(profileHeaders);
@@ -205,27 +210,68 @@ public class JshServiceImple implements JshService{
                 profileRequest,
                 Map.class);
 
-            Map kakaoAccount = (Map) ((Map) profileResponse.getBody().get("kakao_account"));
+            Map kakaoAccount = (Map) profileResponse.getBody().get("kakao_account");
             Map profile = (Map) kakaoAccount.get("profile");
 
+            String email = (String) kakaoAccount.get("email");
+            String nickname = (String) profile.get("nickname");
+
             UserVO userVO = new UserVO();
-            userVO.setId((String) kakaoAccount.get("email"));
-            userVO.setEmail((String) kakaoAccount.get("email"));
-            userVO.setName((String) profile.get("nickname"));
-            if (kakaoAccount.containsKey("birthyear") && kakaoAccount.containsKey("birthday")) {
-                String birthStr = kakaoAccount.get("birthyear") + "-" + ((String) kakaoAccount.get("birthday")).replace("-", "");
-                userVO.setBirthdate(Date.valueOf(birthStr));
-            }
+            userVO.setId(email);
+            userVO.setEmail(email);
+            userVO.setName(nickname);
             userVO.setPw("kakao");
             
-            if(jsmMapper.findUserId(userVO.getId()) == 0) {
-            	jsmMapper.registerUser(userVO);
+            if (birth != null && !birth.isEmpty()) {
+                userVO.setBirthdate(Date.valueOf(birth)); // yyyy-MM-dd 포맷
             }
 
-            return Map.of("success", true, "profile", profile);
+            if (jsmMapper.findUserId(userVO.getId()) == 0) {
+                jsmMapper.registerUser(userVO);
+            }
+
+            return Map.of("success", true, "email", userVO.getEmail(), "name", userVO.getName());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("카카오 인증 처리 실패");
+        }
+    }
+    
+    @Override
+    public String getKakaoEmail(String code) {
+        try {
+            RestTemplate rt = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("grant_type", "authorization_code");
+            params.add("client_id", kakaoApiKey);
+            params.add("redirect_uri", kRedirectUri);
+            params.add("code", code);
+
+            HttpEntity<MultiValueMap<String, String>> tokenRequest = new HttpEntity<>(params, headers);
+            ResponseEntity<Map> tokenResponse = rt.postForEntity(
+                "https://kauth.kakao.com/oauth/token", tokenRequest, Map.class);
+
+            String accessToken = (String) tokenResponse.getBody().get("access_token");
+
+            HttpHeaders profileHeaders = new HttpHeaders();
+            profileHeaders.set("Authorization", "Bearer " + accessToken);
+            HttpEntity<?> profileRequest = new HttpEntity<>(profileHeaders);
+
+            ResponseEntity<Map> profileResponse = rt.exchange(
+                "https://kapi.kakao.com/v2/user/me",
+                HttpMethod.GET,
+                profileRequest,
+                Map.class);
+
+            Map kakaoAccount = (Map) profileResponse.getBody().get("kakao_account");
+            return (String) kakaoAccount.get("email");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
     
