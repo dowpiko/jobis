@@ -26,6 +26,7 @@ import CreateProfileForm from './components/chat/CreateProfileForm';
 import NaverCallback from './components/NaverCallback';
 import KakaoCallback from './components/KakaoCallback';
 import GoogleCallback from './components/GoolgleCallback';
+import VideoChat from './components/chat/VideoChat';
 
 
 
@@ -142,6 +143,8 @@ import GoogleCallback from './components/GoolgleCallback';
                 </ProfileSidebar>
             }
           />
+          {/* 화상 채팅 */}
+          <Route path="/video" element={<VideoChat />} />
         {/* AI 인터뷰 생성 페이지  */}
           <Route
             path="/createAiInterview"

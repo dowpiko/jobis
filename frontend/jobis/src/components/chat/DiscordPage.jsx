@@ -4,7 +4,7 @@ import DatePicker from 'react-datepicker'; // 날짜 선택
 import { ko } from 'date-fns/locale';    // 달력 한글로 만들기
 import 'react-datepicker/dist/react-datepicker.css';
 import JoinInterviewModal from '../modal/JoinInterviewModal';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import categories from '../../data/categories';  
 
 const Wrapper = styled.div`
@@ -172,7 +172,8 @@ const DiscordPage = () => {
   const prevChatListLength = useRef(0);
   const socketRef = useRef(null);
   const location = useLocation();
-  const jobTag = location.state?.job || '전체';
+  const jobTag = location.state?.job || '전체';  
+  const navigate = useNavigate();
 
 
   const fetchChatList = () => {
@@ -357,6 +358,9 @@ useEffect(() => {
   return () => socket.close();
 }, []);
 
+  const handleJoin = () => {
+      navigate('/video');
+  };
   
   return (
      <Wrapper>
@@ -364,7 +368,7 @@ useEffect(() => {
         <Header>
           <Title>‘박말선’님과의 화상 채팅 일정</Title>
           <Title>태그 : {jobTag}</Title>
-          <JoinButton>회의 참여</JoinButton>
+          <JoinButton onClick={handleJoin}>회의 참여</JoinButton>
         </Header>
         <ChatBox ref={scrollRef} onScroll={handleScroll}> {/* ✅ 스크롤 감지 */}
           {visibleChats.map((chat) => {
