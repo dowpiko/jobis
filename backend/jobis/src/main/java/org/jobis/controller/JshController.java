@@ -81,6 +81,7 @@ public class JshController {
 	    if (user != null) {
 	        session.setAttribute("User", user); // ✅ 세션에 저장
 	        result.put("success", true);
+	        result.put("userType", user.getAuth());
 	    } else {
 	        result.put("success", false);
 	        result.put("message", "아이디 또는 비밀번호가 일치하지 않습니다.");

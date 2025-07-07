@@ -174,9 +174,11 @@ const Login = () => {
   const handleUserLogin = async () => {
     try {
       const res = await axios.post('/jsh/login', { id, pw });
+
       if (res.data.success) {
+        const userType = res.data.userType;
         alert('로그인 성공!');
-        navigate(isPersonal ? '/profile' : '/companyMain');
+        navigate(userType === 'user' ? '/profile' : '/companyMain');
       } else {
         alert(res.data.message || '아이디 또는 비밀번호가 일치하지 않습니다.');
       }
