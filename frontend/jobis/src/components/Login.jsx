@@ -5,6 +5,9 @@ import ResetPwModal from './modal/ResetPwModal';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { initKakao } from 'kakao-js-sdk';
+import NaverIcon from '../img/btn_Naver.png';
+import KakaoIcon from '../img/btn_Kakao.png';
+import GoogleIcon from '../img/btn_Google.png';
 
 const Wrapper = styled.div`
   position: fixed;
@@ -31,6 +34,29 @@ const LoginBox = styled.div`
   box-shadow: 0 8px 24px rgba(0,0,0,0.06);
   text-align: center;
   pointer-events: all;
+`;
+
+const ToggleTabs = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+`;
+
+const Tab = styled.button`
+  font-size: 15px;
+  font-weight: bold;
+  background: none;
+  border: none;
+  margin: 0 10px;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-bottom: 3px solid ${({ active }) => (active ? '#4376B6' : 'transparent')};
+  color: ${({ active }) => (active ? '#4376B6' : '#6B7280')};
+  transition: all 0.3s;
+
+  &:hover {
+    color: #4376B6;
+  }
 `;
 
 const Title = styled.h2`
@@ -103,79 +129,36 @@ const Options = styled.div`
   }
 `;
 
-const NaverLoginWrapper = styled.button`
-  background: transparent;
-  border: none;
+const SocialLoginIconButton = styled.button`
+  width: 50px;
+  height: 50px;
+  margin: 8px;
   padding: 0;
+  border: none;
+  background: transparent;
   cursor: pointer;
 
-  &:hover img {
+  img, svg {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    transition: transform 0.2s ease-in-out;
+  }
+  &:hover img, &:hover svg {
+    transform: scale(1.1);
     filter: brightness(1.1);
-    transform: scale(1.02);
-    transition: all 0.2s ease-in-out;
   }
 `;
 
-const NaverImg = styled.img`
-  height: 50px;
-  width: auto;
-  border-radius: 4px;
-
-  @media (max-width: 768px) {
-    height: 42px;
-  }
-`;
-
-const KakaoLoginWrapper = styled.button`
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  margin-top: 10px;
-
-  &:hover img {
-    filter: brightness(1.1);
-    transform: scale(1.02);
-    transition: all 0.2s ease-in-out;
-  }
-`;
-
-const KakaoImg = styled.img`
-  height: 50px;
-  width: auto;
-  border-radius: 4px;
-
-  @media (max-width: 768px) {
-    height: 42px;
-  }
-`;
-
-const GoogleLoginWrapper = styled.button`
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  margin-top: 10px;
-
-  &:hover img {
-    filter: brightness(1.1);
-    transform: scale(1.02);
-    transition: all 0.2s ease-in-out;
-  }
-`;
-
-const GoogleImg = styled.img`
-  height: 50px;
-  width: auto;
-  border-radius: 4px;
-
-  @media (max-width: 768px) {
-    height: 42px;
-  }
+const SocialIconContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
 `;
 
 const Login = () => {
   const [modalStep, setModalStep] = useState(null);
+  const [isPersonal, setIsPersonal] = useState(true);
   const [id, setId] = useState('');
   const [pw, setPw] = useState('');
   const navigate = useNavigate();
@@ -186,7 +169,6 @@ const Login = () => {
       .catch(console.error);
   }, []);
 
-  const companyMain = () => navigate('/companyMain');
   const signUpPage = () => navigate('/signUp');
 
   const handleUserLogin = async () => {
@@ -194,7 +176,7 @@ const Login = () => {
       const res = await axios.post('/jsh/login', { id, pw });
       if (res.data.success) {
         alert('로그인 성공!');
-        navigate('/profile');
+        navigate(isPersonal ? '/profile' : '/companyMain');
       } else {
         alert(res.data.message || '아이디 또는 비밀번호가 일치하지 않습니다.');
       }
@@ -208,11 +190,9 @@ const Login = () => {
     const NAVER_CLIENT_ID = process.env.REACT_APP_NAVER_CLIENT_ID;
     const REDIRECT_URI = encodeURIComponent(process.env.REACT_APP_NAVER_REDIRECT_URI);
     const STATE = Math.random().toString(36).substring(2);
-
     const naverAuthUrl =
       `https://nid.naver.com/oauth2.0/authorize?response_type=code` +
       `&client_id=${NAVER_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&state=${STATE}`;
-
     window.location.href = naverAuthUrl;
   };
 
@@ -220,7 +200,6 @@ const Login = () => {
     const REST_API_KEY = process.env.REACT_APP_KAKAO_JS_KEY;
     const REDIRECT_URI = process.env.REACT_APP_KAKAO_REDIRECT_URI;
     const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}&response_type=code`;
-
     window.location.href = kakaoAuthUrl;
   };
 
@@ -229,12 +208,10 @@ const Login = () => {
     const REDIRECT_URI = encodeURIComponent(process.env.REACT_APP_GOOGLE_REDIRECT_URI);
     const SCOPE = encodeURIComponent('email profile');
     const RESPONSE_TYPE = 'code';
-
     const googleAuthUrl =
       `https://accounts.google.com/o/oauth2/v2/auth?` +
       `client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${REDIRECT_URI}` +
       `&response_type=${RESPONSE_TYPE}&scope=${SCOPE}`;
-
     window.location.href = googleAuthUrl;
   };
 
@@ -242,6 +219,11 @@ const Login = () => {
     <>
       <Wrapper blur={modalStep !== null}>
         <LoginBox>
+          <ToggleTabs>
+            <Tab active={isPersonal} onClick={() => setIsPersonal(true)}>👤 개인</Tab>
+            <Tab active={!isPersonal} onClick={() => setIsPersonal(false)}>🏢 기업</Tab>
+          </ToggleTabs>
+
           <Title>login</Title>
 
           <FormGroup>
@@ -264,29 +246,32 @@ const Login = () => {
             />
           </FormGroup>
 
-          <Button onClick={handleUserLogin}>user login</Button>
-          <Button onClick={companyMain}>company login</Button>
+          <Button onClick={handleUserLogin}>
+            {isPersonal ? 'user login' : 'company login'}
+          </Button>
 
-          <NaverLoginWrapper onClick={handleNaverLogin}>
-            <NaverImg
-              src="https://static.nid.naver.com/oauth/big_g.PNG"
-              alt="네이버 로그인"
-            />
-          </NaverLoginWrapper>
-
-          <KakaoLoginWrapper onClick={handleKakaoLogin}>
-            <KakaoImg
-              src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png"
-              alt="카카오 로그인"
-            />
-          </KakaoLoginWrapper>
-
-          <GoogleLoginWrapper onClick={handleGoogleLogin}>
-            <GoogleImg
-              src="https://developers.google.com/identity/images/btn_google_signin_light_normal_web.png"
-              alt="구글 로그인"
-            />
-          </GoogleLoginWrapper>
+          {isPersonal && (
+            <SocialIconContainer>
+              <SocialLoginIconButton onClick={handleNaverLogin}>
+                <img
+                  src={NaverIcon}
+                  alt="네이버"
+                />
+              </SocialLoginIconButton>
+              <SocialLoginIconButton onClick={handleKakaoLogin}>
+                <img
+                  src={KakaoIcon}
+                  alt="카카오"
+                />
+              </SocialLoginIconButton>
+              <SocialLoginIconButton onClick={handleGoogleLogin}>
+                <img
+                  src={GoogleIcon}
+                  alt="구글"
+                />
+              </SocialLoginIconButton>
+            </SocialIconContainer>
+          )}
 
           <Options>
             <span onClick={() => setModalStep('id')}>ID/PW 찾기</span> |
