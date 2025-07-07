@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -61,6 +62,14 @@ public class CjsController {
 		return chatList;
 	}
 	
+	// 태그 별로 유저채팅 가져오기
+	@ResponseBody
+	@GetMapping(value = "/getUserChatByTag", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<CJSVO>> getUserChatByTag(@RequestParam(required = false) String r_tag) {
+	    List<CJSVO> chatList = ucservice.getUserChatByTag(r_tag);
+	    return new ResponseEntity<>(chatList, HttpStatus.OK);
+	}
+	
 	// 모의면접에 member로 참여하기
 	@ResponseBody
 	@PostMapping("/joinChat")
@@ -101,6 +110,23 @@ public class CjsController {
 	    }
 
 	    return new ResponseEntity<>(user.getUno(), HttpStatus.OK);
+	}
+	
+	// 직종목록 집어 넣기
+	@ResponseBody
+	@GetMapping(value = "/jobCategories", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<String>> getJobCategories() {
+	    List<String> jobList = List.of(
+	        "프론트엔드 개발자",
+	        "백엔드 개발자",
+	        "디자이너",
+	        "데이터 분석가",
+	        "AI 엔지니어",
+	        "PM",
+	        "QA 엔지니어"
+	    );
+
+	    return new ResponseEntity<>(jobList, HttpStatus.OK);
 	}
 
 

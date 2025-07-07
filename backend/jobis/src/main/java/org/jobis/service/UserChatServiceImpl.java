@@ -20,12 +20,19 @@ public class UserChatServiceImpl implements UserChatService {
 		
 		return ucMapper.register(cjsvo);
 	}
-	// 유저 채팅 가져오기
+	// 유저 채팅 가져오기(전체)
 	@Override
 	public List<CJSVO> getUserChat() {
 		
 		return ucMapper.getUserChat();
 	}
+	// 태그 별로 유저채팅 가져오기
+	@Override
+	public List<CJSVO> getUserChatByTag(String r_tag) {
+
+		return ucMapper.getUserChatByTag(r_tag);
+	}
+	
 	// 채팅 참여하기
 	@Override
 	public int joinChat(int cno,int member) {
@@ -38,4 +45,5 @@ public class UserChatServiceImpl implements UserChatService {
 		
 		return ucMapper.getNameByUno();
 	}
+	
 }

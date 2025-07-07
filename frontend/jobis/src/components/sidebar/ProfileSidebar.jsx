@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import categories from '../data/categories';  
 
 const AppLayout = styled.div`
   display: flex;
@@ -164,6 +165,16 @@ function ProfileSidebar({ children }) {
   const navigate = useNavigate();
   const [nickname, setNickname] = useState(null); // null이면 로딩 중
   const [hasProfile, setHasProfile] = useState(false);
+  const [jobCategories, setJobCategories] = useState([]);
+
+  useEffect(() => {
+    axios.get('/jobCategories')
+      .then(res => setJobCategories(res.data))
+      .catch(err => {
+        console.error('직종 목록 불러오기 실패:', err);
+        alert('직종 목록을 불러오지 못했습니다.');
+      });
+  }, []);
 
   useEffect(() => {
     axios.get('/jsh/checkProfile')
@@ -211,6 +222,14 @@ function ProfileSidebar({ children }) {
         <Menu>
           <MenuItem onClick={() => navigate('/scheduleManager')}>🏠 일정 관리</MenuItem>
           <MenuItem onClick={() => navigate('/discordPage')}>💬 대기방 목록</MenuItem>
+          {jobCategories.map((job, index) => (
+            <MenuItem
+              key={cat.category}
+              onClick={() => navigate('/discordPage', { state: cat.category })}
+            >
+              🛠️ {job} 방
+            </MenuItem>
+          ))}
         </Menu>
 
         <Footer>

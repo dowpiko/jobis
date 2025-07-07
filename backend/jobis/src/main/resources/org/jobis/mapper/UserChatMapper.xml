@@ -26,7 +26,7 @@
 		)
 	</insert>
 	
-	<!-- 유저 채팅 불러오기 -->
+	<!-- 유저 채팅 불러오기 (전체)-->
 	<select id="getUserChat" resultType="org.jobis.domain.CJSVO">
 	  SELECT uc.*, u.name AS leader_name
 	  FROM tbl_userchat uc
@@ -34,6 +34,16 @@
 	  ORDER BY uc.cno DESC
 		<!-- SELECT * FROM tbl_userchat ORDER BY cno DESC -->
 	</select>
+	
+	<!-- 태그 별로 유저 채팅 불러오기  -->
+	<select id="getUserChatByTag" resultType="org.jobis.domain.CJSVO">
+		  SELECT uc.*, u.name AS leader_name
+		  FROM tbl_userchat uc
+		  LEFT JOIN tbl_user u ON uc.leader = u.uno
+		  WHERE r_tag =#{r_tag}
+		  ORDER BY uc.cno DESC
+	</select>
+	
 	
 	<!-- 이름 가져오기 -->
 	<select id="getNameByUno" resultType="org.jobis.domain.UserVO">

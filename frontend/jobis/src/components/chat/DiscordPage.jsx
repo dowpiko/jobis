@@ -4,10 +4,8 @@ import DatePicker from 'react-datepicker'; // 날짜 선택
 import { ko } from 'date-fns/locale';    // 달력 한글로 만들기
 import 'react-datepicker/dist/react-datepicker.css';
 import JoinInterviewModal from '../modal/JoinInterviewModal';
-//  import useWebSocket from '../useWebSocket';
-// import { Client } from '@stomp/stompjs';
-// import SockJS from 'sockjs-client';
-
+import { useLocation } from 'react-router-dom';
+import categories from '../data/categories';  
 
 const Wrapper = styled.div`
   display: flex;
@@ -169,15 +167,21 @@ const DiscordPage = () => {
   const [visibleCount, setVisibleCount] = useState(9);   // 로드시 버튼 수
   const [isAtBottom, setIsAtBottom] = useState(true);    // 스크롤 위치 상태 저장
   const [myUno, setMyUno] = useState(() => window.myUno);
+
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
   const socketRef = useRef(null);
+  const location = useLocation();
+  const jobTag = location.state?.job || '전체';
 
 
   const fetchChatList = () => {
-    fetch('/getUserChat')
+     const url = jobTag === '전체'
+      ? '/getUserChat'
+      : `/getUserChatByTag?r_tag=${encodeURIComponent(jobTag)}`;
+    fetch(url,{ credentials: 'include' })
       .then((res) => res.json())
-      .then((data) => {
+      .then(data => {
           console.log('서버에서 받은 데이터:', data); // ✅ 확인용
         const parsed = data.map((chat) => ({
           ...chat,
@@ -189,9 +193,7 @@ const DiscordPage = () => {
   };
   useEffect(() => {
     fetchChatList(); 
-    // const interval = setInterval(fetchChatList, 5000); 
-    // return () => clearInterval(interval);
-  }, []);
+  }, [jobTag]);
 
   // 처음 로드시 스크롤 맨 아래로
   useEffect(() => {
@@ -241,7 +243,7 @@ const DiscordPage = () => {
     const formattedDate = selectedDate.toISOString().slice(0, 19).replace('T', ' ');
     const payload = {
       r_title: title,
-      r_tag: '직종 중 택1',
+      r_tag: jobTag,
       sch_date: formattedDate,
       leader : myUno,
     };
@@ -264,9 +266,6 @@ const DiscordPage = () => {
         if (text === 'success') {
           fetchChatList();
           setVisibleCount(9); // 다시 9개부터 시작
-          if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-            socketRef.current.send(JSON.stringify(payload));
-          }
         }
       })
       .catch(err => console.error('Insert 요청 에러:', err));
@@ -364,6 +363,7 @@ useEffect(() => {
       <Container>
         <Header>
           <Title>‘박말선’님과의 화상 채팅 일정</Title>
+          <Title>태그 : {jobTag}</Title>
           <JoinButton>회의 참여</JoinButton>
         </Header>
         <ChatBox ref={scrollRef} onScroll={handleScroll}> {/* ✅ 스크롤 감지 */}
