@@ -2,6 +2,7 @@ package org.jobis.websocket;
 
 import java.io.IOException;
 
+import javax.servlet.http.HttpSession;
 import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -12,6 +13,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.jobis.config.CustomSpringConfigurator;
 import org.jobis.service.AiService;
+import org.jobis.service.InterviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +26,8 @@ public class InterviewSocket {
 	@Autowired
 	private AiService aiService;
 	
+	@Autowired InterviewService interviewService;
+	
 	@OnOpen
 	public void onOpen(Session session) {
 		this.session = session;
@@ -31,10 +35,12 @@ public class InterviewSocket {
 	}
 	
 	@OnMessage
-	public void onMessage(String message) throws IOException{
-		System.out.println("수신 메시지 : " + message);
+	public void onMessage(String jsonString) throws IOException{
+		System.out.println("수신 메시지 : " + jsonString);
+		HttpSession httpSession = (HttpSession) session.getUserProperties().get(HttpSession.class.getName());
+		interviewService.saveCurrentStates(session, jsonString);
 		aiService.streamResultAsync(
-				message,
+				jsonString,
 				chunk ->{
 					try {
 						session.getBasicRemote().sendText(chunk);

@@ -1,5 +1,9 @@
 package org.jobis.service;
 
+import javax.servlet.http.HttpSession;
+import javax.websocket.Session;
+
 public interface InterviewService {
-	String generateAnswer(String question);
+	public String getPrompt(HttpSession httpSession, Session session);
+	public void saveCurrentStates(Session session, String jsonString);
 }

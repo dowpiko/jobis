@@ -238,6 +238,9 @@ const AiChat = () => {
   const [inputText, setInputText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [currentStream, setCurrentStream] = useState('');
+  const [count, setCount] = useState(1);
+  const [previousQuestion, setPreviousQuestion] = useState('');
+  const [standards, setStandards] = useState([]);
   const currentStreamRef = useRef('');
   const textAreaRef = useRef(null);
   const scrollRef = useRef(null);
@@ -266,12 +269,18 @@ const AiChat = () => {
 
   const startInterview = () => {
     setStarted(true);
+    setPreviousQuestion('');
 
     // WebSocket 연결이 열려있는 경우에만
     if(readyState === ReadyState.OPEN){
       setIsStreaming(true);
       setCurrentStream('');
-      sendMessage('안녕GPT! 반가워!');
+      sendMessage(JSON.stringify({
+        count: count,
+        previousQuestion: previousQuestion,  // 첫 메시지에는 이전 질문이 없음
+        standards: standards,
+        userMessage: ''
+      }));
     } else{
       console.warn("WebSocket 연결이 아직 열리지 않았습니다.");
       
@@ -314,7 +323,12 @@ const AiChat = () => {
     if(readyState === ReadyState.OPEN){
       setIsStreaming(true);
       setCurrentStream('');
-      sendMessage(messageToSend);
+      sendMessage(JSON.stringify({
+        count: count,
+        previousQuestion: previousQuestion,
+        standards: standards,
+        userMessage: messageToSend
+      }));
     }else{
       console.warn('WebSocket이 연결되어 있지 않습니다.');
     }
@@ -351,7 +365,7 @@ const AiChat = () => {
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+      }
   }, [messages, currentStream]);
 
   useEffect(() => {
@@ -360,25 +374,33 @@ const AiChat = () => {
     const data = lastMessage.data;
     console.log("🧾 WebSocket 수신: ", data);
 
-  if (data === '[DONE]') {
-    if (currentStreamRef.current.trim()) {
-      const finalText = currentStreamRef.current;
+    if(data === '[DONE]'){
+      if(currentStreamRef.current.trim()){
+        try {
+          const parsed = JSON.parse(currentStreamRef.current);
+          const finalText = parsed.question;
+          const standards = parsed.standards;
 
-      setMessages(prev => [
-        ...prev,
-        { id: nanoid(), isAi: true, text: finalText }
-      ]);
+          setMessages(prev =>[
+            ...prev,
+            {id: nanoid(), isAi: true, text:finalText}
+          ]);
+          setStandards(standards);
 
-      // ⚠️ 즉시 비우지 말고 setTimeout으로 약간 지연
-      setTimeout(() => {
-        currentStreamRef.current = '';
-        setCurrentStream('');
-        setIsStreaming(false);
-      }, 0);
-    }
-  } else {
-      currentStreamRef.current += data;
-      setCurrentStream(currentStreamRef.current);
+          setTimeout(()=>{
+            currentStreamRef.current = '';
+            setCurrentStream('');
+            setIsStreaming(false);
+            setPreviousQuestion(finalText);
+            setCount(prev=> prev+1);
+          }, 0);
+        } catch (e) {
+          console.error("X JSON 파싱 실패 : ",e);
+        }
+      }
+    } else{
+      currentStreamRef.current +=data;
+      setCurrentStream(currentStreamRef);
       console.log("📢 누적된 currentStream:", currentStreamRef.current);
     }
   }, [lastMessage]);
