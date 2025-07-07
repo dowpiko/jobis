@@ -331,7 +331,7 @@ const handleOnConfirm = () => {
 };
 // websocket 관련
 useEffect(() => {
-  const socket = new WebSocket("ws://localhost:9090/ws/userChat");
+  const socket = new WebSocket("ws://192.168.0.140:9090/ws/userChat"); //localhost:
   socketRef.current = socket;
 
   socket.onopen = () => {
