@@ -9,6 +9,7 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.jobis.domain.CUserVO;
+import org.jobis.domain.ChatMessageVO;
 import org.jobis.domain.InterViewBCVO;
 import org.jobis.domain.OfferSubmissionDTO;
 import org.jobis.domain.RoomDTO;
@@ -148,11 +149,12 @@ public class SmServiceImple implements SmService {
     
     // 공고 답변, 질문 가져오기
     @Override
-    public OfferSubmissionDTO selectOfferAndSubmission(int ono, int uno) {
+    public OfferSubmissionDTO selectOfferAndSubmission(int ono, int emp, int company) {
         InterViewBCVO ibcvo = new InterViewBCVO();
         ibcvo.setOno(ono);
-        ibcvo.setUno(uno);
-
+        ibcvo.setUno(emp);
+        ibcvo.setCompany(company);
+        
         OfferSubmissionDTO offer = mapper.selectOffer(ibcvo);
         OfferSubmissionDTO submission = mapper.selectSubmission(ibcvo);
 
@@ -168,8 +170,21 @@ public class SmServiceImple implements SmService {
         if (submission != null) {
             result.setUser_content(submission.getUser_content());
             result.setUser_regdate(submission.getUser_regdate());
+            result.setRno(submission.getRno());
         }
 
         return result;
+    }
+    
+    // 채팅 저장
+    @Override
+    public int insertChatMessage(ChatMessageVO message) {
+    	return mapper.insertChatMessage(message);
+    }
+    
+    // 채팅 불러오기
+    @Override
+    public List<ChatMessageVO> selectByRnoChatMessages(int rno) {
+        return mapper.selectByRnoChatMessages(rno);
     }
 }

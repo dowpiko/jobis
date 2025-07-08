@@ -3,6 +3,7 @@ package org.jobis.service;
 import java.util.List;
 
 import org.jobis.domain.CUserVO;
+import org.jobis.domain.ChatMessageVO;
 import org.jobis.domain.InterViewBCVO;
 import org.jobis.domain.OfferSubmissionDTO;
 import org.jobis.domain.RoomDTO;
@@ -48,5 +49,11 @@ public interface SmService {
 	public List<RoomDTO> initChatLayout(int cno);
 	
 	// 공고 답변, 질문 가져오기
-	public OfferSubmissionDTO selectOfferAndSubmission(int ono, int uno);
+	public OfferSubmissionDTO selectOfferAndSubmission(int ono, int emp, int company);
+	
+	// 채팅 저장
+	public int insertChatMessage(ChatMessageVO message);
+	
+	// 채팅 불러오기
+	public List<ChatMessageVO> selectByRnoChatMessages(int rno);
 }

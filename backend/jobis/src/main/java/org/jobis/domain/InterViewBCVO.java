@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InterViewBCVO {
+	private int company;
 	private int ono;
 	private int uno;
 	private String o_title;

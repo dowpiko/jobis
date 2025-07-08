@@ -102,31 +102,28 @@ const ApplicantDetailView = ({ applicant, onBack }) => {
       }
     };
 
-    if (applicant?.ono) {
-      fetchInterviewData();
-    }
+    if (applicant?.ono) fetchInterviewData();
   }, [applicant]);
 
   const chatRoomInsert = async () => {
     try {
-      // cno 수정!!!!!!!!!!!!!!!!!!!!!!
-        const res = await axios.get(`http://localhost:9090/sm/insertChatRoom?cno=21&uno=${applicant.uno}&ono=${interviewData.ono}`);
-        console.log(res);
-        if (res.data === 1) {
-          if (window.confirm('채팅방을 생성하였습니다. 이동하시겠습니까?')) {
-            alert("새로운 방으로 이동");
-            return;
-          };
-        }else if (res.data === -1) {
-          if (window.confirm('이미 채팅방이 존재합니다. 해당 채팅방으로 이동하시겠습니까?')) {
-            alert('이미 있는 방으로 이동');
-            return;
-          }
-        };
-      } catch (err) {
-        console.error(err);
+      const confirmCreate = window.confirm('채팅방을 생성하시겠습니까?');
+      if (!confirmCreate) return;
+
+      const res = await axios.get(`http://localhost:9090/sm/insertChatRoom?cno=21&uno=${applicant.uno}&ono=${interviewData.ono}`);
+
+      if (res.data === 1) {
+        alert('채팅방이 생성되었습니다.');
+      } else if (res.data === -1) {
+        alert('이미 채팅방이 존재합니다.');
+      } else {
+        alert('채팅방 생성에 실패했습니다.');
       }
-    };
+    } catch (err) {
+      console.error(err);
+      alert('오류가 발생했습니다.');
+    }
+  };
 
   if (!applicant) return null;
 

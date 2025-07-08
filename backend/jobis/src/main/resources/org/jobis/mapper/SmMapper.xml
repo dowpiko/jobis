@@ -152,8 +152,28 @@
 	        NULL AS o_content,
 	        NULL AS o_regdate,
 	        s.o_content AS user_content,
-	        s.o_regdate AS user_regdate
+	        s.o_regdate AS user_regdate,
+	        r.rno AS rno
 	    FROM tbl_submissions s
+	    LEFT JOIN tbl_room r
+	        ON r.ono = s.ono
+	       AND r.company = #{company}
+	       AND r.emp = #{uno}
 	    WHERE s.ono = #{ono} AND s.uno = #{uno}
+	</select>
+	
+	<!-- 채팅 저장 -->
+	<insert id="insertChatMessage" parameterType="org.jobis.domain.ChatMessageVO">
+	    INSERT INTO TBL_CHATLOG (CLNO, RNO, SENDER, CONTENT, HIT, CL_REGDATE)
+	    VALUES (SEQ_CLNO.NEXTVAL, #{rno}, #{sender}, #{content}, 0, SYSDATE)
+	</insert>
+	
+	<!-- 채팅 불러오기 -->
+	<select id="selectByRnoChatMessages" parameterType="int" resultType="org.jobis.domain.ChatMessageVO">
+	    SELECT 
+	        CLNO, RNO, SENDER, CONTENT, HIT, CL_REGDATE
+	    FROM TBL_CHATLOG
+	    WHERE RNO = #{rno}
+	    ORDER BY CL_REGDATE ASC, CLNO ASC
 	</select>
 </mapper>

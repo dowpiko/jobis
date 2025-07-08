@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OfferSubmissionDTO {
+	private int rno;
     private String o_title;
     private String o_tag;
     private String o_content;

@@ -3,6 +3,7 @@ package org.jobis.controller;
 import java.util.List;
 
 import org.jobis.domain.CUserVO;
+import org.jobis.domain.ChatMessageVO;
 import org.jobis.domain.InterViewBCVO;
 import org.jobis.domain.OfferSubmissionDTO;
 import org.jobis.domain.RoomDTO;
@@ -106,8 +107,26 @@ public class SmController {
 	
 	// 공고 답변, 질문 가져오기
 	@GetMapping("selectOfferAndSubmission")
-	public OfferSubmissionDTO selectOfferAndSubmission(int ono, int uno) {
+	public OfferSubmissionDTO selectOfferAndSubmission(int ono, int emp, int company) {
 		System.out.println("공고 답변, 질문 가져오기");
-		return service.selectOfferAndSubmission(ono, uno);
+		return service.selectOfferAndSubmission(ono, emp, company);
+	}
+	
+	// 채팅 저장
+	@PostMapping("/insertChatMessage")
+    public ResponseEntity<String> insertChatMessage(@RequestBody ChatMessageVO message) {
+        int result = service.insertChatMessage(message);
+
+        if (result > 0) {
+            return ResponseEntity.ok("success");
+        } else {
+            return ResponseEntity.status(500).body("fail");
+        }
+    }
+	
+	// 채팅 불러오기
+	@GetMapping("/selectByRnoChatMessages")
+	public List<ChatMessageVO> selectByRnoChatMessages(@RequestParam("rno") int rno) {
+	    return service.selectByRnoChatMessages(rno);
 	}
 }

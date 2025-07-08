@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
 import org.jobis.domain.CUserVO;
+import org.jobis.domain.ChatMessageVO;
 import org.jobis.domain.InterViewBCVO;
 import org.jobis.domain.OfferSubmissionDTO;
 import org.jobis.domain.RoomDTO;
@@ -44,4 +45,10 @@ public interface SmMapper {
     // 공고 답변, 질문 가져오기
     public OfferSubmissionDTO selectOffer(InterViewBCVO ibcvo);
     public OfferSubmissionDTO selectSubmission(InterViewBCVO ibcvo);
+    
+    // 채팅 저장
+    public int insertChatMessage(ChatMessageVO message);
+    
+    // 채팅 불러오기
+    public List<ChatMessageVO> selectByRnoChatMessages(int rno);
 }
