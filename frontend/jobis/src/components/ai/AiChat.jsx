@@ -361,6 +361,41 @@ const AiChat = () => {
     alert("마이크 버튼 클릭");
   }
 
+  const getQuestionResponse = () => {
+    try {
+      const parsed = JSON.parse(currentStreamRef.current);
+      const finalText = parsed.question;
+      const standards = parsed.standards;
+
+      setMessages(prev => [
+        ...prev,
+        { id: nanoid(), isAi: true, text: finalText }
+      ]);
+      setStandards(standards);
+      setPreviousQuestion(finalText);
+      setCount(prev => prev + 1);
+    } catch (e) {
+      console.error("질문 응답 파싱 실패:", e);
+    }
+  };
+
+  const getResultResponse = () => {
+    try {
+      const resultArray = JSON.parse(currentStreamRef.current);
+      console.log("✅ 최종 평가 결과: ", resultArray);
+
+      const resultSummary = resultArray.map(r =>
+        `Q${r.num}: ${r.standards.join(", ").toUpperCase()} → ${r.score.join(", ")}점`
+      ).join("\n");
+
+      setMessages(prev => [
+        ...prev,
+        { id: nanoid(), isAi: true, text: resultSummary }
+      ]);
+    } catch (e) {
+      console.error("결과 응답 파싱 실패:", e);
+    }
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -372,38 +407,36 @@ const AiChat = () => {
     if (!lastMessage || typeof lastMessage.data !== 'string') return;
 
     const data = lastMessage.data;
-    console.log("🧾 WebSocket 수신: ", data);
 
-    if(data === '[DONE]'){
-      if(currentStreamRef.current.trim()){
-        try {
-          const parsed = JSON.parse(currentStreamRef.current);
-          const finalText = parsed.question;
-          const standards = parsed.standards;
-
-          setMessages(prev =>[
-            ...prev,
-            {id: nanoid(), isAi: true, text:finalText}
-          ]);
-          setStandards(standards);
-
-          setTimeout(()=>{
-            currentStreamRef.current = '';
-            setCurrentStream('');
-            setIsStreaming(false);
-            setPreviousQuestion(finalText);
-            setCount(prev=> prev+1);
-          }, 0);
-        } catch (e) {
-          console.error("X JSON 파싱 실패 : ",e);
+    if (data === '[DONE]') {
+      if (currentStreamRef.current.trim()) {
+        if (count === 11) {
+          getResultResponse();
+        } else {
+          getQuestionResponse();
         }
+
+        // 공통 처리
+        currentStreamRef.current = '';
+        setCurrentStream('');
+        setIsStreaming(false);
       }
-    } else{
-      currentStreamRef.current +=data;
-      setCurrentStream(currentStreamRef);
-      console.log("📢 누적된 currentStream:", currentStreamRef.current);
+    } else {
+      currentStreamRef.current += data;
+      
+      // question 부분만 추출해서 임시 표시
+      const match = currentStreamRef.current.match(/"question"\s*:\s*"([^"]*)/);
+
+      if (match && match[1]) {
+        // 스트리밍 도중 question 안에 있는 텍스트만 UI에 출력
+        setCurrentStream(match[1]);
+      } else {
+        // 아직 question이 시작되지 않거나 파싱 불가 상태면 아무것도 출력하지 않음
+        setCurrentStream('');
+      }
     }
-  }, [lastMessage]);
+  }, [lastMessage, count]);
+
 
   return (
     <Container>

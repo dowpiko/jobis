@@ -39,18 +39,24 @@ public class InterviewSocket {
 		System.out.println("수신 메시지 : " + jsonString);
 		HttpSession httpSession = (HttpSession) session.getUserProperties().get(HttpSession.class.getName());
 		interviewService.saveCurrentStates(session, jsonString);
+		String prompt = interviewService.getPrompt(httpSession, session);
+		System.out.println(prompt);
 		aiService.streamResultAsync(
-				jsonString,
-				chunk ->{
+				prompt,
+				chunk -> {
 					try {
-						session.getBasicRemote().sendText(chunk);
+						if (session.isOpen()) {
+							session.getBasicRemote().sendText(chunk);
+						}
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				},
 				() -> {
 					try {
-						session.getBasicRemote().sendText("[DONE]");
+						if (session.isOpen()) {
+							session.getBasicRemote().sendText("[DONE]");
+						}
 					} catch (Exception e2) {
 						e2.printStackTrace();
 					}
