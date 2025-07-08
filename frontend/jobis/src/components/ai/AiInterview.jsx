@@ -83,7 +83,6 @@ const AiInterview = () => {
           withCredentials: true
         });
         const res = response.data;
-        console.log(res);
         setInterviews(res);
       } catch (error) {
         console.error("데이터 불러오기 실패 : ",error);
@@ -92,7 +91,17 @@ const AiInterview = () => {
     fetchData();
   },[]);
   const handleSelectChange = (e) => {
-    setSelectedAno(e.target.value);
+    const selectedAno = e.target.value;
+    setSelectedAno(selectedAno);
+    const selectedInterview = interviews.find(item => item.ano.toString() === selectedAno);                               
+    if (selectedInterview) {
+      navigate("/chatHistory", {
+        state: {
+          content: selectedInterview.acontent,
+          title: selectedInterview.atitle, // 👈 요거 추가
+        }
+      });
+    }
   };
   return (
     <Container>
