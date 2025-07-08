@@ -27,6 +27,7 @@ import NaverCallback from './components/NaverCallback';
 import KakaoCallback from './components/KakaoCallback';
 import GoogleCallback from './components/GoolgleCallback';
 import VideoChat from './components/chat/VideoChat';
+import AiHistory from './components/ai/AiHistory';
 
 
 
@@ -154,12 +155,20 @@ import VideoChat from './components/chat/VideoChat';
               </UserSidebar>
             }
           />
-        {/* AI 인터뷰 생성 페이지  */}
+        {/* AI 인터뷰 진행 페이지  */}
           <Route
             path="/AiChat"
             element={
               <UserSidebar>
                 <AiChat/>
+              </UserSidebar>
+            }
+          />
+          <Route
+            path="/chatHistory"
+            element={
+              <UserSidebar>
+                <AiHistory />
               </UserSidebar>
             }
           />
