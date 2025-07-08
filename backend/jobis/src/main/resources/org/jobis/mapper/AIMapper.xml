@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.jobis.mapper.AIMapper">
+	<!-- 데이터 삽입 -->
+	<insert id="insertData" parameterType="org.jobis.domain.AIVO">
+	  INSERT INTO TBL_AI (
+	    ANO,
+	    UNO,
+	    A_TITLE,
+	    A_TAG,
+	    A_CONTENT,
+	    A_REGDATE,
+	    A_SCORE
+	  ) VALUES (
+	    SEQ_ANO.NEXTVAL,
+	    #{uno},
+	    #{aTitle},
+	    #{aTag},
+	    #{aContent},
+	    SYSDATE,
+	    #{aScore}
+	  )
+	</insert>
+	
+	<!-- 제목 유사 검색 -->
+	<select id="selectSimilarTitles" resultType="String" parameterType="String">
+	  SELECT A_TITLE
+	  FROM TBL_AI
+	  WHERE A_TITLE LIKE #{baseTitle} || '%'
+	</select>
+	
+	<!--유저의 모든 결과 가져오기-->
+	<select id="getAllByUno" parameterType="int" resultType="org.jobis.domain.AIVO">
+	  SELECT 
+	    ANO,
+	    UNO,
+	    A_TITLE AS aTitle,
+	    A_TAG AS aTag,
+	    A_CONTENT AS aContent,
+	    A_REGDATE AS aRegdate,
+	    A_SCORE AS aScore
+	  FROM 
+	    TBL_AI
+	  WHERE 
+	    UNO = #{uno}
+	  ORDER BY 
+	    A_REGDATE ASC
+	</select>
+</mapper>

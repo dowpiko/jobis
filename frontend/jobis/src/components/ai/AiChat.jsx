@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ReactComponent as GptMicIcon } from '../../assets/icons/GptMicIcon.svg'
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { nanoid } from 'nanoid';
+import axios from 'axios';
 
 const Container = styled.div`
   position: relative;
@@ -65,6 +66,12 @@ const MessageBubble = styled.div`
   white-space: pre-wrap; // ✅ 이거 추가!
 `;
 
+const QuestionLabel = styled.div`
+  font-size: 22px;
+  font-weight: bold;
+  color: #888;
+  margin-bottom: 8px;
+`;
 
 const AiMessageBubble = styled(MessageBubble)`
   background-color: #fef3e2;
@@ -361,6 +368,14 @@ const AiChat = () => {
     alert("마이크 버튼 클릭");
   }
 
+  const sendTerminationMessage = () => {
+    if (readyState === ReadyState.OPEN) {
+      sendMessage(JSON.stringify({ type: "terminate" }));
+    } else {
+      console.warn("WebSocket이 열려 있지 않아 종료 메시지 전송 실패");
+    }
+  };
+
   const getQuestionResponse = () => {
     try {
       const parsed = JSON.parse(currentStreamRef.current);
@@ -379,23 +394,34 @@ const AiChat = () => {
     }
   };
 
-  const getResultResponse = () => {
+  const getResultResponse = async () => {
     try {
+      sendTerminationMessage();
       const resultArray = JSON.parse(currentStreamRef.current);
       console.log("✅ 최종 평가 결과: ", resultArray);
 
-      const resultSummary = resultArray.map(r =>
-        `Q${r.num}: ${r.standards.join(", ").toUpperCase()} → ${r.score.join(", ")}점`
-      ).join("\n");
+      // 서버에 결과 전송
+      const response = await axios.post("http://localhost:9090/ymj/saveInterviewResult", resultArray, {
+                            withCredentials: true,
+                            headers: {
+                              "Content-Type": "application/json"
+                            }
+                          }); 
+      const resultData = response.data;
 
-      setMessages(prev => [
-        ...prev,
-        { id: nanoid(), isAi: true, text: resultSummary }
-      ]);
-    } catch (e) {
-      console.error("결과 응답 파싱 실패:", e);
+      // ✅ 응답이 "ok"일 때만 알림 및 이동
+      if (resultData === "ok") {
+        alert("모의면접이 완료되었습니다.\n결과 페이지로 이동합니다.");
+        navigate("/graphPage");
+      } else {
+        console.warn("서버 응답이 ok가 아님:", resultData);
+      }
+
+    } catch (error) {
+      console.error("🛑 서버 전송 또는 파싱 실패:", error);
     }
   };
+
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -456,26 +482,40 @@ const AiChat = () => {
 
       {started ? (
         <ChatContainer ref={scrollRef}>
-          {messages.map(msg => (
-            <MessageRow key={msg.id} $isAi={msg.isAi}>
-              {msg.isAi ? (
-                <>
-                  <ProfileImage src="/img/robot.png" alt="bot" />
-                  <AiMessageBubble>{msg.text}</AiMessageBubble>
-                </>
-              ) : (
-                <>
-                  <UserMessageBubble>{msg.text}</UserMessageBubble>
-                  <ProfileImage src="/img/user.svg" alt="user" />
-                </>
-              )}
-            </MessageRow>
-          ))}
+          {(() => {
+            let questionIndex = 1;
 
-          {isStreaming && (
+            return messages.map((msg, index) => {
+              const isAi = msg.isAi;
+              const label = isAi ? `Q${questionIndex++}.` : null;
+
+              return (
+                <MessageRow key={msg.id} $isAi={isAi}>
+                  {isAi ? (
+                    <>
+                      <ProfileImage src="/img/robot.png" alt="bot" />
+                      <AiMessageBubble>
+                        <QuestionLabel>{label}</QuestionLabel>
+                        {msg.text}
+                      </AiMessageBubble>
+                    </>
+                  ) : (
+                    <>
+                      <UserMessageBubble>{msg.text}</UserMessageBubble>
+                      <ProfileImage src="/img/user.svg" alt="user" />
+                    </>
+                  )}
+                </MessageRow>
+              );
+            });
+          })()}
+          {isStreaming && count <= 10 && (
             <MessageRow $isAi={true}>
               <ProfileImage src="/img/robot.png" alt="bot" />
-              <AiMessageBubble>{currentStream}</AiMessageBubble>
+              <AiMessageBubble>
+                <QuestionLabel>Q{count}.</QuestionLabel>
+                {currentStream}
+              </AiMessageBubble>
             </MessageRow>
           )}
         </ChatContainer>

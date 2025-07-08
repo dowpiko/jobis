@@ -207,6 +207,8 @@ const CreateAiInterview = () => {
         if(res.data === "ok") {
           sessionStorage.setItem("surveyTitle", title);  // 세션처럼 저장
           navigate('/AiChat');
+        }else {
+          alert("❌ 처리 실패: " + res.data); // 실패 이유 출력
         }
       } catch (err) {
         console.error("❌ 서버 오류:", err);

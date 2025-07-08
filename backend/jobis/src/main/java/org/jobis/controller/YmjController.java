@@ -1,10 +1,19 @@
 package org.jobis.controller;
 
+import java.util.List;
+
 import javax.servlet.http.HttpSession;
 
 import org.jobis.domain.AISurveyDTO;
+import org.jobis.domain.AIVO;
+import org.jobis.domain.InterviewResultDTO;
+import org.jobis.domain.UserVO;
+import org.jobis.service.InterviewService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,10 +26,28 @@ import lombok.extern.log4j.Log4j;
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RequestMapping("/ymj")
 public class YmjController {
+	
+	@Autowired
+	InterviewService iService;
+	
 	@PostMapping("/saveSurveyResult")
-	public ResponseEntity<String> getAiQuestion(@RequestBody AISurveyDTO surveyDTO, HttpSession session) {
+	public ResponseEntity<String> saveSurveyResult(@RequestBody AISurveyDTO surveyDTO, HttpSession session) {
 		log.warn(surveyDTO);
 		session.setAttribute("survey", surveyDTO);
 	    return ResponseEntity.ok("ok");
+	}
+	
+	@PostMapping("/saveInterviewResult")
+	public ResponseEntity<String> saveInterviewResult(@RequestBody List<InterviewResultDTO> resultList, HttpSession session){
+		boolean flag = iService.handleResultData(resultList, session)>0;
+		return flag ? ResponseEntity.ok("ok") : ResponseEntity.status(HttpStatus.BAD_REQUEST).body("데이터 저장 실패");
+	}
+	
+	@GetMapping("/getAllResults")
+	public List<AIVO> getAllResults(HttpSession session){
+		UserVO User = (UserVO) session.getAttribute("User");
+		System.out.println(User);
+		int uno = User.getUno();
+		return iService.getAllResults(uno);
 	}
 }
