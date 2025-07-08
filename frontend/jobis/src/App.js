@@ -249,15 +249,6 @@ import AiHistory from './components/ai/AiHistory';
             }
           />
 
-          {/* 기업 채팅방 (파라미터로 바로 열기) */}
-          <Route
-            path="/companyChat/:ono/:emp/:company"
-            element={
-              <CompanySidebar>
-                <ChatLayout />
-              </CompanySidebar>
-            }
-          />
         </Routes>
       </BrowserRouter>
     );
