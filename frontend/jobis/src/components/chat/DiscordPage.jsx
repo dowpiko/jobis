@@ -184,16 +184,27 @@ const DateRow = styled.div`
   gap: 10px;
 `;
 
-
+// utc 시간 한국시간으로 바꾸기
+const formatLocalDateTime = (date) => {
+  const pad = n => n.toString().padStart(2, '0');
+  const yyyy = date.getFullYear();
+  const MM   = pad(date.getMonth() + 1);
+  const dd   = pad(date.getDate());
+  const hh   = pad(date.getHours());
+  const mm   = pad(date.getMinutes());
+  return `${yyyy}-${MM}-${dd} ${hh}:${mm}:00`;
+};
 
 const DiscordPage = () => {
+
   const location = useLocation();
   const category = location.state?.category || '전체';   
   const matched = categories.find(c => c.category === category); 
   const subList = matched?.subCategories || [];  
 
   const [selectedDate, setSelectedDate] = useState(null);
-  const [chatList, setChatList] = useState([]);
+  const [chatList, setChatList] = useState([]);       // 태그별 채팅 
+  const [allMyChats, setAllMyChats] = useState([]);   // 전체 채팅(달력 제한용)
   const [showModal,setShowModal] =useState(false);
   const [selectedChat,setSelectedChat] = useState(null);
   const [visibleCount, setVisibleCount] = useState(9);   // 로드시 버튼 수
@@ -227,22 +238,28 @@ const DiscordPage = () => {
         }))
         .reverse();
         setChatList(parsed);
-      });
+      })
+      .catch(err => console.error('채팅 목록 불러오기 실패:', err));
   };
   useEffect(() => {
     fetchChatList(); 
   }, [category]);
 
-  // utc 시간 한국시간으로 바꾸기
-  const formatLocalDateTime = (date) => {
-    const pad = n => n.toString().padStart(2, '0');
-    const yyyy = date.getFullYear();
-    const MM   = pad(date.getMonth() + 1);
-    const dd   = pad(date.getDate());
-    const hh   = pad(date.getHours());
-    const mm   = pad(date.getMinutes());
-    return `${yyyy}-${MM}-${dd} ${hh}:${mm}:00`;
-  };
+  // 전체 일정 불러오기
+   useEffect(() => {
+    fetch('/getUserChat', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        const parsed = data.map(c => ({
+          ...c,
+          sch_date: new Date(c.sch_date),
+        }));
+        setAllMyChats(parsed.filter(c => c.leader === myUno || c.member));
+      })
+      .catch(err => console.error('전체 내 일정 불러오기 실패:', err));
+  }, [myUno]);
+
+
 
   // 처음 로드시 스크롤 맨 아래로
   useEffect(() => {
@@ -270,6 +287,7 @@ const DiscordPage = () => {
       }, 0);
     }
   };
+
   useEffect(() => {
     const box = scrollRef.current;
     const newMessagesAdded = chatList.length > prevChatListLength.current;
@@ -282,17 +300,33 @@ const DiscordPage = () => {
   }, [chatList, isAtBottom]);
   const visibleChats = chatList.slice(-visibleCount);
 
+   // 세션 uno랑 leader랑 비교
+  useEffect(() => {
+    fetch('/getMyUno', { credentials: 'include' })
+      .then(res => {
+        if (res.status === 401) {
+          alert('로그인 상태가 아닙니다.');
+          window.location.href = '/';
+          return;
+        }
+        return res.json();
+      })
+      .then(uno => {
+        if (uno !== undefined) setMyUno(uno);
+      })
+      .catch(err => console.error('세션 uno 가져오기 실패:', err));
+  }, []);
+
 
   const handleCreateChat = () => {
     if (!selectedDate || !titleSuffix.trim()) {
     alert('제목과 날짜를 모두 입력하세요');
     return;
     }
-    const formattedDate = formatLocalDateTime(selectedDate);
     const payload = {
       r_title: `{${selectedSub}} ${titleSuffix}`,
       r_tag: category,
-      sch_date: formattedDate,
+      sch_date: formatLocalDateTime(selectedDate),
       leader : myUno,
     };
     //   세션 만료되면 alert
@@ -326,22 +360,7 @@ const DiscordPage = () => {
       setSelectedDate(null);
 };
 
- // 세션 uno랑 leader랑 비교
- useEffect(() => {
-   fetch('/getMyUno', { credentials: 'include' })
-     .then(res => {
-       if (res.status === 401) {
-         alert('로그인 상태가 아닙니다.');
-         window.location.href = '/';
-         return;
-       }
-       return res.json();
-     })
-     .then(uno => {
-       if (uno !== undefined) setMyUno(uno);
-     })
-     .catch(err => console.error('세션 uno 가져오기 실패:', err));
- }, []);
+
 
 const handleOnConfirm = () => {
   if (!selectedChat) return;
@@ -379,27 +398,20 @@ const handleOnConfirm = () => {
     });
 };
 // 스케줄 조정
-const userChats = chatList.filter(
-  chat => chat.leader === myUno || chat.member
-);
-const scheduleDates = userChats.map(chat =>chat.sch_date);
-const blockedIntervals = scheduleDates.map(date =>({
-  start: new Date(date.getTime()-60*60*1000),
-  end : new Date(date.getTime() +60*60*1000)
-}));
+  const blockedIntervals = allMyChats.map(chat => ({
+    start: new Date(chat.sch_date.getTime() - 60 * 60 * 1000),
+    end:   new Date(chat.sch_date.getTime() + 60 * 60 * 1000),
+  }));
 
 const isConflict = (date) =>
   blockedIntervals.some(({ start, end }) =>
     date >= start && date <= end
 );
 const handleDateChange = (date)=>{
-  const conflict = blockedIntervals.some(({ start, end }) =>
-      date >= start && date <= end
-    );
-  if (conflict) {
-    alert('⚠ 이미 일정이 있습니다. 해당 시간대를 선택할 수 없습니다.');
-    return;
-  }
+  if (isConflict(date)) {
+      alert('⚠ 이미 일정이 있습니다. 해당 시간대를 선택할 수 없습니다.');
+      return;
+    }
   setSelectedDate(date);
 }
 

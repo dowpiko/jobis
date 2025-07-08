@@ -28,20 +28,25 @@
 	
 	<!-- 유저 채팅 불러오기 (전체)-->
 	<select id="getUserChat" resultType="org.jobis.domain.CJSVO">
-	  SELECT uc.*, u.name AS leader_name
-	  FROM tbl_userchat uc
-	  LEFT JOIN tbl_user u ON uc.leader = u.uno
-	  ORDER BY uc.cno DESC
-		<!-- SELECT * FROM tbl_userchat ORDER BY cno DESC -->
+		SELECT uc.*, 
+		       u1.name AS leader_name, 
+		       u2.name AS member_name
+		FROM tbl_userchat uc
+		LEFT JOIN tbl_user u1 ON uc.leader = u1.uno
+		LEFT JOIN tbl_user u2 ON uc.member = u2.uno
+		ORDER BY uc.cno DESC
 	</select>
 	
 	<!-- 태그 별로 유저 채팅 불러오기  -->
 	<select id="getUserChatByTag" resultType="org.jobis.domain.CJSVO">
-		  SELECT uc.*, u.name AS leader_name
-		  FROM tbl_userchat uc
-		  LEFT JOIN tbl_user u ON uc.leader = u.uno
-		  WHERE r_tag =#{r_tag}
-		  ORDER BY uc.cno DESC
+		SELECT uc.*, 
+		       u1.name AS leader_name, 
+		       u2.name AS member_name
+		FROM tbl_userchat uc
+		LEFT JOIN tbl_user u1 ON uc.leader = u1.uno
+		LEFT JOIN tbl_user u2 ON uc.member = u2.uno
+		WHERE uc.r_tag = #{r_tag}
+		ORDER BY uc.cno DESC
 	</select>
 	
 	
@@ -55,6 +60,32 @@
 		UPDATE tbl_userchat
 		SET member = #{member}
 		WHERE cno = #{cno}
+	</update>
+	
+	<!--  채팅 삭제하기 -->
+	<delete id="deleteUserChat" parameterType="int">
+		DELETE FROM tbl_userchat
+		WHERE cno = #{cno}
+	</delete>
+	
+	<!--  단일 데이터 가져오기 -->
+	<select id="getChatByCno" resultType="org.jobis.domain.CJSVO">
+	  SELECT * FROM tbl_userchat WHERE cno = #{cno}
+	</select>
+	
+	<!-- member를 leader로 바꾸기 -->
+	<update id="promoteMemberToLeader">
+	  UPDATE tbl_userchat
+	  SET leader = member,
+	      member = null
+	  WHERE cno = #{cno}
+	</update>
+	
+	<!-- member 삭제 -->
+	<update id="leaveChatAsMember">
+	  UPDATE tbl_userchat
+	  SET member = null
+	  WHERE cno = #{cno}
 	</update>
 
 </mapper>
