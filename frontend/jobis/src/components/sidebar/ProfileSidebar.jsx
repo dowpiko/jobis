@@ -224,7 +224,7 @@ function ProfileSidebar({ children }) {
 
         <Menu>
           <MenuItem onClick={() => navigate('/scheduleManager')}>🏠 일정 관리</MenuItem>
-          <MenuItem onClick={() => navigate('/discordPage')}>💬 대기방 목록</MenuItem>
+          <MenuItem onClick={() => navigate('/discordPage')}>💬 전체 방 목록</MenuItem>
           {categories.map(cat => (
             <MenuItem
               key={cat.category}

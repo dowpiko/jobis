@@ -7,6 +7,7 @@ import JoinInterviewModal from '../modal/JoinInterviewModal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import categories from '../../data/categories';  
 
+
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -183,6 +184,8 @@ const DateRow = styled.div`
   gap: 10px;
 `;
 
+
+
 const DiscordPage = () => {
   const location = useLocation();
   const category = location.state?.category || '전체';   
@@ -190,7 +193,6 @@ const DiscordPage = () => {
   const subList = matched?.subCategories || [];  
 
   const [selectedDate, setSelectedDate] = useState(null);
-  // const [title,setTitle] = useState('');
   const [chatList, setChatList] = useState([]);
   const [showModal,setShowModal] =useState(false);
   const [selectedChat,setSelectedChat] = useState(null);
@@ -229,7 +231,18 @@ const DiscordPage = () => {
   };
   useEffect(() => {
     fetchChatList(); 
-  }, [category  ]);
+  }, [category]);
+
+  // utc 시간 한국시간으로 바꾸기
+  const formatLocalDateTime = (date) => {
+    const pad = n => n.toString().padStart(2, '0');
+    const yyyy = date.getFullYear();
+    const MM   = pad(date.getMonth() + 1);
+    const dd   = pad(date.getDate());
+    const hh   = pad(date.getHours());
+    const mm   = pad(date.getMinutes());
+    return `${yyyy}-${MM}-${dd} ${hh}:${mm}:00`;
+  };
 
   // 처음 로드시 스크롤 맨 아래로
   useEffect(() => {
@@ -275,8 +288,7 @@ const DiscordPage = () => {
     alert('제목과 날짜를 모두 입력하세요');
     return;
     }
-
-    const formattedDate = selectedDate.toISOString().slice(0, 19).replace('T', ' ');
+    const formattedDate = formatLocalDateTime(selectedDate);
     const payload = {
       r_title: `{${selectedSub}} ${titleSuffix}`,
       r_tag: category,
@@ -302,6 +314,9 @@ const DiscordPage = () => {
         if (text === 'success') {
           fetchChatList();
           setVisibleCount(9); // 다시 9개부터 시작
+          if (socketRef.current?.readyState === WebSocket.OPEN) {
+          socketRef.current.send(JSON.stringify(payload));
+        }
         }
       })
       .catch(err => console.error('Insert 요청 에러:', err));
@@ -363,20 +378,42 @@ const handleOnConfirm = () => {
       alert('서버 오류가 발생했습니다.');
     });
 };
+// 스케줄 조정
+const userChats = chatList.filter(
+  chat => chat.leader === myUno || chat.member
+);
+const scheduleDates = userChats.map(chat =>chat.sch_date);
+const blockedIntervals = scheduleDates.map(date =>({
+  start: new Date(date.getTime()-60*60*1000),
+  end : new Date(date.getTime() +60*60*1000)
+}));
+
+const isConflict = (date) =>
+  blockedIntervals.some(({ start, end }) =>
+    date >= start && date <= end
+);
+const handleDateChange = (date)=>{
+  const conflict = blockedIntervals.some(({ start, end }) =>
+      date >= start && date <= end
+    );
+  if (conflict) {
+    alert('⚠ 이미 일정이 있습니다. 해당 시간대를 선택할 수 없습니다.');
+    return;
+  }
+  setSelectedDate(date);
+}
+
+
 // websocket 관련
 useEffect(() => {
-  // 1) URL을 변수로 뽑아서, 콘솔에도 URL을 찍습니다.
   const wsUrl = 'ws://localhost:9090/ws/userChat';
   console.log('▶️ 웹소켓 연결 시도:', wsUrl);
-
-  // 2) WebSocket 생성
   const socket = new WebSocket(wsUrl);
   socketRef.current = socket;
 
   socket.onopen = () => {
     console.log('✅ WebSocket 연결됨:', wsUrl);
   };
-
   socket.onmessage = (event) => {
     try {
       const message = JSON.parse(event.data);
@@ -389,51 +426,19 @@ useEffect(() => {
       console.error('⚠️ 메시지 파싱 실패:', e);
     }
   };
-
   socket.onerror = (err) => {
     console.error('⚠️ WebSocket 오류:', err);
   };
-
   socket.onclose = (evt) => {
     console.log(`❌ WebSocket 연결 종료 (code=${evt.code}, reason=${evt.reason})`);
   };
-
-  // 3) cleanup: 언마운트 시 연결 닫기
   return () => {
     console.log('🛑 WebSocket 연결 닫음:', wsUrl);
     socket.close();
   };
 }, [category]);  
 
-// useEffect(() => {
-//   const socket = new WebSocket("ws://localhost:9090/ws/userChat"); 
-//   socketRef.current = socket;
-//    console.log('▶️웹소켓 연결 시도:', socket);
-
-//   socket.onopen = () => {
-//     console.log("✅ WebSocket 연결됨",socket);
-//   };  
-
-//   socket.onmessage = (event) => {
-//     const message = JSON.parse(event.data);
-//     console.log("📩 실시간 메시지 수신:", message);
-//     setChatList((prev) => [...prev, {
-//       ...message,
-//       sch_date: new Date(message.sch_date),
-//     }]);
-//   };
-
-//   socket.onerror = (err) => {
-//     console.error("⚠️ WebSocket 오류:", err);
-//   };
-
-//   socket.onclose = () => {
-//     console.log("❌ WebSocket 연결 종료");
-//   };
-
-//   return () => socket.close();
-// }, []);
-
+  // 화상채팅 참여
   const handleJoin = () => {
       navigate('/video');
   };
@@ -475,8 +480,14 @@ useEffect(() => {
                       chat.member ? (
                         <span style={{ marginLeft: '10px', color: 'red' }}>인원이 꽉 찼습니다</span>
                       ) : (
-                        <ActionButton
+                         <ActionButton
                           onClick={() => {
+                            // ➊ sch_date 충돌 검사
+                            if (isConflict(chat.sch_date)) {
+                              alert('⚠ 이미 일정에 겹치는 시간대가 있습니다.\n해당 방에 참여할 수 없습니다.');
+                              return;
+                            }
+                            // ➋ 충돌 없으면 모달 열기
                             setSelectedChat(chat);
                             setShowModal(true);
                           }}
@@ -521,9 +532,15 @@ useEffect(() => {
           <DateRow>
             <StyledDatePicker
               selected={selectedDate}
-              onChange={(date) => setSelectedDate(date)}
+              onChange={handleDateChange}
+              // onChange={(date) => setSelectedDate(date)}
               placeholderText="날짜 선택"
               dateFormat="yyyy-MM-dd HH:mm"
+              filterTime={(time)=>
+                !blockedIntervals.some(({start,end})=>
+                  time >=start && time <=end
+                )
+              }
               showTimeSelect         // ✅ 시간 선택 UI 표시
               timeIntervals={30}     // ✅ 30분 간격 선택
               timeFormat="HH:mm"     // ✅ 24시간 형식으로 시간 표시

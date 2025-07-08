@@ -1,7 +1,6 @@
 package org.jobis.websocket;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -9,19 +8,14 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 
 import org.jobis.config.CustomSpringConfigurator;
-import org.jobis.domain.CJSVO;
-import org.jobis.service.UserChatService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @ServerEndpoint(value = "/ws/userChat", configurator = CustomSpringConfigurator.class)
 @Component
 public class UserChatSocket {
-	@Autowired
-	private UserChatService ucservice;
+	
 	
     private static final Set<Session> sessions = new CopyOnWriteArraySet<>();
     @OnOpen
@@ -33,34 +27,11 @@ public class UserChatSocket {
     @OnMessage
     public void onMessage(String message, Session session) throws IOException {
         System.out.println("📨 받은 메시지: " + message);
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            CJSVO cjsvo = mapper.readValue(message, CJSVO.class);
-            
-
-            int result = ucservice.register(cjsvo); // DB 저장
-            if (result > 0) {
-                // 저장된 cno를 다시 가져오려면 getUserChat()에서 마지막 값 추출 가능
-                List<CJSVO> updatedList = ucservice.getUserChat();
-                System.out.println("업데이트 리스트 크기: " + updatedList.size());
-                CJSVO saved = updatedList.get(0); // reverse 되어 있으니 가장 최근 값
-                System.out.println("브로드캐스트할 메시지: " + mapper.writeValueAsString(saved));
-
-                String payload = mapper.writeValueAsString(saved);
-                for (Session s : sessions) {
-                    if (s.isOpen()) {
-                        s.getBasicRemote().sendText(payload);
-                    }
-                }
+        for (Session s : sessions) {
+            if (s.isOpen()) {
+                s.getBasicRemote().sendText(message);  // 단순 브로드캐스트
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-//        for (Session s : sessions) {
-//            if (s.isOpen()) {
-//                s.getBasicRemote().sendText(message);  // 단순 브로드캐스트
-//            }
-//        }
     }
     @OnClose
     public void onClose(Session session, CloseReason reason) {

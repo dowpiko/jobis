@@ -77,8 +77,8 @@ const Modal = ({ onClose, chat, onConfirm}) => {
         </Description>
         <Description>모의 면접 날짜: {chat.sch_date.toLocaleString('ko-KR')}</Description>
         <ButtonGroup>
-          <CancelButton onClick={onClose}>취소</CancelButton>
           <ConfirmButton onClick={onConfirm}>참여하기</ConfirmButton>
+          <CancelButton onClick={onClose}>취소</CancelButton>
         </ButtonGroup>
       </ModalWrapper>
     </ModalOverlay>
