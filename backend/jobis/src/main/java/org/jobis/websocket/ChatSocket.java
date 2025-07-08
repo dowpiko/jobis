@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @ServerEndpoint(value = "/ws/userChat", configurator = CustomSpringConfigurator.class)
 @Component
-public class UserChatSocket {
+public class ChatSocket {
 	
 	
     private static final Set<Session> sessions = new CopyOnWriteArraySet<>();
