@@ -1,6 +1,7 @@
 package org.jobis.websocket;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.servlet.http.HttpSession;
 import javax.websocket.CloseReason;
@@ -12,10 +13,14 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.jobis.config.CustomSpringConfigurator;
+import org.jobis.domain.AIContextDTO;
 import org.jobis.service.AiService;
 import org.jobis.service.InterviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @ServerEndpoint(value = "/ws/interview", configurator = CustomSpringConfigurator.class)
 @Component
@@ -28,6 +33,8 @@ public class InterviewSocket {
 	
 	@Autowired InterviewService interviewService;
 	
+	private static final ObjectMapper MAPPER = new ObjectMapper();
+	
 	@OnOpen
 	public void onOpen(Session session) {
 		this.session = session;
@@ -36,11 +43,18 @@ public class InterviewSocket {
 	
 	@OnMessage
 	public void onMessage(String jsonString) throws IOException{
-		System.out.println("수신 메시지 : " + jsonString);
 		HttpSession httpSession = (HttpSession) session.getUserProperties().get(HttpSession.class.getName());
+		
+	    // 🔍 종료 요청인지 확인
+	    JsonNode node = MAPPER.readTree(jsonString);
+	    if (node.has("type") && "terminate".equals(node.get("type").asText())) {
+	        System.out.println("🧹 종료 요청 수신 → 세션 종료 중...");
+	        session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "사용자 종료 요청"));
+	        return;
+	    }
+	    
 		interviewService.saveCurrentStates(session, jsonString);
 		String prompt = interviewService.getPrompt(httpSession, session);
-		System.out.println(prompt);
 		aiService.streamResultAsync(
 				prompt,
 				chunk -> {
@@ -65,9 +79,16 @@ public class InterviewSocket {
 		
 	}
 	
+	@SuppressWarnings("unchecked")
 	@OnClose
 	public void onClose(Session session, CloseReason reason) {
-		System.out.println("WebSocket 종료 : "+session.getId()+", 사유 : "+reason);
+	    System.out.println("WebSocket 종료 : " + session.getId() + ", 사유 : " + reason);
+	    
+	    HttpSession httpSession = (HttpSession) session.getUserProperties().get(HttpSession.class.getName());
+	    List<AIContextDTO> contexts = (List<AIContextDTO>) session.getUserProperties().get("contexts");
+	    if (httpSession != null && contexts != null) {
+	        httpSession.setAttribute("finalContexts", contexts);
+	    }
 	}
 	
 	@OnError

@@ -1,8 +1,11 @@
 package org.jobis.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
@@ -10,19 +13,31 @@ import javax.websocket.Session;
 import org.jobis.domain.AIContextDTO;
 import org.jobis.domain.AIMessageDTO;
 import org.jobis.domain.AISurveyDTO;
+import org.jobis.domain.AIVO;
+import org.jobis.domain.InterviewResultDTO;
+import org.jobis.domain.UserVO;
 import org.jobis.generators.PromptGenerator;
 import org.jobis.generators.QuestionPromptGenerator;
 import org.jobis.generators.ResultPromptGenerator;
+import org.jobis.mapper.AIMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.extern.log4j.Log4j;
+
+@Log4j
+@SuppressWarnings("unchecked")
 @Service
 public class InterviewServiceimpl implements InterviewService{	
 	
-	private static final ObjectMapper mapper = new ObjectMapper();
+	private static final ObjectMapper oMapper = new ObjectMapper();
 	
-	@SuppressWarnings("unchecked")
+	@Autowired
+	AIMapper aMapper;
+	
 	@Override
 	public String getPrompt(HttpSession httpSession, Session session) {
 		int count = (
@@ -44,11 +59,10 @@ public class InterviewServiceimpl implements InterviewService{
 		return gen.generatePrompt();
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public void saveCurrentStates(Session session, String jsonString) {
 		try {
-			AIMessageDTO amDTOCurr = mapper.readValue(jsonString, AIMessageDTO.class);
+			AIMessageDTO amDTOCurr = oMapper.readValue(jsonString, AIMessageDTO.class);
 			Map<String, Object> userProps = session.getUserProperties();
 			
 			if(amDTOCurr.getCount()>1) {
@@ -73,4 +87,96 @@ public class InterviewServiceimpl implements InterviewService{
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public int handleResultData(List<InterviewResultDTO> resultList, HttpSession session) {
+		List<AIContextDTO> contexts = (List<AIContextDTO>)session.getAttribute("finalContexts");
+		String resultScore = getResultScoreString(resultList);
+		AISurveyDTO sDTO = (AISurveyDTO)session.getAttribute("survey");
+		String aTitle = generateUniqueTitle(sDTO.getTitle());
+		
+		String aContent;
+		try {
+		    aContent = oMapper.writeValueAsString(contexts);
+		} catch (JsonProcessingException e) {
+		    log.error("컨텍스트 JSON 직렬화 실패", e);
+		    aContent = "[]"; // 기본값 처리
+		}
+		UserVO User = (UserVO) session.getAttribute("User");
+		
+		long uno = User.getUno();
+		AIVO aVO = new AIVO(null, uno, aTitle, sDTO.getSubCategory(), aContent, null, resultScore);
+		return aMapper.insertData(aVO);
+	}
+	
+	@Override
+	public List<AIVO> getAllResults(int uno) {
+		List<AIVO> test = aMapper.getAllByUno(uno);
+		log.warn(test);
+		return test;
+	}
+	
+	//------------------헬퍼 함수----------------
+	// json 점수 데이터의 평균을 계산하고 문자열로 변환
+	private static String getResultScoreString(List<InterviewResultDTO> resultList) {
+	    Map<String, List<Integer>> scoreMap = new HashMap<>();
+
+	    // 기준 a~e 초기화
+	    for (char c = 'a'; c <= 'e'; c++) {
+	        scoreMap.put(String.valueOf(c), new ArrayList<>());
+	    }
+
+	    // 입력 리스트 순회하며 각 기준에 점수 누적
+	    for (InterviewResultDTO dto : resultList) {
+	        List<String> standards = dto.getStandards();
+	        List<Integer> scores = dto.getScore();
+
+	        for (int i = 0; i < standards.size(); i++) {
+	            String standard = standards.get(i);
+	            int score = scores.get(i);
+	            scoreMap.get(standard).add(score);
+	        }
+	    }
+
+	    // 평균 계산 후 결과 문자열 생성
+	    List<String> averageScoreList = new ArrayList<>();
+	    for (char c = 'a'; c <= 'e'; c++) {
+	        List<Integer> scores = scoreMap.get(String.valueOf(c));
+	        int avg = scores.isEmpty() ? 0 : (int) scores.stream().mapToInt(Integer::intValue).average().orElse(0);
+	        averageScoreList.add(String.valueOf(avg));
+	    }
+
+	    return String.join(",", averageScoreList);
+	}
+	
+	// db에 동일한 이름 존재시 이름에 넘버링을 붙여서 반환하는 함수
+	private String generateUniqueTitle(String baseTitle) {
+	    List<String> similarTitles = aMapper.selectSimilarTitles(baseTitle);
+
+	    boolean hasOriginal = false;
+	    int maxNumber = 0; // 초기값 0 → 최소 번호는 (1)부터 시작
+
+	    Pattern pattern = Pattern.compile(Pattern.quote(baseTitle) + " \\((\\d+)\\)");
+
+	    for (String title : similarTitles) {
+	        if (title.equals(baseTitle)) {
+	            hasOriginal = true;
+	        } else {
+	            Matcher matcher = pattern.matcher(title);
+	            if (matcher.matches()) {
+	                int number = Integer.parseInt(matcher.group(1));
+	                maxNumber = Math.max(maxNumber, number);
+	            }
+	        }
+	    }
+
+	    if (!hasOriginal && maxNumber == 0) {
+	        // 아무 제목도 없으면 기본 제목 반환
+	        return baseTitle;
+	    }
+
+	    return baseTitle + " (" + (maxNumber + 1) + ")";
+	}
+
+
 }

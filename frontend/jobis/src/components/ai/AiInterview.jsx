@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Container = styled.div`
   width: 100%;
@@ -68,19 +69,42 @@ const CreateBox = styled.button`
 `;
 
 const AiInterview = () => {
+  const [interviews, setInterviews] = useState([]);
+  const [selectedAno, setSelectedAno] = useState('');
   const navigate = useNavigate();
 
   const createAiInterview = () => {
     navigate('/createAiInterview');
   };
-
+  useEffect(()=> {
+    const fetchData = async () =>{
+      try {
+        const response = await axios.get("http://localhost:9090/ymj/getAllResults", {
+          withCredentials: true
+        });
+        const res = response.data;
+        console.log(res);
+        setInterviews(res);
+      } catch (error) {
+        console.error("데이터 불러오기 실패 : ",error);
+      }
+    }
+    fetchData();
+  },[]);
+  const handleSelectChange = (e) => {
+    setSelectedAno(e.target.value);
+  };
   return (
     <Container>
       <SelectWrapper>
         <Label>기록</Label>
-        <Select>
-          <option>2025.07.01 프로그래머 면접 1</option>
-          <option>2025.07.02 기획자 면접 2</option>
+        <Select value={selectedAno} onChange={handleSelectChange}>
+          <option value="" disabled>--면접을 선택하세요--</option>
+          {interviews.map((item) => (
+            <option key={item.ano} value={item.ano}>
+              {item.atitle}
+            </option>
+          ))}
         </Select>
       </SelectWrapper>
 
