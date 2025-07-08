@@ -111,6 +111,48 @@ public class CjsController {
 
 	    return new ResponseEntity<>(user.getUno(), HttpStatus.OK);
 	}
+	// userChat 일정 조정하기
+	@ResponseBody
+	@GetMapping("/deleteUserChat")
+	public ResponseEntity<String> deleteUserChat(@RequestParam("cno") int cno, HttpSession session) {
+	    UserVO user = (UserVO) session.getAttribute("User");
+
+	    if (user == null) {
+	        return new ResponseEntity<>("세션 만료", HttpStatus.UNAUTHORIZED);
+	    }
+
+	    CJSVO chat = ucservice.getChatByCno(cno);
+	    if (chat == null) {
+	        return new ResponseEntity<>("일정이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+	    }
+
+	    int uno = user.getUno();
+
+	    if (chat.getLeader() == uno) {
+	        if (chat.getMember() != 0 && chat.getMember() != -1) {
+	            // 🎯 리더 → 멤버로 승계
+	            ucservice.promoteMemberToLeader(cno);
+	            return new ResponseEntity<>("리더 승계 완료", HttpStatus.OK);
+	        } else {
+	            // 🎯 멤버 없음 → 삭제
+	            ucservice.deleteUserChat(cno);
+	            return new ResponseEntity<>("일정 삭제 완료", HttpStatus.OK);
+	        }
+	    } else if (chat.getMember() == uno) {
+	        // 🎯 멤버 나가기
+	        ucservice.leaveChatAsMember(cno);
+	        return new ResponseEntity<>("참여 취소 완료", HttpStatus.OK);
+	    } else {
+	        return new ResponseEntity<>("삭제 권한이 없습니다.", HttpStatus.FORBIDDEN);
+	    }
+	}
+
+//	@ResponseBody
+//	@GetMapping("/deleteUserChat")
+//	public ResponseEntity<String> deleteUserChat(@RequestParam("cno") int cno) {
+//	    ucservice.deleteUserChat(cno);
+//	    return new ResponseEntity<>("deleted", HttpStatus.OK);
+//	}
 	
 	// 직종목록 집어 넣기
 	@ResponseBody

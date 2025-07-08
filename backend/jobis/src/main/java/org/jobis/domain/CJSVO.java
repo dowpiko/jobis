@@ -26,6 +26,7 @@ public class CJSVO {
 	
 	// tbl_user에서 name가져오기
 	private String leader_name;
+	private String member_name;
 	
 
 }

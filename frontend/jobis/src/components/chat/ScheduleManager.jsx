@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
@@ -65,6 +65,7 @@ const CalendarContainer = styled.div`
 const ScheduleList = styled.div`
   flex: 1;
   overflow-y: auto;
+  max-height: 800px;  // 높이 제한
 `;
 
 const ScheduleItem = styled.div`
@@ -128,18 +129,56 @@ const CloseButton = styled.button`
 `;
 
 function ScheduleManager() {
-  const scheduleData = [1, 2, 3, 4].map(item => ({
-    title: `모의 면접 (${10 + item}시)`,
-    date: `2025-07-${String(item).padStart(2, '0')}`,
-    extendedProps: {
-      partner: `Partner${item}`
-    }
-  }));
 
-  const [events] = useState(scheduleData);
-  const [modalData, setModalData] = useState(null);
+  const [events, setEvents] = useState([]);         // FullCalendar용
+  const [scheduleData, setScheduleData] = useState([]);  // 일정 관리 탭용
+  const [modalData, setModalData] = useState(null); // 모달 상태
+  const [myUno, setMyUno] = useState(null);
+  const [chatList, setChatList] = useState([]);
 
-  const handleEventClick = (clickInfo) => {
+  useEffect(() => {
+  fetch('/getMyUno', { credentials: 'include' })
+    .then(res => res.json())
+    .then(setMyUno)
+    .catch(console.error);
+  }, []);
+
+    useEffect(() => {
+  if (!myUno) return;
+  fetch('/getUserChat', { credentials: 'include' })
+    .then(res => res.json())
+    .then(data => {
+      const parsed = data.map(chat => ({
+        ...chat,
+        sch_date: new Date(chat.sch_date),
+      }));
+      setChatList(parsed);
+    });
+}, [myUno]);
+
+  useEffect(() => {
+      if (!myUno || chatList.length === 0) return;
+
+      const mySchedule = chatList.filter(
+        chat => chat.leader === myUno || chat.member === myUno
+      );
+
+      const calendarFormatted = mySchedule.map(chat => ({
+        title: chat.r_title,
+        date: chat.sch_date.toISOString().split('T')[0],
+        extendedProps: {
+          leaderName: chat.leader_name,
+          memberName: chat.member_name,
+          fullDate: chat.sch_date,
+          cno : chat.cno
+        }
+      }));
+
+      setEvents(calendarFormatted);
+      setScheduleData(calendarFormatted);
+  }, [myUno, chatList]);
+
+    const handleEventClick = (clickInfo) => {
     const { title, startStr, extendedProps } = clickInfo.event;
     setModalData({
       date: startStr,
@@ -147,7 +186,6 @@ function ScheduleManager() {
       partner: extendedProps.partner
     });
   };
-
   const handleMouseEnter = (info) => {
     info.el.classList.add('fc-event-hover');
   };
@@ -156,6 +194,42 @@ function ScheduleManager() {
     info.el.classList.remove('fc-event-hover');
   };
 
+  // 일정(userChat) 삭제 
+  const handleDelete = (event) => {
+  if (!window.confirm('모의 채팅 일정을 삭제하시겠습니까?')) return;
+
+  const cno = event.extendedProps?.cno;
+
+  if (!cno) {
+    alert('❌ 면접방 번호(cno)를 찾을 수 없습니다.');
+    return;
+  }
+  fetch(`/deleteUserChat?cno=${cno}`, {
+    method: 'GET',
+    credentials: 'include'
+  })
+    .then(res => {
+      if (res.status === 200) return res.text();
+      throw new Error('삭제 실패');
+    })
+    .then(text => {
+      alert('✅ 일정이 삭제되었습니다.');
+      // 일정 다시 가져오기
+      fetch('/getUserChat', { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => {
+          const parsed = data.map(chat => ({
+            ...chat,
+            sch_date: new Date(chat.sch_date),
+          }));
+          setChatList(parsed);
+        });
+    })
+    .catch(err => {
+      console.error(err);
+      alert('⚠ 삭제 중 오류가 발생했습니다.');
+    });
+};
   return (
     <>
       <GlobalStyles />
@@ -194,7 +268,8 @@ function ScheduleManager() {
                       setModalData({
                         date: dateStr,
                         title: event.title,
-                        partner: event.extendedProps.partner
+                        leaderName: event.extendedProps.leaderName,
+                        memberName: event.extendedProps.memberName
                       })
                     }
                   >
@@ -203,7 +278,7 @@ function ScheduleManager() {
                       {new Date(event.date).getMonth() + 1}월{' '}
                       {new Date(event.date).getDate()}일 {timeStr} 모의 면접
                     </span>
-                    <CancelButton onClick={(e) => e.stopPropagation()}>취소</CancelButton>
+                    <CancelButton onClick={(e) => {e.stopPropagation(); handleDelete(event)}}>취소</CancelButton>
                   </ScheduleItem>
                 );
               })}
@@ -216,7 +291,8 @@ function ScheduleManager() {
             <ModalContent onClick={(e) => e.stopPropagation()}>
               <h3>{modalData.title}</h3>
               <p>📅 날짜: {modalData.date}</p>
-              <p>👥 상대방: {modalData.partner}</p>
+              <p>👤 리더: {modalData.leaderName}</p>
+              <p>🤝 멤버: {modalData.memberName || '없음'}</p>
               <CloseButton onClick={() => setModalData(null)}>닫기</CloseButton>
             </ModalContent>
           </ModalOverlay>

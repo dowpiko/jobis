@@ -45,5 +45,30 @@ public class UserChatServiceImpl implements UserChatService {
 		
 		return ucMapper.getNameByUno();
 	}
+	// 채팅방 삭제하기
+	@Override
+	public int deleteUserChat(int cno) {
+		
+		return ucMapper.deleteUserChat(cno);
+	}
+	// 단일 데이터 가져오기
+	@Override
+	public CJSVO getChatByCno(int cno) {
+		
+		return ucMapper.getChatByCno(cno);
+	}
+	// member를 Leader로 바꾸기
+	@Override
+	public void promoteMemberToLeader(int cno) {
+		
+		ucMapper.promoteMemberToLeader(cno);
+	}
+	// member 삭제하기
+	@Override
+	public void leaveChatAsMember(int cno) {
+		ucMapper.leaveChatAsMember(cno);
+		
+	}
+	
 	
 }
