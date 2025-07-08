@@ -8,7 +8,7 @@
 		SELECT COUNT(*) FROM tbl_user WHERE id=#{id}
 	</select>
 	
-	<!-- 기업 등록 -->
+	<!-- 기업 회원가입 -->
 	<insert id="insertCUser" parameterType="org.jobis.domain.CUserVO">
   
 	  <selectKey keyProperty="uno" resultType="int" order="BEFORE" statementType="STATEMENT">
@@ -16,14 +16,16 @@
 	  </selectKey>
 	  
 	  BEGIN
-		  INSERT INTO TBL_USER (UNO, ID, PW, EMAIL)
-		  VALUES (#{uno}, #{id}, #{pw}, #{email});
+		  INSERT INTO TBL_USER (UNO, ID, PW, EMAIL, AUTH)
+		  VALUES (#{uno}, #{id}, #{pw}, #{email}, 'company');
 		
 		  INSERT INTO TBL_CINFO VALUES (
 		    #{uno}, #{corpNm}, #{bzno}, #{enpRprFnm}, #{enpBsadr}, #{sicNm}, #{enpEmpeCnt}
 		  );
 	  END;
 	</insert>
+	
+
 	
 	<!-- 면접 공고 등록 -->
 	<insert id="insertInterView" parameterType="org.jobis.domain.InterViewBCVO">
@@ -34,7 +36,7 @@
 			#{o_tag},
 			#{o_content},
 			#{o_activedays},
-			SYSDATE		
+			SYSDATE
 		)
 	</insert>
 	
@@ -93,5 +95,65 @@
 	<!-- 해당 공고 가져오기 -->
 	<select id="oneInterViewByOno" parameterType="int" resultType="org.jobis.domain.InterViewBCVO">
 		SELECT * FROM TBL_OFFERS WHERE ono = #{ono}
+	</select>
+	
+
+	
+	<!-- 채팅방 생성 -->
+	<insert id="insertChatRoom" parameterType="org.jobis.domain.RoomDTO">
+	    INSERT INTO tbl_room (rno, company, emp, ono)
+	    SELECT SEQ_RNO.NEXTVAL, #{company}, #{emp}, #{ono}
+	    FROM dual
+	    WHERE NOT EXISTS (
+	        SELECT 1 FROM tbl_room
+	        WHERE company = #{company}
+	          AND emp = #{emp}
+	          AND ono = #{ono}
+	    )
+	</insert>
+	
+	<!-- 채팅방 가져오기 -->
+	<select id="initChatLayout" parameterType="int" resultType="org.jobis.domain.RoomDTO">
+	    SELECT 
+	        R.RNO,
+	        R.COMPANY,
+	        R.EMP,
+	        R.ONO,
+	        U.NAME,
+	        U.BIRTHDATE
+	    FROM 
+	        TBL_ROOM R
+	    JOIN 
+	        TBL_USER U
+	    ON 
+	        R.EMP = U.UNO
+	    WHERE 
+	        R.COMPANY = #{cno}
+	</select>
+	
+	<!-- 공고 정보 (tbl_offers) -->
+	<select id="selectOffer" parameterType="org.jobis.domain.InterViewBCVO" resultType="org.jobis.domain.OfferSubmissionDTO">
+	    SELECT 
+	        o.o_title AS o_title,
+	        o.o_tag AS o_tag,
+	        o.o_content AS o_content,
+	        o.o_regdate AS o_regdate,
+	        NULL AS user_content,
+	        NULL AS user_regdate
+	    FROM tbl_offers o
+	    WHERE o.ono = #{ono}
+	</select>
+	
+	<!-- 지원자 정보 (tbl_submissions) -->
+	<select id="selectSubmission" parameterType="org.jobis.domain.InterViewBCVO" resultType="org.jobis.domain.OfferSubmissionDTO">
+	    SELECT 
+	        NULL AS o_title,
+	        NULL AS o_tag,
+	        NULL AS o_content,
+	        NULL AS o_regdate,
+	        s.o_content AS user_content,
+	        s.o_regdate AS user_regdate
+	    FROM tbl_submissions s
+	    WHERE s.ono = #{ono} AND s.uno = #{uno}
 	</select>
 </mapper>

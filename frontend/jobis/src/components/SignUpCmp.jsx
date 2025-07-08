@@ -275,7 +275,7 @@ const SignUpCmp = () => {
   };
 
   // 회원가입
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     if (!id.trim() || !isId) {
       alert("아이디 중복 확인을 완료해주세요.");
       return;
@@ -296,14 +296,13 @@ const SignUpCmp = () => {
       return;
     }
 
-    // if (!email.trim() || !emailVerified) {
-    //   alert("이메일 인증을 완료해주세요.");
-    //   return;
-    // }
+    if (!email.trim() || !emailVerified) {
+      alert("이메일 인증을 완료해주세요.");
+      return;
+    }
 
-    // ✅ 여기서 실제 회원가입 처리 API 호출 등을 하면 됩니다.
     try {
-      const res = axios.post('http://localhost:9090/sm/insertCUser', {
+      const res = await axios.post('http://localhost:9090/sm/insertCUser', {
         id: id,
         pw: pw,
         email: email,
@@ -315,8 +314,7 @@ const SignUpCmp = () => {
         sicNm: sicNm,
         enpEmpeCnt: enpEmpeCnt
       });
-      
-      if (res.status) {
+      if (res.status === 200) {
         alert("회원가입 성공");
       } else {
         alert("회원가입 실패");

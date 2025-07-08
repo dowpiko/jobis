@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.jobis.domain.CUserVO;
 import org.jobis.domain.InterViewBCVO;
+import org.jobis.domain.OfferSubmissionDTO;
+import org.jobis.domain.RoomDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.SmService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,11 +40,11 @@ public class SmController {
 	    return service.findCompany(crno);
 	};
 	
-	// 기업 등록	
+	// 기업 회원가입
 	@PostMapping("/insertCUser")
 	@ResponseBody
 	public int insertCUser(@RequestBody CUserVO cuvo) {
-		System.out.println(cuvo);
+		System.out.println("기업 등록");
 		return service.insertCUser(cuvo);
 	}
 	
@@ -53,36 +55,59 @@ public class SmController {
 	@ResponseBody
 	public int insertInterView(@RequestBody InterViewBCVO ivbc) {
 		// uno 수정하기
-		ivbc.setUno(2);
-		System.out.println(ivbc);
+		ivbc.setUno(21);
+		System.out.println("면접 공고 등록");
 		return service.insertInterView(ivbc);
 	}
 	
 	// 진행 중 / 마감
 	@GetMapping("/progress")
 	public List<InterViewBCVO> progress(int check) {
+		System.out.println("진행 중 / 마감");
 		return service.progress(check);
 	}
 	
 	// 공고 지원한 사람 데이터
 	@GetMapping("/selectByOno")
 	public List<UserVO> selectByOno(int ono){
-		System.out.println(service.selectByOno(ono));
+		System.out.println("공고 지원한 사람 데이터");
 		return service.selectByOno(ono);
 	}
 	
 	// 공고 삭제
 	@GetMapping("/deleteByOno")
 	public int deleteByOno(@RequestParam(value = "onos") List<Integer> onoList){
-		System.out.println("받은 ono 목록: " + onoList);
+		System.out.println("공고 삭제");
 		return service.deleteByOno(onoList);
 	}
 	
 	// 해당 공고 가져오기
 	@GetMapping("oneInterViewByOno")
 	public InterViewBCVO oneInterViewByOno(int ono) {
-		System.out.println("ono : " + ono);
-		System.out.println("결과 : " + service.oneInterViewByOno(ono));
+		System.out.println("해당 공고 가져오기");
 		return service.oneInterViewByOno(ono);
+	}
+	
+	/* ----------------------------------------------------------------------------------- */
+	
+	// 채팅방 생성
+	@GetMapping("insertChatRoom")
+	public int insertChatRoom(int cno,int uno, int ono) {
+		System.out.println("채팅방 생성");
+		return service.insertChatRoom(cno, uno, ono);
+	}
+	
+	// 채팅방 가져오기
+	@GetMapping("initChatLayout")
+	public List<RoomDTO> initChatLayout(int cno) {
+		System.out.println("채팅방 가져오기");
+		return service.initChatLayout(cno);
+	}
+	
+	// 공고 답변, 질문 가져오기
+	@GetMapping("selectOfferAndSubmission")
+	public OfferSubmissionDTO selectOfferAndSubmission(int ono, int uno) {
+		System.out.println("공고 답변, 질문 가져오기");
+		return service.selectOfferAndSubmission(ono, uno);
 	}
 }

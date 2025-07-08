@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.jobis.domain.CUserVO;
 import org.jobis.domain.InterViewBCVO;
+import org.jobis.domain.OfferSubmissionDTO;
+import org.jobis.domain.RoomDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.mapper.SmMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,7 +87,7 @@ public class SmServiceImple implements SmService {
         }
     };
     
-    // 기업 등록
+    // 기업 회원가입
     @Override
     @Transactional
     public int insertCUser(CUserVO cuvo) {
@@ -122,5 +124,52 @@ public class SmServiceImple implements SmService {
     @Override
     public InterViewBCVO oneInterViewByOno(int ono) {
     	return mapper.oneInterViewByOno(ono);
+    }
+    
+    /* ----------------------------------------------------------------------------------- */
+    
+    // 채팅방 생성
+    @Override
+    @Transactional
+    public int insertChatRoom(int cno, int uno, int ono) {
+    	RoomDTO rvo = new RoomDTO();
+    	rvo.setCompany(cno);
+    	rvo.setEmp(uno);
+    	rvo.setOno(ono);
+    	
+    	return mapper.insertChatRoom(rvo) > 0 ? 1 : -1;
+    }
+    
+    // 채팅방 가져오기
+    @Override
+    public List<RoomDTO> initChatLayout(int cno) {
+    	return mapper.initChatLayout(cno);
+    }
+    
+    // 공고 답변, 질문 가져오기
+    @Override
+    public OfferSubmissionDTO selectOfferAndSubmission(int ono, int uno) {
+        InterViewBCVO ibcvo = new InterViewBCVO();
+        ibcvo.setOno(ono);
+        ibcvo.setUno(uno);
+
+        OfferSubmissionDTO offer = mapper.selectOffer(ibcvo);
+        OfferSubmissionDTO submission = mapper.selectSubmission(ibcvo);
+
+        OfferSubmissionDTO result = new OfferSubmissionDTO();
+
+        if (offer != null) {
+            result.setO_title(offer.getO_title());
+            result.setO_tag(offer.getO_tag());
+            result.setO_content(offer.getO_content());
+            result.setO_regdate(offer.getO_regdate());
+        }
+
+        if (submission != null) {
+            result.setUser_content(submission.getUser_content());
+            result.setUser_regdate(submission.getUser_regdate());
+        }
+
+        return result;
     }
 }

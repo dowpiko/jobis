@@ -11,7 +11,7 @@
   import NoticeProgress from './components/company/NoticeProgress';
   import ScheduleManager from './components/chat/ScheduleManager';
   import CompanySidebar from './components/sidebar/CompanySidebar';
-  import ChatLayout from './components/company/ChatLayout;';
+  import ChatLayout from './components/company/ChatLayout';
   import GraphPage from './components/ai/GraphPage';
   import SignUp from './components/SignUp';
   import Profile from './components/chat/Profile';

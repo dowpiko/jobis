@@ -177,7 +177,7 @@ const Login = () => {
 
       if (res.data.success) {
         const userType = res.data.userType; // "user" or "company"
-
+        
         // 탭에서 선택한 유형과 실제 로그인된 유형이 불일치할 경우 로그인 차단
         if ((isPersonal && userType !== 'user') || (!isPersonal && userType !== 'company')) {
           alert('선택한 로그인 유형과 계정 유형이 일치하지 않습니다.');

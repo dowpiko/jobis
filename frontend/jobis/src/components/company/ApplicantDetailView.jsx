@@ -56,13 +56,6 @@ const InfoRow = styled.div`
   }
 `;
 
-const QATitle = styled.h3`
-  font-size: 16px;
-  margin-bottom: 30px;
-  font-weight: 600;
-  color: #1f2a37;
-`;
-
 const QAItem = styled.div`
   margin-bottom: 16px;
 `;
@@ -82,6 +75,12 @@ const QASectionWrapper = styled.div`
   max-height: 400px; /* 원하는 높이로 조절 (예: 400px) */
   overflow-y: auto;
   padding-right: 10px; /* 스크롤바 공간 확보 */
+`;
+
+const ButtonWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 버튼 사이 간격 */
 `;
 
 const ApplicantDetailView = ({ applicant, onBack }) => {
@@ -108,6 +107,27 @@ const ApplicantDetailView = ({ applicant, onBack }) => {
     }
   }, [applicant]);
 
+  const chatRoomInsert = async () => {
+    try {
+      // cno 수정!!!!!!!!!!!!!!!!!!!!!!
+        const res = await axios.get(`http://localhost:9090/sm/insertChatRoom?cno=21&uno=${applicant.uno}&ono=${interviewData.ono}`);
+        console.log(res);
+        if (res.data === 1) {
+          if (window.confirm('채팅방을 생성하였습니다. 이동하시겠습니까?')) {
+            alert("새로운 방으로 이동");
+            return;
+          };
+        }else if (res.data === -1) {
+          if (window.confirm('이미 채팅방이 존재합니다. 해당 채팅방으로 이동하시겠습니까?')) {
+            alert('이미 있는 방으로 이동');
+            return;
+          }
+        };
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
   if (!applicant) return null;
 
   const questions = interviewData?.o_content ? interviewData.o_content.split('\n') : [];
@@ -117,7 +137,11 @@ const ApplicantDetailView = ({ applicant, onBack }) => {
     <DetailContainer>
       <HeaderRow>
         <Title>면접 Q&A</Title>
-        <BackButton onClick={onBack}>뒤로가기</BackButton>
+
+        <ButtonWrapper>
+          <BackButton onClick={chatRoomInsert}>채팅시작</BackButton>
+          <BackButton onClick={onBack}>뒤로가기</BackButton>
+        </ButtonWrapper>
       </HeaderRow>
 
       <InfoSection>

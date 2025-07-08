@@ -34,21 +34,6 @@ const Logo = styled.div`
   cursor: pointer;
 `;
 
-const ModeToggle = styled.button`
-  width: 40px;
-  height: 40px;
-  background-color: #4376B6;
-  border: none;
-  border-radius: 50%;
-  color: #FFFFFF;
-  font-size: 18px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #5C8BC4;
-  }
-`;
-
 const Profile = styled.div`
   background-color: #FFFFFF;
   border-radius: 8px;

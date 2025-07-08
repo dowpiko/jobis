@@ -5,13 +5,15 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 import org.jobis.domain.CUserVO;
 import org.jobis.domain.InterViewBCVO;
+import org.jobis.domain.OfferSubmissionDTO;
+import org.jobis.domain.RoomDTO;
 import org.jobis.domain.UserVO;
 
 public interface SmMapper {
 	// 아이디 중복확인
 	public int findUserId(String id);
 	
-	// 기업 등록
+	// 기업 회원가입
 	public int insertCUser(CUserVO cuvo);
 	
 	/* ----------------------------------------------------------------------------------- */
@@ -30,4 +32,16 @@ public interface SmMapper {
     
     // 해당 공고 가져오기
     public InterViewBCVO oneInterViewByOno(int ono);
+    
+    /* ----------------------------------------------------------------------------------- */
+    
+    // 채팅방 생성
+    public int insertChatRoom(RoomDTO rvo);
+    
+    // 채팅방 가져오기
+    public List<RoomDTO> initChatLayout(int cno);
+    
+    // 공고 답변, 질문 가져오기
+    public OfferSubmissionDTO selectOffer(InterViewBCVO ibcvo);
+    public OfferSubmissionDTO selectSubmission(InterViewBCVO ibcvo);
 }
