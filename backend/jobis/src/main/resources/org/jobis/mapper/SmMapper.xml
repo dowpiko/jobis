@@ -25,8 +25,6 @@
 	  END;
 	</insert>
 	
-
-	
 	<!-- 면접 공고 등록 -->
 	<insert id="insertInterView" parameterType="org.jobis.domain.InterViewBCVO">
 		INSERT INTO TBL_OFFERS VALUES (
@@ -41,7 +39,7 @@
 	</insert>
 	
 	<!-- 진행 중 / 마감 -->
-	<select id="progress" resultType="org.jobis.domain.InterViewBCVO" parameterType="int">
+	<select id="progress" resultType="org.jobis.domain.InterViewBCVO" parameterType="map">
 	    SELECT
 	        o.*,
 	        (SELECT COUNT(*)
@@ -50,11 +48,13 @@
 	    FROM
 	        TBL_OFFERS o
 	    WHERE
+	        o.UNO = #{uno}
+	        AND
 	        <choose>
-	            <when test="_parameter == 1">
+	            <when test="check == 1">
 	                o.o_activedays &gt;= SYSDATE
 	            </when>
-	            <when test="_parameter == 0">
+	            <when test="check == 0">
 	                o.o_activedays &lt;= SYSDATE
 	            </when>
 	            <otherwise>
@@ -96,8 +96,6 @@
 	<select id="oneInterViewByOno" parameterType="int" resultType="org.jobis.domain.InterViewBCVO">
 		SELECT * FROM TBL_OFFERS WHERE ono = #{ono}
 	</select>
-	
-
 	
 	<!-- 채팅방 생성 -->
 	<insert id="insertChatRoom" parameterType="org.jobis.domain.RoomDTO">

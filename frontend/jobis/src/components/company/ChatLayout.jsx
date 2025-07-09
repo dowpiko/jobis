@@ -1,5 +1,6 @@
 import axios from 'axios';
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 const Wrapper = styled.div`
@@ -179,11 +180,12 @@ const ChatLayout = () => {
   const [activeChatKey, setActiveChatKey] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const socketRef = useRef(null);
-
-  const initChatLayout = async () => {
+  const [myUno, setMyUno] = useState('');
+  const navigate = useNavigate();
+  
+  const initChatLayout = async (uno) => {
     try {
-      const cno = 21;
-      const res = await axios.get(`http://localhost:9090/sm/initChatLayout?cno=${cno}`);
+      const res = await axios.get(`http://localhost:9090/sm/initChatLayout?cno=${uno}`);
 
       const processedData = res.data.map(item => ({
         ...item,
@@ -203,7 +205,18 @@ const ChatLayout = () => {
   );
 
   useEffect(() => {
-    initChatLayout();
+    axios.get('/jsh/getUser')
+      .then(res => {
+        if (res.data){
+          setMyUno(res.data.uno);
+          initChatLayout(res.data.uno);
+        }
+      })
+      .catch(err => {
+        console.error('프로필 정보 가져오기 실패', err);
+        alert('세션 오류');
+        navigate('/');
+      });
   }, []);
 
   useEffect(() => {
@@ -229,12 +242,12 @@ const ChatLayout = () => {
 
     try {
       const res = await axios.get(`http://localhost:9090/sm/selectOfferAndSubmission`, {
-        params: { ono, emp, company: 21 }
+        params: { ono, emp, company: myUno }
       });
       setOfferSubmission(res.data);
 
       const { rno } = res.data;
-      setSelectedChat({ ono, emp, company: 21, rno });
+      setSelectedChat({ ono, emp, company: myUno, rno });
 
       await fetchByRnoChatMessages(rno);
 
@@ -339,6 +352,8 @@ const ChatLayout = () => {
       <AnnouncementPanel>
         {showAnnouncement && offerSubmission ? (
           <AnnouncementContent>
+            <InfoRow><strong>{offerSubmission.o_title}</strong></InfoRow>
+            <InfoRow><strong>{offerSubmission.o_tag}</strong></InfoRow>
             <InfoRow><strong>지원일:</strong> {formatDate(offerSubmission.user_regdate)}</InfoRow>
 
             <QAWrapper>

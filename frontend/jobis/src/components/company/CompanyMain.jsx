@@ -140,7 +140,7 @@ const InfoText = styled.span`
 `;
 
 const CompanyMain = () => {
-  const [check, setCheck] = useState(1);
+  const [check, setCheck] = useState(0);
   const [expanded, setExpanded] = useState([]);
   const [post, setPost] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -148,6 +148,31 @@ const CompanyMain = () => {
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const navigate = useNavigate();
   const [selectedOnos, setSelectedOnos] = useState([]);
+  const [myUno, setMyUno] = useState('');
+
+  useEffect(() => {
+    if (!myUno) return;
+    fetchData();
+  }, [check]);
+
+  useEffect(() => {
+    axios.get('/jsh/getUser')
+      .then(res => {
+        if (res.data){
+          setMyUno(res.data.uno);
+          setCheck(1);
+            }else {
+          alert('로그인이 필요합니다.');
+          navigate('/');
+        }
+      })
+      .catch(err => {
+        console.error('프로필 정보 가져오기 실패', err);
+        alert('세션 오류');
+        navigate('/');
+      });    
+  }, []);
+
 
   const getRemainingDays = (timestamp) => {
     const today = new Date();
@@ -170,7 +195,7 @@ const CompanyMain = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:9090/sm/progress?check=${check}`);
+      const res = await axios.get(`http://localhost:9090/sm/progress?check=${check}&uno=${myUno}`);
       const sortedData = res.data.slice().sort((a, b) => a.o_activedays - b.o_activedays);
       setPost(sortedData);
       setExpanded(new Array(sortedData.length).fill(false));
@@ -182,10 +207,6 @@ const CompanyMain = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchData();
-  }, [check]);
 
   const toggleExpand = async (index, ono) => {
     setExpanded(prev => prev.map((val, i) => (i === index ? !val : val)));

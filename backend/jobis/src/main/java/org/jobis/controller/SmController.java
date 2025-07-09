@@ -45,7 +45,7 @@ public class SmController {
 	@PostMapping("/insertCUser")
 	@ResponseBody
 	public int insertCUser(@RequestBody CUserVO cuvo) {
-		System.out.println("기업 등록");
+		System.out.println("기업 회원가입");
 		return service.insertCUser(cuvo);
 	}
 	
@@ -55,17 +55,15 @@ public class SmController {
 	@PostMapping("/insertInterView")
 	@ResponseBody
 	public int insertInterView(@RequestBody InterViewBCVO ivbc) {
-		// uno 수정하기
-		ivbc.setUno(21);
 		System.out.println("면접 공고 등록");
 		return service.insertInterView(ivbc);
 	}
 	
 	// 진행 중 / 마감
 	@GetMapping("/progress")
-	public List<InterViewBCVO> progress(int check) {
+	public List<InterViewBCVO> progress(@RequestParam("check") int check, @RequestParam("uno") int uno) {
 		System.out.println("진행 중 / 마감");
-		return service.progress(check);
+		return service.progress(check, uno);
 	}
 	
 	// 공고 지원한 사람 데이터

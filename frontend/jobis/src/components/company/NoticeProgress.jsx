@@ -129,11 +129,14 @@ const NoticeProgress = () => {
   const [subCategory, setSubCategory] = useState('');
   const [o_content, setContent] = useState(['', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
+  const [myUno, setMyUno] = useState('');
+
   // 시작 날짜
   const [startDate] = useState(() => {
-  const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
+    const today = new Date();
+      return today.toISOString().split('T')[0];
+    });
+
   // 종료 날짜
   const [o_activedays, setO_activedays] = useState(() => {
     const today = new Date();
@@ -150,9 +153,7 @@ const NoticeProgress = () => {
   minEndDate.setDate(minEndDate.getDate() + 5);
   const minEndDateStr = minEndDate.toISOString().split('T')[0];
 
-  const subCategories = category
-    ? categories.find((cat) => cat.category === category)?.subCategories || []
-    : [];
+  const subCategories = category ? categories.find((cat) => cat.category === category)?.subCategories || [] : [];
 
   useEffect(() => {
     if (o_title.trim() === '' && category && subCategory) {
@@ -160,6 +161,21 @@ const NoticeProgress = () => {
     }
   }, [category, subCategory]);
   
+  useEffect(() => {
+    axios.get('/jsh/getUser')
+      .then(res => {
+        if (res.data){
+          setMyUno(res.data.uno);
+          }
+      })
+      .catch(err => {
+        console.error('프로필 정보 가져오기 실패', err);
+        alert('세션 오류');
+        navigate('/');
+      });    
+  }, []);
+
+
   // 질문 추가
   const handleChange = (i, v) => {
     const arr = [...o_content];
@@ -186,7 +202,8 @@ const NoticeProgress = () => {
       o_title,
       o_tag,
       o_content: cleanedContent,
-      o_activedays
+      o_activedays,
+      uno : myUno
     };
 
     setIsLoading(true);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const DetailContainer = styled.div`
   flex-grow: 1;
@@ -85,6 +86,8 @@ const ButtonWrapper = styled.div`
 
 const ApplicantDetailView = ({ applicant, onBack }) => {
   const [interviewData, setInterviewData] = useState(null);
+  const [myUno, setMyUno] = useState('');
+  const navigate = useNavigate();
 
   const formatDate = (timestamp) => {
     if (!timestamp) return '-';
@@ -105,12 +108,26 @@ const ApplicantDetailView = ({ applicant, onBack }) => {
     if (applicant?.ono) fetchInterviewData();
   }, [applicant]);
 
+  useEffect(() => {
+    axios.get('/jsh/getUser')
+      .then(res => {
+        if (res.data){
+          setMyUno(res.data.uno);
+          }
+      })
+      .catch(err => {
+        console.error('프로필 정보 가져오기 실패', err);
+        alert('세션 오류');
+        navigate('/');
+      });    
+  }, []);
+
   const chatRoomInsert = async () => {
     try {
       const confirmCreate = window.confirm('채팅방을 생성하시겠습니까?');
       if (!confirmCreate) return;
 
-      const res = await axios.get(`http://localhost:9090/sm/insertChatRoom?cno=21&uno=${applicant.uno}&ono=${interviewData.ono}`);
+      const res = await axios.get(`http://localhost:9090/sm/insertChatRoom?cno=${myUno}&uno=${applicant.uno}&ono=${interviewData.ono}`);
 
       if (res.data === 1) {
         alert('채팅방이 생성되었습니다.');

@@ -47,8 +47,18 @@ const Profile = styled.div`
 
 const ProfileInfo = styled.div`
   display: flex;
+  flex-direction: column;
+  gap: 8px;  // 각 라인 간격
+  font-size: 14px;
+  color: #1F2A37;
+`;
+
+const ProfileLine = styled.div`
+  display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;           // "기업명 :" 과 값 사이 간격
+  white-space: nowrap;  // 줄바꿈 방지
+  font-size: 14px;
 `;
 
 const ProfileName = styled.span`
@@ -144,7 +154,6 @@ function CompanySidebar({ children }) {
     axios.get('/jsh/getUser')
       .then(res => {
         if (res.data) {
-          console.log(res.data.uno);
           axios.get(`sm/selectCinofoByUno?uno=${res.data.uno}`)
             .then(data => {
               if (data.data) {
@@ -175,9 +184,14 @@ function CompanySidebar({ children }) {
 
         <Profile>
           <ProfileInfo>
-            <ProfileName>기업명 : {cName}</ProfileName>
-            <ProfileName>대표자명 : {enpRpFnm}</ProfileName>
+            <ProfileLine>
+              <strong>기업명 :</strong> <span>{cName}</span>
+            </ProfileLine>
+            <ProfileLine>
+              <strong>대표자명 :</strong> <span>{enpRpFnm}</span>
+            </ProfileLine>
           </ProfileInfo>
+
           <ProfileActions>
             <ProfileButton onClick={() => navigate('/')}>로그아웃</ProfileButton>
           </ProfileActions>

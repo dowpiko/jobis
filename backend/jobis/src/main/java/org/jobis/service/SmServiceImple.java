@@ -3,6 +3,7 @@ package org.jobis.service;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -103,10 +104,13 @@ public class SmServiceImple implements SmService {
     	return mapper.insertInterView(ivbc);
     }
     
-    // 진행 중 / 마감
     @Override
-    public List<InterViewBCVO> progress(int check) {
-    	return mapper.progress(check);
+    public List<InterViewBCVO> progress(int check, int uno) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("check", check);
+        param.put("uno", uno);
+
+        return mapper.progress(param);
     }
     
     // 공고 지원한 사람 데이터

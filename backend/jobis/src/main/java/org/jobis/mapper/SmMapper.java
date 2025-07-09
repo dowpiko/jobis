@@ -1,6 +1,7 @@
 package org.jobis.mapper;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Param;
 import org.jobis.domain.CUserVO;
@@ -23,7 +24,7 @@ public interface SmMapper {
     public int insertInterView(InterViewBCVO ivbc);
     
     // 진행 중 / 마감
-    public List<InterViewBCVO> progress(int check);
+    public List<InterViewBCVO> progress(Map<String, Object> param);
     
     // 공고 지원한 사람 데이터
     public List<UserVO> selectByOno(int ono);
