@@ -5,6 +5,7 @@ import java.util.Map;
 import org.jobis.domain.ProfileVO;
 import org.jobis.domain.UserVO;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public interface JshService {
@@ -38,4 +39,6 @@ public interface JshService {
 	public Map<String, String> getGoogleEmail(String code);
 	
 	public UserVO handleGoogleLogin(String accessToken, String email, String birth);
+	
+	public String convertVoiceToText(MultipartFile voiceFile);
 }

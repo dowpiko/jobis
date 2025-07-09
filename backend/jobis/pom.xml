@@ -253,6 +253,20 @@
 		  <version>1.1</version>
 		  <scope>provided</scope>
 		</dependency>
+		
+		<!-- Clova 응답 JSON 파싱용 -->
+		<dependency>
+		  <groupId>org.json</groupId>
+		  <artifactId>json</artifactId>
+		  <version>20231013</version>
+		</dependency>
+		
+		<!-- Object Storage 업로드용 AWS SDK -->
+		<dependency>
+		  <groupId>com.amazonaws</groupId>
+		  <artifactId>aws-java-sdk-s3</artifactId>
+		  <version>1.12.700</version>
+		</dependency>
 	</dependencies>
 	
 	

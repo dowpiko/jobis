@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 @CrossOrigin(origins = "*")
 @Controller
@@ -275,6 +276,12 @@ public class JshController {
 	            .body(Map.of("success", false, "message", "구글 인증 실패"));
 	    }
 	}
-
+	
+	@PostMapping("/voicetotext")
+	@ResponseBody
+	public ResponseEntity<Map<String, Object>> voiceToText(@RequestParam("voice") MultipartFile voiceFile) {
+	    String result = jshservice.convertVoiceToText(voiceFile);
+	    return ResponseEntity.ok(Map.of("text", result));
+	}
 }
 
