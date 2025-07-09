@@ -36,6 +36,7 @@ const Logo = styled.div`
 `;
 
 const Profile = styled.div`
+  position: relative;          // 👉 추가
   background-color: #FFFFFF;
   border-radius: 8px;
   padding: 16px;
@@ -69,17 +70,18 @@ const ProfileName = styled.span`
 
 const ProfileActions = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;   // 👉 오른쪽 정렬
 `;
 
 const ProfileButton = styled.button`
   background-color: #4376B6;
   border: none;
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 6px 12px;
   color: #FFFFFF;
   font-size: 13px;
   cursor: pointer;
+  margin-top: 6px;
 
   &:hover {
     background-color: #5C8BC4;
@@ -145,10 +147,46 @@ const Main = styled.main`
   border-left: 1px solid #B0BCCB;
 `;
 
+const NotificationBadge = styled.div`
+  position: absolute;
+  top: -6px;
+  right: ${(props) => 
+    props.countLength === 1 ? '-5px' : 
+    props.countLength === 2 ? '-10px' : 
+    '-15px'
+  }; 
+  background-color: #e53935;
+  color: white;
+  padding: 1px 5px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 0 4px rgba(0,0,0,0.2);
+  line-height: 1.4;
+  white-space: nowrap;
+`;
+
+const NotificationWrapper = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+`;
+
+
 function CompanySidebar({ children }) {
   const navigate = useNavigate();
   const [cName, setCName] = useState('');
   const [enpRpFnm, setEnpRpFnm] = useState('');
+  const BellIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="#1F2A37" viewBox="0 0 24 24">
+      <path d="M12 24c1.104 0 2-.896 2-2h-4a2 2 0 002 2zm6.364-6V11c0-3.308-2.308-6.104-5.364-6.708V3a1 1 0 10-2 0v1.292C8.944 4.896 6.636 7.692 6.636 11v7L4 19v1h16v-1l-1.636-1zM18 20H6v-.382l1.636-1.636V11c0-2.757 2.243-5 5-5s5 2.243 5 5v6.982L18 19.618V20z"/>
+    </svg>
+  );
+  const notificationCount = 900;
+  const displayNotificationCount = notificationCount > 99 ? '99+' : notificationCount.toString();
+  const countLength = displayNotificationCount.length;  
 
   useEffect(() => {
     axios.get('/jsh/getUser')
@@ -183,6 +221,15 @@ function CompanySidebar({ children }) {
         </TopBar>
 
         <Profile>
+          <NotificationWrapper onClick={() => alert('알림 클릭!')}>
+            <BellIcon />
+            {notificationCount > 0 && (
+              <NotificationBadge countLength={countLength}>
+                {displayNotificationCount}
+              </NotificationBadge>
+            )}
+          </NotificationWrapper>
+
           <ProfileInfo>
             <ProfileLine>
               <strong>기업명 :</strong> <span>{cName}</span>
