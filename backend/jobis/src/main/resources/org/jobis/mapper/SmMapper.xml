@@ -176,4 +176,10 @@
 	    WHERE RNO = #{rno}
 	    ORDER BY CL_REGDATE ASC, CLNO ASC
 	</select>
+	
+	<!-- 기업 데이터 가져오기 -->
+	<select id="selectCinofoByUno" parameterType="int" resultType="org.jobis.domain.CUserVO">
+		SELECT * FROM TBL_CINFO
+		WHERE uno = #{uno}
+	</select>
 </mapper>

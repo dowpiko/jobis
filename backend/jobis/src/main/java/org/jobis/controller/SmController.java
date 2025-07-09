@@ -129,4 +129,10 @@ public class SmController {
 	public List<ChatMessageVO> selectByRnoChatMessages(@RequestParam("rno") int rno) {
 	    return service.selectByRnoChatMessages(rno);
 	}
+	
+	// 기업 데이터 가져오기
+	@GetMapping("/selectCinofoByUno")
+	public CUserVO selectCinofoByUno(int uno) {
+		return service.selectCinofoByUno(uno);
+	}
 }

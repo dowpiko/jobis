@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const AppLayout = styled.div`
   display: flex;
@@ -48,13 +49,6 @@ const ProfileInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 16px;
-`;
-
-const ProfileImg = styled.img`
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  border: 2px solid #4376B6;
 `;
 
 const ProfileName = styled.span`
@@ -143,6 +137,34 @@ const Main = styled.main`
 
 function CompanySidebar({ children }) {
   const navigate = useNavigate();
+  const [cName, setCName] = useState('');
+  const [enpRpFnm, setEnpRpFnm] = useState('');
+
+  useEffect(() => {
+    axios.get('/jsh/getUser')
+      .then(res => {
+        if (res.data) {
+          console.log(res.data.uno);
+          axios.get(`sm/selectCinofoByUno?uno=${res.data.uno}`)
+            .then(data => {
+              if (data.data) {
+                setCName(data.data.corpNm)
+                setEnpRpFnm(data.data.enpRpFnm)
+              }else {
+                return;
+              }
+            })
+        } else {
+          alert('로그인이 필요합니다.');
+          navigate('/');
+        }
+      })
+      .catch(err => {
+        console.error('프로필 정보 가져오기 실패', err);
+        alert('세션 오류');
+        navigate('/');
+      });
+  }, [navigate]);
 
   return (
     <AppLayout>
@@ -153,9 +175,8 @@ function CompanySidebar({ children }) {
 
         <Profile>
           <ProfileInfo>
-            <ProfileImg src="https://via.placeholder.com/48" alt="profile" />
-            <ProfileName>기업명 : 메이플</ProfileName>
-            <ProfileName>대표자명 : 신창섭</ProfileName>
+            <ProfileName>기업명 : {cName}</ProfileName>
+            <ProfileName>대표자명 : {enpRpFnm}</ProfileName>
           </ProfileInfo>
           <ProfileActions>
             <ProfileButton onClick={() => navigate('/')}>로그아웃</ProfileButton>

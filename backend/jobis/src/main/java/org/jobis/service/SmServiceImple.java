@@ -187,4 +187,10 @@ public class SmServiceImple implements SmService {
     public List<ChatMessageVO> selectByRnoChatMessages(int rno) {
         return mapper.selectByRnoChatMessages(rno);
     }
+    
+    // 기업 데이터 가져오기
+    @Override
+    public CUserVO selectCinofoByUno(int uno) {
+    	return mapper.selectCinofoByUno(uno);
+    }
 }

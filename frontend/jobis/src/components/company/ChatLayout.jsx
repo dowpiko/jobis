@@ -188,7 +188,6 @@ const ChatLayout = () => {
       const processedData = res.data.map(item => ({
         ...item,
         name: item.name || '-',
-        birthYear: item.birthdate ? `${new Date(item.birthdate).getFullYear()}년생` : '-',
       }));
 
       processedData.sort((a, b) => a.name.localeCompare(b.name, 'ko-KR'));
@@ -223,7 +222,6 @@ const ChatLayout = () => {
   const handleChatCardClick = async (ono, emp) => {
     const newChatKey = `${ono}_${emp}`;
 
-    // 🔒 이미 같은 채팅방이면 그냥 return (렌더링/호출 방지)
     if (activeChatKey === newChatKey) return;
 
     setShowAnnouncement(true);
@@ -306,7 +304,7 @@ const ChatLayout = () => {
               onClick={() => handleChatCardClick(item.ono, item.emp)}
             >
               <Avatar src="https://via.placeholder.com/32" alt="avatar" />
-              <div>{item.name} ({item.birthYear})</div>
+              <div>{item.name}</div>
             </ChatCard>
           );
         })}
