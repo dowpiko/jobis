@@ -212,6 +212,7 @@ const DiscordPage = () => {
   const [myUno, setMyUno] = useState(() => window.myUno);
   const [selectedSub, setSelectedSub] = useState(subList[0]?.name || '');
   const [titleSuffix, setTitleSuffix] = useState('');  
+  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
 
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
@@ -291,10 +292,11 @@ const DiscordPage = () => {
   useEffect(() => {
     const box = scrollRef.current;
     const newMessagesAdded = chatList.length > prevChatListLength.current;
-    if (isAtBottom && newMessagesAdded) {
+    if ((isAtBottom || shouldScrollToBottom) && newMessagesAdded) {
         setTimeout(() => {
           box.scrollTop = box.scrollHeight;
         }, 0);
+      if (shouldScrollToBottom) setShouldScrollToBottom(false);
     }
      prevChatListLength.current = chatList.length;
   }, [chatList, isAtBottom]);
@@ -348,6 +350,7 @@ const DiscordPage = () => {
         if (text === 'success') {
           fetchChatList();
           setVisibleCount(9); // 다시 9개부터 시작
+          setShouldScrollToBottom(true); // 스크롤 맨 아래로
           if (socketRef.current?.readyState === WebSocket.OPEN) {
           socketRef.current.send(JSON.stringify(payload));
         }
