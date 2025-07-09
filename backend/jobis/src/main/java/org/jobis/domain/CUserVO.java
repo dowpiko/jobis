@@ -15,7 +15,7 @@ public class CUserVO {
     private String crno;
     private String corpNm;
     private String bzno;
-    private String enpRprFnm;
+    private String enpRpFnm;
     private String enpBsadr;
     private String sicNm;
     private int enpEmpeCnt;

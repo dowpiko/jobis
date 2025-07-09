@@ -51,4 +51,7 @@ public interface SmMapper {
     
     // 채팅 불러오기
     public List<ChatMessageVO> selectByRnoChatMessages(int rno);
+    
+    // 기업 데이터 가져오기
+    public CUserVO selectCinofoByUno(int uno);
 }

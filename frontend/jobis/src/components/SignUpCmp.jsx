@@ -136,7 +136,7 @@ const SignUpCmp = () => {
   const [crno, setCrno] = useState('');                           // 법인번호
   const [corpNm, setCorpNm] = useState('');                       // 법인명
   const [bzno, setBzno] = useState('');                           // 사업자등록번호
-  const [enpRprFnm, setEnpRprFnm] = useState('');                 // 법인 대표자명
+  const [enpRpFnm, setEnpRpFnm] = useState('');                   // 법인 대표자명
   const [enpBsadr, setEnpBsadr] = useState('');                   // 법인 주소
   const [sicNm, setSicNm] = useState('');                         // 업종명
   const [enpEmpeCnt, setEnpEmpeCnt] = useState('');               // 종업원 수
@@ -206,7 +206,7 @@ const SignUpCmp = () => {
         setCrno(item.crno);
         setCorpNm(item.corpNm);
         setBzno(item.bzno);
-        setEnpRprFnm(item.enpRprFnm);
+        setEnpRpFnm(item.enpRpFnm);
         setEnpBsadr(item.enpBsadr);
         setSicNm(item.sicNm);
         setEnpEmpeCnt(item.enpEmpeCnt);
@@ -225,7 +225,7 @@ const SignUpCmp = () => {
     setIsCrno(false);
     setCorpNm('');
     setBzno('');
-    setEnpRprFnm('');
+    setEnpRpFnm('');
     setEnpBsadr('');
     setSicNm('');
     setEnpEmpeCnt('');
@@ -309,7 +309,7 @@ const SignUpCmp = () => {
         crno: crno,
         corpNm: corpNm,
         bzno: bzno,
-        enpRprFnm: enpRprFnm,
+        enpRpFnm: enpRpFnm,
         enpBsadr: enpBsadr,
         sicNm: sicNm,
         enpEmpeCnt: enpEmpeCnt
@@ -391,7 +391,7 @@ const SignUpCmp = () => {
 
         <InputGroup>
           <Label>법인대표자명</Label>
-          <Input type="text" placeholder='※법인번호 확인 시 자동 등록※' value={enpRprFnm} readOnly/>
+          <Input type="text" placeholder='※법인번호 확인 시 자동 등록※' value={enpRpFnm} readOnly/>
         </InputGroup>
 
         <InputGroup>
