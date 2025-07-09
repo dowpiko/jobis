@@ -246,7 +246,7 @@ function CompanySidebar({ children }) {
 
         <Menu>
           <MenuItem onClick={() => navigate('/companyMain')}>🏠 공고</MenuItem>
-          <MenuItem onClick={() => navigate('/companyChat')}>💬 채팅</MenuItem>
+          <MenuItem onClick={() => navigate('/companyChatLayout')}>💬 채팅</MenuItem>
 
         </Menu>
 

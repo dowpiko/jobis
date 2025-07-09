@@ -11,7 +11,7 @@
   import NoticeProgress from './components/company/NoticeProgress';
   import ScheduleManager from './components/chat/ScheduleManager';
   import CompanySidebar from './components/sidebar/CompanySidebar';
-  import ChatLayout from './components/company/ChatLayout';
+  import ChatLayout from './components/company/CompanyChatLayout';
   import GraphPage from './components/ai/GraphPage';
   import SignUp from './components/SignUp';
   import Profile from './components/chat/Profile';
@@ -28,6 +28,8 @@ import KakaoCallback from './components/KakaoCallback';
 import GoogleCallback from './components/GoolgleCallback';
 import VideoChat from './components/chat/VideoChat';
 import AiHistory from './components/ai/AiHistory';
+import CompanyChatLayout from './components/company/CompanyChatLayout';
+import UserChatLayout from './components/userChatLayout';
 
 
 
@@ -241,11 +243,21 @@ import AiHistory from './components/ai/AiHistory';
 
           {/* 기업 채팅 */}
           <Route
-            path="/companyChat"
+            path="/companyChatLayout"
             element={
               <CompanySidebar>
-                <ChatLayout/>
+                <CompanyChatLayout/>
               </CompanySidebar>
+            }
+          />
+
+          {/* 유저 채팅 */}
+          <Route
+            path="/userChatLayout"
+            element={
+              <UserSidebar>
+                <UserChatLayout/>
+              </UserSidebar>
             }
           />
 

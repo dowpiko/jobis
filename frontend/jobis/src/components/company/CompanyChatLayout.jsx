@@ -169,7 +169,7 @@ const SearchInput = styled.input`
   height: 28px;
 `;
 
-const ChatLayout = () => {
+const CompanyChatLayout = () => {
   const [chatList, setChatList] = useState([]);
   const [showAnnouncement, setShowAnnouncement] = useState(false);
   const [offerSubmission, setOfferSubmission] = useState(null);
@@ -377,4 +377,4 @@ const ChatLayout = () => {
   );
 };
 
-export default ChatLayout;
+export default CompanyChatLayout;
