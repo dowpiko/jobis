@@ -324,7 +324,7 @@ const DiscordPage = () => {
     return;
     }
     const payload = {
-      r_title: `{${selectedSub}} ${titleSuffix}`,
+      r_title: `[${selectedSub}] ${titleSuffix}`,
       r_tag: category,
       sch_date: formatLocalDateTime(selectedDate),
       leader : myUno,

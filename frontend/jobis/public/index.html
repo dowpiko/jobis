@@ -2,6 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <!--이거 discordPage에서 달력으로 다음달 날짜선택하면 runtime오류 뜨는거 잡아주는거-->
+       <script>
+        const IGNORE_MSG = 'ResizeObserver loop completed with undelivered notifications';
+        window.addEventListener('error', function (e) {
+          if (e.message && e.message.includes(IGNORE_MSG)) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+          }
+        }, true);
+      </script>
+    <!--개발모드에서만 뜬다고하는 기능에 문제없는 거긴한데 보기싫어서 일단 넣어놨음-->
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
