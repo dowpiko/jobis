@@ -1,115 +1,366 @@
-import React, { useState } from 'react';
+// src/components/RadarSection.jsx
+import React, { useState, useMemo, useEffect } from 'react';
 import styled from 'styled-components';
 import {
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  Radar,
-  PolarRadiusAxis,
-  ResponsiveContainer,
+  RadarChart, PolarGrid, PolarAngleAxis, Radar, PolarRadiusAxis,
+  BarChart, Bar, Cell,
+  AreaChart, Area,
+  ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid
 } from 'recharts';
 
 const Container = styled.div`
+  height: 100%;
+  display: flex; flex-direction: column;
+  margin: 0; padding: 0;
+  background-color: #1f2a37;
+  color: #e1e8f0;
+  box-sizing: border-box;
+  overflow: hidden;
+`;
+const Wrapper = styled.div`
+  flex: 1; display: flex; flex-direction: column;
+  padding: 20px; overflow: hidden;
+`;
+const KpiWrapper = styled.div`
+  display: flex; gap: 20px; margin-bottom: 20px;
+`;
+const KpiCard = styled.div`
+  flex: 1;
+  background: #2c3e50;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+`;
+const KpiValue = styled.div`
+  font-size: 28px; font-weight: bold;
+`;
+const KpiLabel = styled.div`
+  font-size: 14px; margin-top: 4px; color: #b0c4de;
+`;
+const ContentBox = styled.div`
+  display: flex; gap: 20px; flex: 1; overflow: hidden;
+`;
+const Sidebar = styled.div`
+  width: 260px;
+  background: #233049;
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+`;
+const ToggleContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+`;
+const ToggleSwitch = styled.input.attrs({ type: 'checkbox' })`
+  position: relative;
+  width: 44px; height: 24px;
+  -webkit-appearance: none;
+  background: #3a4a63;
+  border-radius: 12px;
+  outline: none;
+  transition: background 0.3s;
+  cursor: pointer;
+  &:checked { background: #4376B6; }
+  &::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 20px; height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+  &:checked::after { left: 22px; }
+`;
+const InterviewList = styled.div`
+  flex: 1;
+  overflow-y: auto;
+`;
+const InterviewCard = styled.div`
+  padding: 10px;
+  background: ${({ selected }) => (selected ? '#375a8e' : '#233049')};
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  color: #e1e8f0;
+  display: flex;
+  justify-content: space-between;
+  overflow: hidden;
+`;
+const Paging = styled.div`
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  input { width: 40px; padding: 4px; border-radius: 4px; border: 1px solid #3a4a63; background: #2c3e50; color: #e1e8f0; text-align: center; }
+  button { padding: 4px 8px; background: #2c3e50; color: #e1e8f0; border: none; border-radius: 4px; cursor: pointer; &:disabled { opacity: 0.5; cursor: default; } }
+`;
+const MainArea = styled.div`
+  flex: 1;
+  display: ${({ expanded }) => (expanded ? 'none' : 'flex')};
+  flex-direction: column;
+  gap: 20px;
+  overflow: hidden;
+`;
+const Panel = styled.div`
+  background-color: #2c3e50;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+`;
+const DualPanel = styled.div`
   display: flex;
   gap: 20px;
-  flex-grow: 1;
-  padding: 20px;
-  background-color: #f8f9fa;
-  box-sizing: border-box;
-`;
-
-const ChartBox = styled.div`
   flex: 1;
-  background-color: #e0e7ef;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-
-  svg {
-    outline: none;
-  }
 `;
-
-const InfoBox = styled.div`
+const PanelSection = styled.div`
   flex: 1;
-  background-color: #f0f2f5;
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid #b0bccb;
+  display: flex; flex-direction: column;
+  overflow: hidden;
 `;
-
+const PanelContent = styled.div`
+  flex: 1; min-height: 0; overflow: hidden;
+`;
 const InfoTitle = styled.h4`
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-size: 18px;
-  color: #1f2a37;
+  color: #ffffff;
+`;
+const ChartToggle = styled.select`
+  background: #2c3e50;
+  color: #e1e8f0;
+  border: 1px solid #3a4a63;
+  border-radius: 4px;
+  padding: 4px 8px;
+  align-self: flex-end;
 `;
 
-const InfoText = styled.p`
-  font-size: 14px;
-  color: #6b7280;
-`;
-
-const radarData = [
-  { subject: '리더형', A: 120 },
-  { subject: '분석형', A: 98 },
-  { subject: '창의형', A: 86 },
-  { subject: '실행형', A: 99 },
-  { subject: '소통형', A: 85 },
-];
-
+const radarTemplate = ['리더형','분석형','창의형','실행형','소통형'];
+const radarDataTemplate = radarTemplate.map(s => ({ subject: s, A: 0 }));
 const descriptions = {
-  '리더형': '리더십이 뛰어나고 조직을 잘 이끎',
+  '리더형': '리더십이 뛰어나고 조직을 잘 이끔',
   '분석형': '논리적이고 데이터 분석을 잘함',
   '창의형': '새로운 아이디어를 제시함',
   '실행형': '계획을 실천에 옮기는 능력이 뛰어남',
   '소통형': '사람들과 잘 어울리며 소통 능력이 뛰어남',
 };
-
-const RadarSection = () => {
-  const [selectedSubject, setSelectedSubject] = useState(null);
-
-  const handleRadarClick = (e) => {
-    if (e?.activeLabel) setSelectedSubject(e.activeLabel);
+const interviews = Array.from({ length:45 }, (_, i) => {
+  const r = {}; radarTemplate.forEach(s => r[s] = Math.round(60 + Math.random() * 40));
+  const day = ((i * 3 + 5) % 30) + 1;
+  return {
+    id: i + 1,
+    title: `2025.0${(i%9)+1}.${String(day).padStart(2,'0')} AI 면접`,
+    result: r
   };
+});
+
+export default function RadarSection() {
+  const [selSubject, setSelSubject] = useState(null);
+  const [selInterviewId, setSelInterviewId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pageInput, setPageInput] = useState('1');
+  const [expandedAll, setExpandedAll] = useState(false);
+  const [chartType, setChartType] = useState('bar');
+
+  const perPage = 10;
+  const totalPage = Math.ceil(interviews.length / perPage);
+
+  useEffect(() => {
+    if (!selInterviewId) setSelInterviewId(interviews[0]?.id);
+  }, []);
+
+  const filtered = useMemo(
+    () => interviews.slice((page - 1) * perPage, page * perPage),
+    [page]
+  );
+
+  const radarData = useMemo(() => {
+    const base = radarDataTemplate.map(d => ({ ...d }));
+    const pick = interviews.find(i => i.id === selInterviewId);
+    if (pick) base.forEach(d => d.A = pick.result[d.subject]);
+    return base;
+  }, [selInterviewId]);
+
+  const barData = useMemo(() => (
+    filtered.map(i => ({
+      title: i.title,
+      value: selSubject ? i.result[selSubject] : null,
+      avg: Math.round(Object.values(i.result).reduce((a,b)=>a+b,0)/5),
+    }))
+  ), [selSubject, filtered]);
+
+  const areaData = useMemo(() => interviews.map(i => ({
+    title: i.title,
+    value: selSubject ? i.result[selSubject] : null,
+    avg: Math.round(Object.values(i.result).reduce((a,b)=>a+b,0)/5),
+  })), [selSubject]);
+
+  const totalInterviews = interviews.length;
+  const avgScoreAll = Math.round(interviews.reduce((s,i)=>s + Object.values(i.result).reduce((a,b)=>a+b,0)/5,0) / totalInterviews);
+  const maxScore = Math.max(...interviews.flatMap(i => Object.values(i.result)));
+  const minScore = Math.min(...interviews.flatMap(i => Object.values(i.result)));
+  const selInterviewTitle = interviews.find(i => i.id === selInterviewId)?.title;
+
+const handlePageInput = (e) => {
+  const value = e.target.value.replace(/\D/g, ''); // 숫자만
+  setPageInput(value); // 입력상태 유지
+};
+
+const handlePageSubmit = () => {
+  const numeric = parseInt(pageInput, 10);
+  if (!isNaN(numeric) && numeric >= 1 && numeric <= totalPage) {
+    setPage(numeric);
+  } else {
+    setPageInput(String(page)); // 유효하지 않으면 원래 값으로 되돌림
+  }
+};
+
+const handlePageBlur = () => handlePageSubmit();
+const handleKeyDown = (e) => {
+  if (e.key === 'Enter') handlePageSubmit();
+};
 
   return (
     <Container>
-      <ChartBox>
-        <ResponsiveContainer width="100%" height={300}>
-          <RadarChart
-            cx="50%"
-            cy="50%"
-            outerRadius="80%"
-            data={radarData}
-            onClick={handleRadarClick}
-          >
-            <PolarGrid />
-            <PolarAngleAxis dataKey="subject" stroke="#6b7280" />
-            <PolarRadiusAxis stroke="#b0bccb" />
-            <Radar
-              name="형 지표"
-              dataKey="A"
-              stroke="#4376B6"
-              fill="#5C8BC4"
-              fillOpacity={0.6}
-            />
-          </RadarChart>
-        </ResponsiveContainer>
-      </ChartBox>
+      <Wrapper>
+        <KpiWrapper>
+          <KpiCard><KpiValue>{totalInterviews}</KpiValue><KpiLabel>총 면접</KpiLabel></KpiCard>
+          <KpiCard><KpiValue>{avgScoreAll}</KpiValue><KpiLabel>전체 평균 점수</KpiLabel></KpiCard>
+          <KpiCard><KpiValue>{maxScore}</KpiValue><KpiLabel>최고 점수</KpiLabel></KpiCard>
+          <KpiCard><KpiValue>{minScore}</KpiValue><KpiLabel>최저 점수</KpiLabel></KpiCard>
+        </KpiWrapper>
 
-      <InfoBox>
-        <InfoTitle>
-          {selectedSubject ?? '클릭 시 표현'}
-        </InfoTitle>
-        <InfoText>
-          {selectedSubject
-            ? descriptions[selectedSubject]
-            : '형을 클릭하면 설명이 표시됩니다.'}
-        </InfoText>
-      </InfoBox>
-      <div> 나중에 진행한 모든 ai면접의 평균점수를 그래프로</div>
+        <ContentBox>
+          <Sidebar>
+            <ToggleContainer>
+              <InfoTitle style={{ margin: 0 }}>면접 목록</InfoTitle>
+              <ToggleSwitch
+                checked={expandedAll}
+                onChange={e => setExpandedAll(e.target.checked)}
+              />
+            </ToggleContainer>
+            <InterviewList>
+              {filtered.map(iv => (
+                <InterviewCard
+                  key={iv.id}
+                  selected={iv.id === selInterviewId}
+                  onClick={() => { setSelInterviewId(iv.id); setSelSubject(null); }}
+                >
+                  <div>
+                    {iv.title}
+                  </div>
+                </InterviewCard>
+              ))}
+            </InterviewList>
+            <Paging>
+              <button disabled={page === 1} onClick={() => {
+                const newPage = Math.max(page - 1, 1);
+                setPage(newPage);
+                setPageInput(String(newPage));
+              }}>&lt;</button>
+
+              <input
+                type="text"
+                value={pageInput}
+                onChange={handlePageInput}
+                onBlur={handlePageBlur}
+                onKeyDown={handleKeyDown}
+              />
+              /{totalPage}
+
+              <button disabled={page === totalPage} onClick={() => {
+                const newPage = Math.min(page + 1, totalPage);
+                setPage(newPage);
+                setPageInput(String(newPage));
+              }}>&gt;</button>
+            </Paging>
+          </Sidebar>
+
+          <MainArea expanded={expandedAll}>
+            <Panel style={{ height: '45%' }}>
+              <InfoTitle>Radar & 설명</InfoTitle>
+              <DualPanel>
+                <PanelSection>
+                  <PanelContent>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart data={radarData} onClick={e => setSelSubject(e?.activeLabel)}>
+                        <PolarGrid stroke="#3a4a63" />
+                        <PolarAngleAxis
+                          dataKey="subject"
+                          tick={({payload,x,y,textAnchor})=>{
+                            const sel = payload.value === selSubject;
+                            return (
+                              <text x={x} y={y} textAnchor={textAnchor}
+                                fill={sel?'#ff5252':'#e1e8f0'}
+                                fontWeight="bold" fontSize={14}
+                              >
+                                {payload.value}
+                              </text>
+                            );
+                          }}
+                        />
+                        <PolarRadiusAxis stroke="#3a4a63" />
+                        <Radar dataKey="A" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6}/>
+                        <Tooltip contentStyle={{backgroundColor:'#2c3e50',borderColor:'#3a4a63'}} itemStyle={{color:'#e1e8f0'}}/>
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </PanelContent>
+                </PanelSection>
+                <PanelSection>
+                  <InfoTitle>{selSubject || '설명 영역'}</InfoTitle>
+                  <div style={{ color: '#b0c4de' }}>
+                    {selSubject ? descriptions[selSubject] : '유형을 클릭해 주세요.'}
+                  </div>
+                </PanelSection>
+              </DualPanel>
+            </Panel>
+
+            <Panel style={{ flex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <InfoTitle>{selSubject ? `${selSubject} vs 평균` : '데이터 선택 중'}</InfoTitle>
+                <ChartToggle value={chartType} onChange={e => setChartType(e.target.value)}>
+                  <option value="bar">막대차트</option>
+                  <option value="area">영역 차트</option>
+                </ChartToggle>
+              </div>
+              <PanelContent>
+                <ResponsiveContainer width="100%" height="100%">
+                  {chartType === 'bar' ? (
+                    <BarChart data={barData}>
+                      <CartesianGrid stroke="#3a4a63"/>
+                      <XAxis dataKey="title" tick={{fill:'#e1e8f0'}}/>
+                      <YAxis tick={{fill:'#e1e8f0'}}/>
+                      <Tooltip contentStyle={{backgroundColor:'#2c3e50',borderColor:'#3a4a63'}}/>
+                      <Bar dataKey="value" name="선택점수">
+                        {barData.map((e, idx) => (
+                          <Cell key={idx} fill={e.title === selInterviewTitle ? '#f44336' : '#82ca9d'} />
+                        ))}
+                      </Bar>
+                      <Bar dataKey="avg" name="평균점수" fill="#ffb74d"/>
+                    </BarChart>
+                  ) : (
+                    <AreaChart data={areaData}>
+                      <CartesianGrid stroke="#3a4a63"/>
+                      <XAxis dataKey="title" tick={{fill:'#e1e8f0'}}/>
+                      <YAxis tick={{fill:'#e1e8f0'}}/>
+                      <Tooltip contentStyle={{backgroundColor:'#2c3e50',borderColor:'#3a4a63'}}/>
+                      <Area type="monotone" dataKey="value" stroke="#82ca9d" fill="rgba(130,202,157,0.3)" name="선택점수"/>
+                      <Area type="monotone" dataKey="avg" stroke="#ffb74d" fill="rgba(255,183,77,0.3)" name="평균점수"/>
+                    </AreaChart>
+                  )}
+                </ResponsiveContainer>
+              </PanelContent>
+            </Panel>
+          </MainArea>
+        </ContentBox>
+      </Wrapper>
     </Container>
   );
-};
-
-export default RadarSection;
+}
