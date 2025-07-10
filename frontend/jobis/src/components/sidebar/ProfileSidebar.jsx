@@ -1,8 +1,11 @@
+// ✅ 색상 업데이트 및 로고/토글 아이콘 반영 버전
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import categories from '../../data/categories';  
+import categories from '../../data/categories';
+import logo from '../../img/SIMPLELOGO.png';
+import toggleIcon from '../../img/ChangeIcon.png';
 
 const CategoryList = styled.div`
   overflow-y: auto;
@@ -13,16 +16,16 @@ const CategoryList = styled.div`
 const AppLayout = styled.div`
   display: flex;
   height: 100vh;
-  background-color: #F8F9FA;
+  background-color: #F7F9FC;
   color: #1F2A37;
-  font-family: sans-serif;
+  font-family: 'Pretendard', sans-serif;
 `;
 
 const Sidebar = styled.aside`
   width: 280px;
-  height: 100vh;           /* 화면 전체 높이 고정 */
-  background-color: #DCE3EA;
-  border-right: 1px solid #B0BCCB;
+  height: 100vh;
+  background-color: #EFF4FF;
+  border-right: 1px solid #E2E8F0;
   display: flex;
   flex-direction: column;
   padding: 10px;
@@ -37,24 +40,24 @@ const TopBar = styled.div`
   padding: 0 6px;
 `;
 
-const Logo = styled.div`
-  font-size: 24px;
-  color: #1F2A37;
+const Logo = styled.img`
+  height: 40px;
   cursor: pointer;
 `;
 
 const ModeToggle = styled.button`
   width: 40px;
   height: 40px;
-  background-color: #4376B6;
+  background-color: transparent;
   border: none;
   border-radius: 50%;
-  color: #FFFFFF;
-  font-size: 18px;
   cursor: pointer;
+  padding: 0;
 
-  &:hover {
-    background-color: #5C8BC4;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 `;
 
@@ -65,7 +68,7 @@ const Profile = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
-  border: 1px solid #B0BCCB;
+  border: 1px solid #E2E8F0;
 `;
 
 const ProfileInfo = styled.div`
@@ -78,7 +81,7 @@ const ProfileImg = styled.img`
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  border: 2px solid #4376B6;
+  border: 2px solid #2563EB;
 `;
 
 const ProfileName = styled.span`
@@ -93,7 +96,7 @@ const ProfileActions = styled.div`
 `;
 
 const ProfileButton = styled.button`
-  background-color: #4376B6;
+  background-color: #2563EB;
   border: none;
   border-radius: 6px;
   padding: 6px 10px;
@@ -105,18 +108,18 @@ const ProfileButton = styled.button`
   margin: ${({ $full }) => ($full ? '8px auto' : '0')};
 
   &:hover {
-    background-color: #5C8BC4;
+    background-color: #1E4DB7;
   }
 `;
 
 const Menu = styled.nav`
-  flex: 1;                 /* 남은 vertical 공간 모두 차지 */
-  overflow-y: auto;        /* 내부 스크롤 활성화 */
+  flex: 1;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding-top: 12px;
-  border-top: 1px solid #B0BCCB;
+  border-top: 1px solid #E2E8F0;
 `;
 
 const MenuItem = styled.div`
@@ -124,14 +127,14 @@ const MenuItem = styled.div`
   padding: 18px 14px;
   border-radius: 8px;
   background-color: #FFFFFF;
-  border: 1px solid #B0BCCB;
+  border: 1px solid #E2E8F0;
   font-size: 15px;
   font-weight: 500;
   text-align: center;
   color: #1F2A37;
 
   &:hover {
-    background-color: #5C8BC4;
+    background-color: #2563EB;
     color: #FFFFFF;
   }
 `;
@@ -139,7 +142,7 @@ const MenuItem = styled.div`
 const Footer = styled.div`
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid #B0BCCB;
+  border-top: 1px solid #E2E8F0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -154,12 +157,12 @@ const FooterLink = styled.a`
   padding: 2px 4px;
 
   &:hover {
-    color: #4376B6;
+    color: #2563EB;
   }
 `;
 
 const FooterDivider = styled.span`
-  color: #B0BCCB;
+  color: #E2E8F0;
 `;
 
 const Main = styled.main`
@@ -167,24 +170,14 @@ const Main = styled.main`
   padding: 30px;
   background-color: #FFFFFF;
   overflow-y: auto;
-  border-left: 1px solid #B0BCCB;
+  border-left: 1px solid #E2E8F0;
 `;
 
 function ProfileSidebar({ children }) {
   const navigate = useNavigate();
-  const [nickname, setNickname] = useState(null); // null이면 로딩 중
+  const [nickname, setNickname] = useState(null);
   const [hasProfile, setHasProfile] = useState(false);
-  const [jobCategories, setJobCategories] = useState([]);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-
-  useEffect(() => {
-    axios.get('/jobCategories')
-      .then(res => setJobCategories(res.data))
-      .catch(err => {
-        console.error('직종 목록 불러오기 실패:', err);
-        alert('직종 목록을 불러오지 못했습니다.');
-      });
-  }, []);
 
   useEffect(() => {
     axios.get('/jsh/checkProfile')
@@ -196,19 +189,17 @@ function ProfileSidebar({ children }) {
           setHasProfile(false);
         }
       })
-      .catch(err => {
-        console.error('프로필 확인 실패:', err);
-        alert('프로필 정보를 불러오지 못했습니다.');
-      });
+      .catch(() => alert('프로필 정보를 불러오지 못했습니다.'));
   }, []);
-  
 
   return (
     <AppLayout>
       <Sidebar>
         <TopBar>
-          <Logo onClick={() => navigate('/profile')}>🌐Jobis</Logo>
-          <ModeToggle onClick={() => navigate('/aiInterview')}>↔️</ModeToggle>
+          <Logo src={logo} onClick={() => navigate('/profile')} />
+          <ModeToggle onClick={() => navigate('/aiInterview')}>
+            <img src={toggleIcon} alt="toggle" />
+          </ModeToggle>
         </TopBar>
 
         <Profile>
@@ -231,19 +222,17 @@ function ProfileSidebar({ children }) {
 
         <Menu>
           <MenuItem onClick={() => navigate('/scheduleManager')}>🏠 일정 관리</MenuItem>
-          <MenuItem onClick={() => setIsCategoryOpen(open => !open)}> 📂 직종별 면접 모집 방 </MenuItem>
-            <CategoryList isOpen={isCategoryOpen}>
-              {categories.map(cat => (
-                <MenuItem
-                  key={cat.category}
-                  onClick={() =>
-                    navigate('/discordPage', { state: { category: cat.category } })
-                  }
-                >
-                  🛠️ {cat.category} 방
-                </MenuItem>
-              ))}
-            </CategoryList>
+          <MenuItem onClick={() => setIsCategoryOpen(open => !open)}>📂 직종별 면접 모집 방</MenuItem>
+          <CategoryList isOpen={isCategoryOpen}>
+            {categories.map(cat => (
+              <MenuItem
+                key={cat.category}
+                onClick={() => navigate('/discordPage', { state: { category: cat.category } })}
+              >
+                🛠️ {cat.category} 방
+              </MenuItem>
+            ))}
+          </CategoryList>
         </Menu>
 
         <Footer>

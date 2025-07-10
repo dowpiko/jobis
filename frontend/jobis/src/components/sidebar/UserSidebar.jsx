@@ -2,23 +2,25 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import logo from '../../img/SIMPLELOGO.png';      // 🔹 로고 이미지
+import toggleIcon from '../../img/ChangeIcon.png'; // 🔹 토글 이미지
 
 const AppLayout = styled.div`
   display: flex;
   height: 100vh;
   background-color: #F8F9FA;
-  color: #1F2A37;
-  font-family: sans-serif;
+  color: #1E1E1E;
+  font-family: 'Pretendard', 'Inter', sans-serif;
 `;
 
 const Sidebar = styled.aside`
   width: 280px;
-  background-color: #DCE3EA;
-  border-right: 1px solid #B0BCCB;
+  background-color: #EFF4FF;
+  border-right: 1px solid #E2E8F0;
   display: flex;
   flex-direction: column;
-  padding: 10px;
-  gap: 12px;
+  padding: 16px;
+  gap: 16px;
   box-sizing: border-box;
 `;
 
@@ -26,57 +28,58 @@ const TopBar = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 6px;
 `;
 
 const Logo = styled.div`
-  font-size: 24px;
-  color: #1F2A37;
-  cursor: pointer;
+  img {
+    width: 120px;
+    height: auto;
+    cursor: pointer;
+  }
 `;
 
 const ModeToggle = styled.button`
   width: 40px;
   height: 40px;
-  background-color: #4376B6;
+  background: url(${toggleIcon}) center center no-repeat;
+  background-size: 30px 30px;
+  background-color: transparent;
   border: none;
   border-radius: 50%;
-  color: #FFFFFF;
-  font-size: 18px;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: #5C8BC4;
+    background-color: rgba(37, 99, 235, 0.1); // Primary hover
   }
 `;
 
 const Profile = styled.div`
   background-color: #FFFFFF;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  border: 1px solid #B0BCCB;
+  gap: 14px;
+  border: 1px solid #E2E8F0;
 `;
 
 const ProfileInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 `;
 
 const ProfileImg = styled.img`
-  width: 64px;
-  height: 64px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  border: 2px solid #4376B6;
+  border: 2px solid #2563EB;
 `;
 
 const ProfileName = styled.span`
-  font-size: 17px;
-  font-weight: bold;
-  color: #1F2A37;
+  font-size: 16px;
+  font-weight: 600;
 `;
 
 const ProfileActions = styled.div`
@@ -85,16 +88,17 @@ const ProfileActions = styled.div`
 `;
 
 const ProfileButton = styled.button`
-  background-color: #4376B6;
+  background-color: #2563EB;
   border: none;
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 6px 12px;
   color: #FFFFFF;
   font-size: 13px;
   cursor: pointer;
+  font-weight: 500;
 
   &:hover {
-    background-color: #5C8BC4;
+    background-color: #1E40AF;
   }
 `;
 
@@ -102,23 +106,23 @@ const Menu = styled.nav`
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #B0BCCB;
+  padding-top: 16px;
+  border-top: 1px solid #E2E8F0;
 `;
 
 const MenuItem = styled.div`
   cursor: pointer;
-  padding: 18px 14px;
-  border-radius: 8px;
+  padding: 14px;
+  border-radius: 10px;
   background-color: #FFFFFF;
-  border: 1px solid #B0BCCB;
+  border: 1px solid #E2E8F0;
   font-size: 15px;
   font-weight: 500;
+  color: #1E1E1E;
   text-align: center;
-  color: #1F2A37;
 
   &:hover {
-    background-color: #5C8BC4;
+    background-color: #2563EB;
     color: #FFFFFF;
   }
 `;
@@ -126,7 +130,7 @@ const MenuItem = styled.div`
 const Footer = styled.div`
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid #B0BCCB;
+  border-top: 1px solid #E2E8F0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -138,15 +142,14 @@ const Footer = styled.div`
 const FooterLink = styled.a`
   color: #6B7280;
   text-decoration: none;
-  padding: 2px 4px;
 
   &:hover {
-    color: #4376B6;
+    color: #2563EB;
   }
 `;
 
 const FooterDivider = styled.span`
-  color: #B0BCCB;
+  color: #E2E8F0;
 `;
 
 const Main = styled.main`
@@ -154,7 +157,6 @@ const Main = styled.main`
   padding: 30px;
   background-color: #FFFFFF;
   overflow-y: auto;
-  border-left: 1px solid #B0BCCB;
 `;
 
 function UserSidebar({ children }) {
@@ -164,11 +166,7 @@ function UserSidebar({ children }) {
   const handleProfile = async () => {
     try {
       const res = await axios.get('/jsh/checkProfile');
-      if (res.data.exists) {
-        navigate('/scheduleManager');
-      } else {
-        navigate('/createProfile');
-      }
+      navigate(res.data.exists ? '/scheduleManager' : '/createProfile');
     } catch (err) {
       console.error('프로필 확인 실패:', err);
       alert('세션이 만료되었거나 오류가 발생했습니다.');
@@ -179,7 +177,7 @@ function UserSidebar({ children }) {
   useEffect(() => {
     axios.get('/jsh/getUser')
       .then(res => {
-        if (res.data && res.data.name) {
+        if (res.data?.name) {
           setUserName(res.data.name);
         } else {
           alert('로그인이 필요합니다.');
@@ -197,8 +195,10 @@ function UserSidebar({ children }) {
     <AppLayout>
       <Sidebar>
         <TopBar>
-          <Logo onClick={() => navigate('/profile')}>🌐Jobis</Logo>
-          <ModeToggle onClick={() => navigate(handleProfile)}>↔️</ModeToggle>
+          <Logo onClick={() => navigate('/profile')}>
+            <img src={logo} alt="Jobis 로고" />
+          </Logo>
+          <ModeToggle onClick={handleProfile} />
         </TopBar>
 
         <Profile>
