@@ -8,32 +8,39 @@ import { initKakao } from 'kakao-js-sdk';
 import NaverIcon from '../img/btn_Naver.png';
 import KakaoIcon from '../img/btn_Kakao.png';
 import GoogleIcon from '../img/btn_Google.png';
+import logo from '../img/SIMPLELOGO.png'; // 🔹 로고 이미지 import
 
 const Wrapper = styled.div`
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-color: #F8F9FA;
+  inset: 0;
+  background-color: ${({ blur }) => (blur ? 'rgba(247,249,252,0.6)' : '#F1F5F9')};
+  backdrop-filter: ${({ blur }) => (blur ? 'blur(6px)' : 'none')};
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  background-color: ${({ blur }) => (blur ? 'rgba(255,255,255,0.4)' : 'transparent')};
-  backdrop-filter: ${({ blur }) => (blur ? 'blur(4px)' : 'none')};
-  transition: backdrop-filter 0.2s ease;
+  justify-content: flex-start;   // ✅ 중앙 정렬 → 위로 정렬
+  padding-top: 80px;             // ✅ 위쪽 여백만 줌 (원하는 값으로 조절)
   pointer-events: ${({ blur }) => (blur ? 'none' : 'all')};
+  font-family: 'Pretendard', 'Inter', sans-serif;
+`;
+
+const Header = styled.div`
+  margin-bottom: 0px;
+  width: 100%;
+  text-align: center;
+  img {
+    width: 280px;
+    height: auto;
+  }
 `;
 
 const LoginBox = styled.div`
-  background-color: #ffffff;
-  border: 1px solid #B0BCCB;
-  border-radius: 8px;
-  padding: 40px 50px;
-  width: 360px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  padding: 40px 32px;
+  width: 380px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
   text-align: center;
-  pointer-events: all;
 `;
 
 const ToggleTabs = styled.div`
@@ -44,72 +51,71 @@ const ToggleTabs = styled.div`
 
 const Tab = styled.button`
   font-size: 15px;
-  font-weight: bold;
+  font-weight: 600;
+  padding: 10px 20px;
   background: none;
   border: none;
-  margin: 0 10px;
-  padding: 8px 16px;
+  border-bottom: 3px solid ${({ active }) => (active ? '#3B4F7A' : 'transparent')};
+  color: ${({ active }) => (active ? '#3B4F7A' : '#6B7280')};
   cursor: pointer;
-  border-bottom: 3px solid ${({ active }) => (active ? '#4376B6' : 'transparent')};
-  color: ${({ active }) => (active ? '#4376B6' : '#6B7280')};
-  transition: all 0.3s;
 
   &:hover {
-    color: #4376B6;
+    color: #2C3E66;
   }
 `;
 
 const Title = styled.h2`
-  margin-bottom: 24px;
-  font-size: 24px;
-  color: #1F2A37;
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1E293B;
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   text-align: left;
 `;
 
 const Label = styled.label`
-  display: inline-block;
-  width: 60px;
-  font-weight: bold;
-  font-size: 16px;
-  color: #1F2A37;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1E293B;
+  margin-bottom: 6px;
+  display: block;
 `;
 
 const Input = styled.input`
-  width: 350px;
-  padding: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
   font-size: 15px;
-  border: 1px solid #B0BCCB;
-  border-radius: 4px;
-  background-color: #F1F5F9;
-  color: #1F2A37;
-  pointer-events: all;
+  background-color: #F3F4F6;
+  color: #1E293B;
+  box-sizing: border-box;
 
   &:focus {
-    border-color: #4376B6;
-    background-color: #ffffff;
+    border-color: #3B4F7A;
+    background-color: #fff;
     outline: none;
   }
 `;
 
 const Button = styled.button`
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin-top: 10px;
-  font-size: 15px;
-  font-weight: bold;
+  font-size: 16px;
+  font-weight: 600;
   color: #ffffff;
-  background-color: #4376B6;
+  background-color: #3B4F7A;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: #5C8BC4;
+    background-color: #2C3E66;
   }
 `;
 
@@ -117,35 +123,38 @@ const Options = styled.div`
   margin-top: 18px;
   font-size: 13px;
   color: #6B7280;
+  text-align: center;
 
   span {
-    margin: 0 8px;
+    margin: 0 10px;
     cursor: pointer;
 
     &:hover {
-      color: #4376B6;
+      color: #3B4F7A;
       text-decoration: underline;
     }
   }
 `;
 
 const SocialLoginIconButton = styled.button`
-  width: 50px;
-  height: 50px;
-  margin: 8px;
-  padding: 0;
+  width: 52px;
+  height: 52px;
+  margin: 0 10px;
   border: none;
   background: transparent;
   cursor: pointer;
 
-  img, svg {
+  img {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    transition: transform 0.2s ease-in-out;
+    object-fit: contain;
+    image-rendering: auto;
+    transition: transform 0.2s ease;
   }
-  &:hover img, &:hover svg {
-    transform: scale(1.1);
+
+  &:hover img {
+    transform: scale(1.05);
     filter: brightness(1.1);
   }
 `;
@@ -153,7 +162,12 @@ const SocialLoginIconButton = styled.button`
 const SocialIconContainer = styled.div`
   display: flex;
   justify-content: center;
-  margin-top: 12px;
+  align-items: center;
+  margin-top: 20px;
+  height: 60px;
+  opacity: ${({ visible }) => (visible ? 1 : 0)};
+  pointer-events: ${({ visible }) => (visible ? 'auto' : 'none')};
+  transition: opacity 0.3s ease;
 `;
 
 const Login = () => {
@@ -176,9 +190,7 @@ const Login = () => {
       const res = await axios.post('/jsh/login', { id, pw });
 
       if (res.data.success) {
-        const userType = res.data.userType; // "user" or "company"
-        
-        // 탭에서 선택한 유형과 실제 로그인된 유형이 불일치할 경우 로그인 차단
+        const userType = res.data.userType;
         if ((isPersonal && userType !== 'user') || (!isPersonal && userType !== 'company')) {
           alert('선택한 로그인 유형과 계정 유형이 일치하지 않습니다.');
           return;
@@ -227,6 +239,9 @@ const Login = () => {
   return (
     <>
       <Wrapper blur={modalStep !== null}>
+        <Header>
+          <img src={logo} alt="Jobis 로고" style={{ width: '280px', marginBottom: '12px' }} />
+        </Header>
         <LoginBox>
           <ToggleTabs>
             <Tab active={isPersonal} onClick={() => setIsPersonal(true)}>👤 개인</Tab>
@@ -259,33 +274,22 @@ const Login = () => {
             {isPersonal ? 'user login' : 'company login'}
           </Button>
 
-          {isPersonal && (
-            <SocialIconContainer>
-              <SocialLoginIconButton onClick={handleNaverLogin}>
-                <img
-                  src={NaverIcon}
-                  alt="네이버"
-                />
-              </SocialLoginIconButton>
-              <SocialLoginIconButton onClick={handleKakaoLogin}>
-                <img
-                  src={KakaoIcon}
-                  alt="카카오"
-                />
-              </SocialLoginIconButton>
-              <SocialLoginIconButton onClick={handleGoogleLogin}>
-                <img
-                  src={GoogleIcon}
-                  alt="구글"
-                />
-              </SocialLoginIconButton>
-            </SocialIconContainer>
-          )}
-
           <Options>
             <span onClick={() => setModalStep('id')}>ID/PW 찾기</span> |
             <span onClick={signUpPage}>회원가입</span>
           </Options>
+
+          <SocialIconContainer visible={isPersonal}>
+            <SocialLoginIconButton onClick={handleNaverLogin}>
+              <img src={NaverIcon} alt="네이버" />
+            </SocialLoginIconButton>
+            <SocialLoginIconButton onClick={handleKakaoLogin}>
+              <img src={KakaoIcon} alt="카카오" />
+            </SocialLoginIconButton>
+            <SocialLoginIconButton onClick={handleGoogleLogin}>
+              <img src={GoogleIcon} alt="구글" />
+            </SocialLoginIconButton>
+          </SocialIconContainer>
         </LoginBox>
       </Wrapper>
 
