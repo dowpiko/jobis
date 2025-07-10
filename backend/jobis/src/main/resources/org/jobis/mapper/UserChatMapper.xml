@@ -87,5 +87,18 @@
 	  SET member = null
 	  WHERE cno = #{cno}
 	</update>
-
+	
+	<!--  기업 정보 가져오기 -->
+	<select id="getCompanyOffers" resultType="org.jobis.domain.CompanyOfferDTO">
+		SELECT
+	      o.ono           AS ono,
+	      c.corpnm        AS corpName,
+	      u.profileimage  AS profileImage,
+	      o.o_tag         AS category,
+	      o.o_title       AS title
+	    FROM tbl_offers o
+	    JOIN tbl_cinfo c      ON o.uno = c.uno
+	    LEFT JOIN tbl_uprofile u ON o.uno = u.uno
+	    ORDER BY o.ono DESC
+	</select>
 </mapper>

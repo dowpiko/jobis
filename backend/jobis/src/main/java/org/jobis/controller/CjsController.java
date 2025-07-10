@@ -5,6 +5,7 @@ import java.util.List;
 import javax.servlet.http.HttpSession;
 
 import org.jobis.domain.CJSVO;
+import org.jobis.domain.CompanyOfferDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.UserChatService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -171,7 +172,13 @@ public class CjsController {
 	    return new ResponseEntity<>(jobList, HttpStatus.OK);
 	}
 
-
+	// -----------------------------------기업 공고 관련-------------------------------------------
+	// 기업 공고 가져오기
+	@ResponseBody
+	@GetMapping(value = "/getCompanyOffer", produces = MediaType.APPLICATION_JSON_VALUE)
+	public List<CompanyOfferDTO> getCompanyOfferList(){
+		return ucservice.getCompanyOffers();
+	}
 
 	
 }

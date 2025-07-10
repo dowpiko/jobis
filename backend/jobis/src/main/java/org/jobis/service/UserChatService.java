@@ -3,6 +3,7 @@ package org.jobis.service;
 import java.util.List;
 
 import org.jobis.domain.CJSVO;
+import org.jobis.domain.CompanyOfferDTO;
 import org.jobis.domain.UserVO;
 import org.springframework.stereotype.Service;
 @Service
@@ -34,5 +35,10 @@ public interface UserChatService {
 	
 	//member삭제하기
 	public void leaveChatAsMember(int cno);
+	
+	//----------------여기부터는 기업공고정보 페이지-----------------------------
+	
+	// 기업정보 가져오기
+	public List<CompanyOfferDTO> getCompanyOffers();
 	
 }

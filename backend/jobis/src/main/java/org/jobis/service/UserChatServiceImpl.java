@@ -3,6 +3,7 @@ package org.jobis.service;
 import java.util.List;
 
 import org.jobis.domain.CJSVO;
+import org.jobis.domain.CompanyOfferDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.mapper.UserChatMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +69,13 @@ public class UserChatServiceImpl implements UserChatService {
 	public void leaveChatAsMember(int cno) {
 		ucMapper.leaveChatAsMember(cno);
 		
+	}
+	
+	//----------------여기부터는 기업공고정보 페이지-----------------------------
+	@Override
+	public List<CompanyOfferDTO> getCompanyOffers() {
+	
+		return ucMapper.getCompanyOffers();
 	}
 	
 	

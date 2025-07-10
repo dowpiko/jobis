@@ -4,6 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import categories from '../../data/categories';  
 
+const CategoryList = styled.div`
+  overflow-y: auto;
+  max-height: ${({ isOpen }) => (isOpen ? '500px' : '0')};
+  transition: max-height 0.4s ease;
+`;
+
 const AppLayout = styled.div`
   display: flex;
   height: 100vh;
@@ -169,6 +175,7 @@ function ProfileSidebar({ children }) {
   const [nickname, setNickname] = useState(null); // null이면 로딩 중
   const [hasProfile, setHasProfile] = useState(false);
   const [jobCategories, setJobCategories] = useState([]);
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
 
   useEffect(() => {
     axios.get('/jobCategories')
@@ -224,25 +231,19 @@ function ProfileSidebar({ children }) {
 
         <Menu>
           <MenuItem onClick={() => navigate('/scheduleManager')}>🏠 일정 관리</MenuItem>
-          <MenuItem onClick={() => navigate('/discordPage')}>💬 전체 방</MenuItem>
-          {categories.map(cat => (
-            <MenuItem
-              key={cat.category}
-              onClick={() =>
-                navigate('/discordPage', { state: { category: cat.category } })
-              }
-            >
-              🛠️ {cat.category} 방
-            </MenuItem>
-          ))}
-          {/* {jobCategories.map((job, index) => (
-            <MenuItem
-              key={cat.category}
-              onClick={() => navigate('/discordPage', { state: cat.category })}
-            >
-              🛠️ {job} 방
-            </MenuItem>
-          ))} */}
+          <MenuItem onClick={() => setIsCategoryOpen(open => !open)}> 📂 직종별 면접 모집 방 </MenuItem>
+            <CategoryList isOpen={isCategoryOpen}>
+              {categories.map(cat => (
+                <MenuItem
+                  key={cat.category}
+                  onClick={() =>
+                    navigate('/discordPage', { state: { category: cat.category } })
+                  }
+                >
+                  🛠️ {cat.category} 방
+                </MenuItem>
+              ))}
+            </CategoryList>
         </Menu>
 
         <Footer>
