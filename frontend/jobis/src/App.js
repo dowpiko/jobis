@@ -180,7 +180,6 @@ import UserChatLayout from './components/userChatLayout';
             element={
               <UserSidebar>
                 <GraphPage/>
-                <LineChartSection/>
               </UserSidebar>
             }
           />
