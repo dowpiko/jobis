@@ -10,8 +10,8 @@ const Container = styled.div`
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: column;
-`;
+  flex-direction: column;`
+;
 const Header = styled.div`
   position: relative;
   padding: 10px;
@@ -20,12 +20,12 @@ const Header = styled.div`
   border-bottom: 1px solid #ccc;
   display: flex;
   justify-content: center;
-  align-items: center;
-`;
+  align-items: center;`
+;
 const TopRightControls = styled.div`
   position: absolute;
-  top: 0; right: 0; z-index: 10;
-`;
+  top: 0; right: 0; z-index: 10;`
+;
 const TopRightButton = styled.button`
   background-color: #e74c3c;
   color: white;
@@ -34,26 +34,26 @@ const TopRightButton = styled.button`
   padding: 6px 8px;
   font-size: 14px;
   cursor: pointer;
-  &:hover { background-color: #c0392b; }
-`;
+  &:hover { background-color: #c0392b; }`
+;
 const ChatContainer = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
-`;
+  padding: 16px;`
+;
 const MessageRow = styled.div`
   display: flex;
   margin-bottom: 24px;
   align-items: flex-start;
-  justify-content: ${({ $isAi }) => ($isAi ? 'flex-start' : 'flex-end')};
-`;
+  justify-content: ${({ $isAi }) => ($isAi ? 'flex-start' : 'flex-end')};`
+;
 const ProfileImage = styled.img`
   width: 56px; height: 56px;
   border-radius: 50%;
   margin: 0 8px;
   background-color: #f0f0f0;
-  object-fit: cover;
-`;
+  object-fit: cover;`
+;
 const MessageBubble = styled.div`
   background-color: #fff;
   padding: 12px;
@@ -64,14 +64,21 @@ const MessageBubble = styled.div`
   width: fit-content;
   word-break: break-word;
   margin: ${({ $isAi }) => ($isAi ? '0 0 0 8px' : '0 8px 0 0')};
-  white-space: pre-wrap;
-`;
+  white-space: pre-wrap;`
+;
 const AiMessageBubble = styled(MessageBubble)`
-  background-color: #fef3e2;
-`;
+  background-color: #fef3e2;`
+;
 const UserMessageBubble = styled(MessageBubble)`
-  background-color: #e6f0ff;
-`;
+  background-color: #e6f0ff;`
+;
+
+const QuestionLabel = styled.div`
+  font-size: 22px;
+  font-weight: bold;
+  color: #888;
+  margin-bottom: 8px;`
+;
 
 const AiHistory = () => {
   const location = useLocation();
@@ -105,7 +112,8 @@ const AiHistory = () => {
             <MessageRow $isAi={true}>
               <ProfileImage src="/img/robot.png" alt="bot" />
               <AiMessageBubble>
-                <strong>Q{item.num}.</strong> {item.question}
+                <QuestionLabel>Q{item.num}.</QuestionLabel>
+                {item.question}
               </AiMessageBubble>
             </MessageRow>
             <MessageRow $isAi={false}>

@@ -5,6 +5,9 @@ import { ReactComponent as GptMicIcon } from '../../assets/icons/GptMicIcon.svg'
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { nanoid } from 'nanoid';
 import axios from 'axios';
+import VoiceRecorder from './VoiceRecorder';
+import { FaHeadphones } from 'react-icons/fa';
+
 
 const Container = styled.div`
   position: relative;
@@ -66,6 +69,29 @@ const MessageBubble = styled.div`
   white-space: pre-wrap; // ✅ 이거 추가!
 `;
 
+const ListenButton = styled.button`
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: #666;
+
+    &:hover {
+      fill: #000;
+    }
+  }
+`;
+
 const QuestionLabel = styled.div`
   font-size: 22px;
   font-weight: bold;
@@ -75,6 +101,8 @@ const QuestionLabel = styled.div`
 
 const AiMessageBubble = styled(MessageBubble)`
   background-color: #fef3e2;
+  position: relative;
+  padding-bottom: 36px; // 버튼 공간 확보 (겹침 방지)
 `;
 
 const UserMessageBubble = styled(MessageBubble)`
@@ -248,6 +276,8 @@ const AiChat = () => {
   const [count, setCount] = useState(1);
   const [previousQuestion, setPreviousQuestion] = useState('');
   const [standards, setStandards] = useState([]);
+  const [showRecorder, setShowRecorder] = useState(false);
+  const [koreanVoice, setKoreanVoice] = useState(null);
   const currentStreamRef = useRef('');
   const textAreaRef = useRef(null);
   const scrollRef = useRef(null);
@@ -364,9 +394,10 @@ const AiChat = () => {
     }
   };
 
-  const handleRecord = ()=>{
-    alert("마이크 버튼 클릭");
-  }
+  const handleRecord = () => {
+    if (!started || isStreaming) return;
+    setShowRecorder(true);
+  };
 
   const sendTerminationMessage = () => {
     if (readyState === ReadyState.OPEN) {
@@ -422,7 +453,36 @@ const AiChat = () => {
     }
   };
 
+  const handleListen = (text) => {
+    if (!text) return;
 
+    const utterance = new SpeechSynthesisUtterance(text);
+    speechSynthesis.cancel();
+
+    if (koreanVoice) {
+      utterance.voice = koreanVoice;
+    }
+
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    speechSynthesis.speak(utterance);
+  };
+
+  useEffect(() => {
+    const loadVoices = () => {
+      const voices = speechSynthesis.getVoices();
+      const koVoice = voices.find(v => v.lang.startsWith('ko') && v.name.toLowerCase().includes('google'));
+      setKoreanVoice(koVoice || voices.find(v => v.lang.startsWith('ko')) || null);
+    };
+
+    // 초기 음성 로딩 및 변경 이벤트 설정
+    if (typeof speechSynthesis !== 'undefined') {
+      speechSynthesis.onvoiceschanged = loadVoices;
+      loadVoices();
+    }
+  }, []);
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -497,6 +557,11 @@ const AiChat = () => {
                       <AiMessageBubble>
                         <QuestionLabel>{label}</QuestionLabel>
                         {msg.text}
+                        {!isStreaming && (
+                          <ListenButton onClick={() => handleListen(msg.text)}>
+                            <FaHeadphones />
+                          </ListenButton>
+                        )}
                       </AiMessageBubble>
                     </>
                   ) : (
@@ -532,7 +597,7 @@ const AiChat = () => {
             value={inputText}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder= "답변을 입력하세요."
+            placeholder="답변을 입력하세요."
             maxLength={300}
             rows={1}
             $isLimitExceeded={isLimitExceeded}
@@ -562,8 +627,19 @@ const AiChat = () => {
           </SendButton>
         </ButtonArea>
       </InputFooter>
+
+      {showRecorder && (
+        <VoiceRecorder
+          onClose={() => setShowRecorder(false)}
+          onResult={(text) => {
+            setInputText(text);
+          }}
+        />
+      )}
     </Container>
   );
+
+
 };
 
 export default AiChat;
