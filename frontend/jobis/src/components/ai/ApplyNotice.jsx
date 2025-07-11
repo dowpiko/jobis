@@ -165,13 +165,14 @@ const ApplyNotice = () => {
   };
 
   const handleSubmit = async () => {
-    const answerText = answers.join('\n');
+    // const answerText = answers.join('\n');
     const payload = {
       uno,
       ono,
       o_title: offer.o_title,
       o_tag: offer.o_tag,
-      o_content: answerText
+      answers
+      // o_content: answerText
     };
     console.log('🚀 제출 payload:', payload);
 
@@ -180,7 +181,8 @@ const ApplyNotice = () => {
         ono,
         o_title: offer.o_title,
         o_tag : offer.o_tag,
-        o_content: answerText
+        answers
+        // o_content: answerText
       }, { withCredentials: true });
 
       if (res.data === 1) {

@@ -22,6 +22,9 @@ const Sidebar = styled.aside`
   padding: 16px;
   gap: 16px;
   box-sizing: border-box;
+  button[data-scrap] {
+   display: none;
+  }
 `;
 
 const TopBar = styled.div`

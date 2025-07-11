@@ -1,6 +1,7 @@
 package org.jobis.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpSession;
 
@@ -11,6 +12,7 @@ import org.jobis.domain.UserVO;
 import org.jobis.service.UserChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -185,6 +187,9 @@ public class CjsController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("세션 만료 또는 로그인 필요");
        }
 	   submissiondto.setUno(user.getUno());
+	   if (submissiondto.getAnswers() != null) {
+		   submissiondto.setO_content(String.join("\n", submissiondto.getAnswers()));
+	    }
 	   
 	   int result = ucservice.insertSubmission(submissiondto);
 	   
@@ -195,6 +200,41 @@ public class CjsController {
        }
 		
 	}
+	// 스크랩 목록 가져오기
+    @PostMapping("/getFavorites")
+    public ResponseEntity<List<SubmissionDTO>> getFavorites(@RequestBody Map<String, Integer> payload) {
+        Integer uno = payload.get("uno");
+        if (uno == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        List<SubmissionDTO> list = ucservice.getFavByUno(uno);
+        return ResponseEntity.ok(list);
+    }
+    // 공고 스크랩하기
+    @PostMapping("/addFavorite")
+    public ResponseEntity<Integer> addFavorite(@RequestBody Map<String, Integer> payload) {
+        Integer uno = payload.get("uno");
+        Integer ono = payload.get("ono");
+        if (uno == null || ono == null) {
+            return ResponseEntity.badRequest().body(0);
+        }
+
+        int result = ucservice.addFavorite(uno, ono);
+        return ResponseEntity.ok(result);
+    }
+    // 스크랩 취소하기
+    @DeleteMapping("/removeFavorite")
+    public ResponseEntity<Integer> removeFavorite(@RequestBody Map<String, Integer> payload) {
+        Integer uno = payload.get("uno");
+        Integer ono = payload.get("ono");
+        if (uno == null || ono == null) {
+            return ResponseEntity.badRequest().body(0);
+        }
+
+        int result = ucservice.removeFavorite(uno, ono);
+        return ResponseEntity.ok(result);
+    }
+	
 	
 	
 

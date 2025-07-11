@@ -4,6 +4,22 @@ import { useNavigate } from 'react-router-dom';
 import categories from '../../data/categories';  // 카테고리 데이터 임포트
 import axios from 'axios';
 
+const ScrapButton = styled.button`
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1;
+  color: ${({ active }) => active ? '#FFD700' : '#B0BCCB'};
+  cursor: pointer;
+  opacity: ${({ active }) => active ? 1 : 0};    /* 스크랩 된 카드만 상시 표시 */
+  transition: opacity 0.2s;
+  z-index: 1;
+`;
 
 const ListSection = styled.div`
   flex: 1;               /* 필터 & 카테고리 아래 남은 공간 전부 차지 */
@@ -90,10 +106,14 @@ const CompanyCard = styled.div`
   transition: all 0.2s;
   display: flex;
   flex-direction: column;
+  position: relative;
 
   &:hover {
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     transform: translateY(-2px);
+  }
+  &:hover ${ScrapButton} {
+    opacity: 1;
   }
 `;
 
@@ -168,12 +188,53 @@ const CompanyInfo = () => {
   const [searchTerm, setSearchTerm]     = useState('');        
   const [selectedCategory, setCategory] = useState('');        
   const [visibleCount, setVisibleCount] = useState(10);
+  const [uno,setUno] =useState(null);
+  const [favorite,setFavorite] = useState([]);
+
+  useEffect(() => {
+    fetch('/getMyUno', { credentials: 'include' }) 
+      .then(res => {
+        if (res.status === 401) {
+          alert('로그인이 필요합니다.');
+          window.location.href = '/';
+          return;
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data) setUno(data);
+      });
+  }, []);
 
   useEffect(() => {
     axios.get('/getCompanyOffer')
       .then(res => setOffers(res.data))
       .catch(err => console.error('공고 조회 실패', err));
   }, []);
+
+  useEffect(() => {
+    if (uno) {
+      axios.post('/getFavorites', { uno }, { withCredentials: true })  // 🔄 수정됨
+        .then(res => setFavorite(res.data.map(f => f.ono)))
+        .catch(err => console.error('스크랩 목록 실패', err));
+    }
+  }, [uno]);
+
+  const toggleFavorite = async (ono) => { // ✅ 추가됨
+    if (!uno) return alert('로그인 정보 없음');
+    const isFav = favorite.includes(ono);
+    try {
+      if (isFav) {
+        await axios.delete('/removeFavorite', { data: { ono, uno } });
+        setFavorite(favorite.filter(id => id !== ono));
+      } else {
+        await axios.post('/addFavorite', { ono, uno });
+        setFavorite([...favorite, ono]);
+      }
+    } catch (err) {
+      console.error('스크랩 처리 실패:', err);
+    }
+  };
 
   const filtered = useMemo(() => {
     return offers.filter(o =>
@@ -189,6 +250,7 @@ const CompanyInfo = () => {
   }, [offers, selectedCategory, searchTerm]);
 
   const visible = filtered.slice(0, visibleCount);
+
   const onSearchChange = e => {
     setSearchTerm(e.target.value);
     setVisibleCount(10);   // 검색어 바뀌면 다시 첫 페이지
@@ -206,7 +268,7 @@ const CompanyInfo = () => {
   };
 
 
-//{() => navigate('/applyNotice',{ state: {ono : o.ono} })}
+
   return (
     <Page>
       <Content>
@@ -230,6 +292,15 @@ const CompanyInfo = () => {
             {visible.map(o => (
               <CompanyCard key={o.ono} onClick={() => handleCardClick(o.ono)}>  
                 <CardImageWrapper>
+                    <ScrapButton
+                    active={favorite.includes(o.ono)}
+                    onClick={e => {
+                      e.stopPropagation();
+                      toggleFavorite(o.ono);
+                    }}
+                  >
+                    {favorite.includes(o.ono) ? '★' : '☆'}
+                  </ScrapButton>
                   <CardImage src={o.profileImage} />
                 </CardImageWrapper>
                 <CardContent>

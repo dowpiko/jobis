@@ -126,4 +126,19 @@
 	      SYSDATE
 	    )
 	</insert>
+	
+	<!--  스크랩한 공고 목록 가져오기 -->
+	 <select id="getFavByUno" parameterType="int"  resultType="org.jobis.domain.SubmissionDTO">
+	    SELECT * FROM tbl_fav WHERE uno = #{uno}
+	  </select>
+	  
+	<!--  공고 스크랩하기 -->
+	<insert id="addFavorite" parameterType="org.jobis.domain.SubmissionDTO">
+		INSERT INTO tbl_fav (uno,ono) VALUES (#{uno}, #{ono})
+	</insert>
+	
+	<!--  스크랩 취소하기 -->
+	<delete id="removeFavorite" parameterType="org.jobis.domain.SubmissionDTO">
+		DELETE FROM tbl_fav WHERE uno=#{uno} and ono=#{ono}
+	</delete>
 </mapper>

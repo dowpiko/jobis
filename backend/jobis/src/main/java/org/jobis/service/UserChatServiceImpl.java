@@ -10,6 +10,8 @@ import org.jobis.mapper.UserChatMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import kotlin.math.UMathKt;
+
 
 @Service
 public class UserChatServiceImpl implements UserChatService {
@@ -90,6 +92,24 @@ public class UserChatServiceImpl implements UserChatService {
 		
 
 		return ucMapper.insertSubmission(submissiondto);
+	}
+	// 스크랩한 공고 목록 가져오기
+	@Override
+	public List<SubmissionDTO> getFavByUno(int uno) {
+		
+		return ucMapper.getFavByUno(uno);
+	}
+	// 공고 스크랩하기
+	@Override
+	public int addFavorite(int uno, int ono) {
+		
+		return ucMapper.addFavorite(uno, ono);
+	}
+	// 스크랩 취소하기
+	@Override
+	public int removeFavorite(int uno, int ono) {
+		
+		return ucMapper.removeFavorite(uno, ono);
 	}
 	
 }

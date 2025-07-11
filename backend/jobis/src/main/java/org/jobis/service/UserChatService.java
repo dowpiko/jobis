@@ -48,5 +48,13 @@ public interface UserChatService {
 	// 기업공고 작성 완료 (유저가 답변)
 	public int insertSubmission(SubmissionDTO submissiondto);
 	
+	// 스크랩 공고 목록 가져오기
+	public List<SubmissionDTO> getFavByUno(int uno);
+	
+	// 공고 스크랩하기
+	public int addFavorite(int uno,int ono);
+	
+	// 공고 스크랩 취소하기
+	public int removeFavorite(int uno,int ono);
 	
 }
