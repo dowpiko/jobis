@@ -254,6 +254,25 @@ const CenteredContent = styled(PanelContent)`
 	min-height: 0;
 `;
 
+const AnimatedPanelWrapper = styled.div`
+	flex: 1;
+	height: 100%;
+	position: relative;
+`;
+
+const AnimatedPanel = styled.div`
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	transition: opacity 0.5s ease, transform 0.5s ease;
+	opacity: ${({ show }) => (show ? 1 : 0)};
+	transform: ${({ show }) => (show ? 'translateY(0)' : 'translateY(20px)')};
+	pointer-events: ${({ show }) => (show ? 'auto' : 'none')};
+`;
+
+
 
 const radarTemplate = ['리더형','분석형','창의형','실행형','소통형'];
 const radarDataTemplate = radarTemplate.map(s => ({ subject: s, A: 0 }));
@@ -351,11 +370,18 @@ export default function RadarSection() {
 
 
   const totalInterviews = interviews.length;
-  const avgScoreAll = Math.round(interviews.reduce((s,i)=>s + Object.values(i.result).reduce((a,b)=>a+b,0)/5,0) / totalInterviews);
-  const maxScore = Math.max(...interviews.flatMap(i => Object.values(i.result)));
-  const minScore = Math.min(...interviews.flatMap(i => Object.values(i.result)));
+  const avgScores = interviews.map(i =>
+    Object.values(i.result).reduce((a, b) => a + b, 0) / 5
+  );
+  const avgScoreAll = Math.round(
+    avgScores.reduce((a, b) => a + b, 0) / totalInterviews
+  );
+  const maxScore = Math.round(Math.max(...avgScores));
+  const minScore = Math.round(Math.min(...avgScores));
+
   const selInterviewTitle = interviews.find(i => i.id === selInterviewId)?.title;
   const selectedBarIndex = barData.findIndex(e => e.id === selInterviewId);
+
 
 
   const handlePageInput = (e) => {
@@ -401,7 +427,10 @@ export default function RadarSection() {
                 <InterviewCard
                   key={iv.id}
                   selected={iv.id === selInterviewId}
-                  onClick={() => { setSelInterviewId(iv.id); setSelSubject(null); }}
+                  onClick={() => {
+                    setSelInterviewId(iv.id);
+                    setSelSubject(null);
+                  }}
                 >
                   <div>{iv.title}</div>
                 </InterviewCard>
@@ -431,23 +460,23 @@ export default function RadarSection() {
             </Paging>
           </Sidebar>
 
-          <MainArea expanded={expandedAll}>
-            {expandedAll ? (
+          <MainArea>
+            <AnimatedPanelWrapper>
+              {/* 전체 보기 ON (좌우 레이아웃) */}
+              <AnimatedPanel show={expandedAll}>
                 <DualPanel>
                   <LeftPanelBox>
                     <LeftPanel>
                       <AiHistoryForGraphPage
                         title={selInterviewTitle}
-                        records={
-                          (() => {
-                            try {
-                              const sel = interviews.find(i => i.id === selInterviewId);
-                              return sel?.content ? JSON.parse(sel.content) : [];
-                            } catch {
-                              return [];
-                            }
-                          })()
-                        }
+                        records={(() => {
+                          try {
+                            const sel = interviews.find(i => i.id === selInterviewId);
+                            return sel?.content ? JSON.parse(sel.content) : [];
+                          } catch {
+                            return [];
+                          }
+                        })()}
                       />
                     </LeftPanel>
                   </LeftPanelBox>
@@ -461,8 +490,10 @@ export default function RadarSection() {
                     </RightPanel>
                   </RightPanelBox>
                 </DualPanel>
-              ):(
-              <>
+              </AnimatedPanel>
+
+              {/* 전체 보기 OFF (위아래 레이아웃) */}
+              <AnimatedPanel show={!expandedAll}>
                 <Panel style={{ height: '45%' }}>
                   <InfoTitle>Radar & 설명</InfoTitle>
                   <DualPanel>
@@ -497,8 +528,11 @@ export default function RadarSection() {
                               fillOpacity={0.6}
                             />
                             <Tooltip
-                              activeIndex={selectedBarIndex} // ✅ 선택된 막대를 hover 상태로 유지
-                              contentStyle={{ backgroundColor: '#2c3e50', borderColor: '#3a4a63' }}
+                              activeIndex={selectedBarIndex}
+                              contentStyle={{
+                                backgroundColor: '#2c3e50',
+                                borderColor: '#3a4a63'
+                              }}
                               itemStyle={{ color: '#e1e8f0' }}
                               formatter={(value) => [`${value}점`, '점수']}
                             />
@@ -506,6 +540,7 @@ export default function RadarSection() {
                         </ResponsiveContainer>
                       </PanelContent>
                     </PanelSection>
+
                     <PanelSection>
                       <InfoTitle>{selSubject || '설명 영역'}</InfoTitle>
                       <div style={{ color: '#b0c4de' }}>
@@ -516,7 +551,11 @@ export default function RadarSection() {
                 </Panel>
 
                 <Panel style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
                     <InfoTitle>{selSubject ? `${selSubject} vs 평균` : '데이터 선택 중'}</InfoTitle>
                     <ChartToggle value={chartType} onChange={e => setChartType(e.target.value)}>
                       <option value="bar">막대차트</option>
@@ -526,52 +565,50 @@ export default function RadarSection() {
                   <PanelContent>
                     <ResponsiveContainer width="100%" height="100%">
                       {chartType === 'bar' ? (
-                      <BarChart data={barData} activeIndex={selectedBarIndex}>
-                        <CartesianGrid stroke="#3a4a63" />
-                        <XAxis dataKey="title" tick={false} />
-                        <YAxis domain={[0, 100]} tick={{ fill: '#e1e8f0' }} />
-                        <Tooltip contentStyle={{ backgroundColor: '#2c3e50', borderColor: '#3a4a63' }} />
+                        <BarChart data={barData} activeIndex={selectedBarIndex}>
+                          <CartesianGrid stroke="#3a4a63" />
+                          <XAxis dataKey="title" tick={false} />
+                          <YAxis domain={[0, 100]} tick={{ fill: '#e1e8f0' }} />
+                          <Tooltip contentStyle={{ backgroundColor: '#2c3e50', borderColor: '#3a4a63' }} />
 
-                        {/* 🔴 선택점수 (value): Radar에서 역량 선택했을 때만 표시 */}
-                        {selSubject && barData.some(d => d.value !== null) && (
+                          {selSubject && barData.some(d => d.value !== null) && (
+                            <Bar
+                              dataKey="value"
+                              name="선택점수"
+                              isAnimationActive={true}
+                              animationDuration={600}
+                              animationEasing="ease-out"
+                            >
+                              {barData.map((e, idx) => (
+                                <Cell
+                                  key={`value-${idx}`}
+                                  fill={e.id === selInterviewId ? '#f44336' : '#82ca9d'}
+                                  fillOpacity={e.id === selInterviewId ? 1 : 0.8}
+                                  stroke={e.id === selInterviewId ? '#ffffff' : 'none'}
+                                  strokeWidth={e.id === selInterviewId ? 2 : 0}
+                                />
+                              ))}
+                            </Bar>
+                          )}
+
                           <Bar
-                            dataKey="value"
-                            name="선택점수"
+                            dataKey="avg"
+                            name="평균점수"
                             isAnimationActive={true}
                             animationDuration={600}
                             animationEasing="ease-out"
                           >
                             {barData.map((e, idx) => (
                               <Cell
-                                key={`value-${idx}`}
-                                fill={e.id === selInterviewId ? '#f44336' : '#82ca9d'}
-                                fillOpacity={e.id === selInterviewId ? 1 : 0.8}
+                                key={`avg-${idx}`}
+                                fill="#ffb74d"
+                                fillOpacity={e.id === selInterviewId ? 1 : 0.6}
                                 stroke={e.id === selInterviewId ? '#ffffff' : 'none'}
                                 strokeWidth={e.id === selInterviewId ? 2 : 0}
                               />
                             ))}
                           </Bar>
-                        )}
-
-                        {/* 🟡 평균점수 (avg): 항상 표시 */}
-                        <Bar
-                          dataKey="avg"
-                          name="평균점수"
-                          isAnimationActive={true}
-                          animationDuration={600}
-                          animationEasing="ease-out"
-                        >
-                          {barData.map((e, idx) => (
-                            <Cell
-                              key={`avg-${idx}`}
-                              fill="#ffb74d"
-                              fillOpacity={e.id === selInterviewId ? 1 : 0.6}
-                              stroke={e.id === selInterviewId ? '#ffffff' : 'none'}
-                              strokeWidth={e.id === selInterviewId ? 2 : 0}
-                            />
-                          ))}
-                        </Bar>
-                      </BarChart>
+                        </BarChart>
                       ) : (
                         <AreaChart data={areaData}>
                           <CartesianGrid stroke="#3a4a63" />
@@ -585,13 +622,15 @@ export default function RadarSection() {
                     </ResponsiveContainer>
                   </PanelContent>
                 </Panel>
-              </>
-            )}
+              </AnimatedPanel>
+            </AnimatedPanelWrapper>
           </MainArea>
         </ContentBox>
       </Wrapper>
     </Container>
   );
+
+
 
 
 }

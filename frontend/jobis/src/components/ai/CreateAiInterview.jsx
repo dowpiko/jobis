@@ -105,6 +105,13 @@ const SectionLabel = styled.div`
   margin: 10px 0 6px;
   color: #1F2A37;
 `;
+const ErrorMessage = styled.div`
+  color: #e74c3c;
+  font-size: 13px;
+  margin-bottom: 14px;
+  text-align: center;
+`;
+
 function getCurrentDate() {
   const now = new Date();
   return now.toISOString().split('T')[0]; // YYYY-MM-DD 형식으로 반환
@@ -118,6 +125,8 @@ const CreateAiInterview = () => {
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [companyType, setCompanyType] = useState('');
   const [careerLevel, setCareerLevel] = useState('');
+  const [titleWarning, setTitleWarning] = useState(false);
+  const maxTitleLength = 25;
 
   const categoryRef = useRef(null);
   const subCategoryRef = useRef(null);
@@ -133,9 +142,21 @@ const CreateAiInterview = () => {
   const selectedSubCatObj = subCategories.find(sub => sub.name === selectedSubCategory);
   const skills = selectedSubCatObj?.skills || [];
 
-  const handleTitleChange = (e) =>{
-    setTitleValue(e.target.value);
-  }
+  const handleTitleChange = (e) => {
+    let value = e.target.value;
+
+    if (value.length > maxTitleLength) {
+      value = value.slice(0, maxTitleLength); // 25자로 자름
+      setTitleWarning(true); // 경고 표시
+      setTimeout(() => setTitleWarning(false), 2000); // 2초 후 숨김
+    }
+
+    setTitleValue(value);
+  };
+
+
+
+
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
     setSelectedSubCategory('');
@@ -220,8 +241,15 @@ const CreateAiInterview = () => {
 
   return (
     <FormWrapper>
-      <TitleInput type="text" placeholder={titlePlaceHolder} value={titleValue} onChange={handleTitleChange}/>
-
+      <TitleInput
+        type="text"
+        placeholder={titlePlaceHolder}
+        value={titleValue}
+        onChange={handleTitleChange}
+        hasError={titleWarning}
+        maxLength={maxTitleLength + 1} // 사용자가 빠르게 입력해도 에러 감지 가능
+      />
+      {titleWarning && <ErrorMessage>25자 이하로 입력해주세요</ErrorMessage>}
       <SectionLabel>대분류</SectionLabel>
       <CategorySelect 
       value={selectedCategory} 
