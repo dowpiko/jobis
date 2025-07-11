@@ -46,6 +46,6 @@
 	  WHERE 
 	    UNO = #{uno}
 	  ORDER BY 
-	    A_REGDATE ASC
+	    A_REGDATE DESC
 	</select>
 </mapper>

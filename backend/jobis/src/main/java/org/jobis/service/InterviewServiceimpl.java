@@ -116,6 +116,7 @@ public class InterviewServiceimpl implements InterviewService{
 		return test;
 	}
 	
+	
 	//------------------헬퍼 함수----------------
 	// json 점수 데이터의 평균을 계산하고 문자열로 변환
 	private static String getResultScoreString(List<InterviewResultDTO> resultList) {

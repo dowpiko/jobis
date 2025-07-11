@@ -282,7 +282,8 @@ const AiChat = () => {
   const textAreaRef = useRef(null);
   const scrollRef = useRef(null);
   const sendButtonRef = useRef(null);
-  const isLimitExceeded = inputText.length >= 300;
+  const isLimitExceeded = inputText.length >= 1000;
+
 
   // 웹소켓 관련 코드
   const SOCKET_URL = "ws://localhost:9090/ws/interview"; // websocket 주소
@@ -514,8 +515,9 @@ const AiChat = () => {
       const match = currentStreamRef.current.match(/"question"\s*:\s*"([^"]*)/);
 
       if (match && match[1]) {
-        // 스트리밍 도중 question 안에 있는 텍스트만 UI에 출력
-        setCurrentStream(match[1]);
+          if (match[1] !== currentStreamRef.current) {
+            setCurrentStream(match[1]);
+          }
       } else {
         // 아직 question이 시작되지 않거나 파싱 불가 상태면 아무것도 출력하지 않음
         setCurrentStream('');
@@ -598,13 +600,13 @@ const AiChat = () => {
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="답변을 입력하세요."
-            maxLength={300}
+            maxLength={1000}
             rows={1}
             $isLimitExceeded={isLimitExceeded}
           />
 
           {isLimitExceeded && (
-            <LimitWarning>최대 300자까지 입력 가능합니다.</LimitWarning>
+            <LimitWarning>최대 1000자까지 입력 가능합니다.</LimitWarning>
           )}
           {inputText && (
             <ClearButton onClick={handleClearInput}>X</ClearButton>
