@@ -9,6 +9,8 @@ import {
 } from 'recharts';
 import axios from 'axios';
 import AiHistoryForGraphPage from './AiHistoryForGraphPage';
+import { leader, analytical, creative, executive, communicative } from '../../data/evaluation';
+
 
 const Container = styled.div`
 	height: 100%;
@@ -181,6 +183,8 @@ const Panel = styled.div`
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
+	flex: 1;
+	min-height: 0; // ✅ 추가
 `;
 
 const DualPanel = styled.div`
@@ -188,6 +192,7 @@ const DualPanel = styled.div`
 	gap: 20px;
 	flex: 1;
 	height: 100%;
+  min-height: 0;
 `;
 
 const PanelSection = styled.div`
@@ -201,11 +206,14 @@ const PanelContent = styled.div`
 	flex: 1;
 	min-height: 0;
 	overflow: hidden;
+	display: flex;
+	flex-direction: column;
 `;
 
 const InfoTitle = styled.h4`
 	margin-bottom: 12px;
-	font-size: 18px;
+	font-size: 22px;  // ✅ 기존보다 키움
+	font-weight: bold;
 	color: #ffffff;
 `;
 
@@ -272,16 +280,109 @@ const AnimatedPanel = styled.div`
 	pointer-events: ${({ show }) => (show ? 'auto' : 'none')};
 `;
 
+const CustomTooltip = styled.div`
+	position: fixed;
+	background: #2f3e55;
+	color: #ffffff;
+	font-size: 18px;
+	padding: 10px 16px;
+	border-radius: 12px;
+	white-space: nowrap;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+	transform: translateY(-100%);
+	pointer-events: none;
+	z-index: 1000;
+	backdrop-filter: blur(4px);
+	border: 1px solid #3a4a63;
+	transition: opacity 0.2s ease-in-out;
+	opacity: ${({ show }) => (show ? 1 : 0)};
+	visibility: ${({ show }) => (show ? 'visible' : 'hidden')};
+`;
+
+const RadarSectionLeft = styled(PanelSection)`
+	flex: 7;
+	padding-right: 10px;
+	padding-bottom: 10px;
+	height: 100%;
+	min-height: 0;
+`;
+
+const RadarSectionRight = styled(PanelSection)`
+	flex: 3;
+	padding-bottom: 10px;
+	height: 100%;
+	min-height: 0;
+`;
+
+const DescriptionBox = styled.div`
+	background-color: #1f2a37;
+	padding: 18px;
+	border-radius: 8px;
+	border: 1px solid #3a4a63;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+	color: #e1e8f0;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	overflow: hidden;
+`;
+
+const TraitTitleStyled = styled.div`
+	font-size: 20px;
+	font-weight: bold;
+	color: #ffffff;
+	margin-bottom: 12px;
+`;
+
+const TraitDescription = styled.div`
+	color: #b0c4de;
+	font-size: 15px;
+	margin-bottom: 16px;
+`;
+
+const TraitComment = styled.div`
+	color: #e1e8f0;
+	font-size: 15px;
+	line-height: 1.6;
+	overflow-y: auto;
+	flex: 1;
+`;
 
 
-const radarTemplate = ['리더형','분석형','창의형','실행형','소통형'];
+const radarTemplate = ['리더십','분석력','창의력','실행력','소통력'];
 const radarDataTemplate = radarTemplate.map(s => ({ subject: s, A: 0 }));
 const descriptions = {
-  '리더형': '리더십이 뛰어나고 조직을 잘 이끔',
-  '분석형': '논리적이고 데이터 분석을 잘함',
-  '창의형': '새로운 아이디어를 제시함',
-  '실행형': '계획을 실천에 옮기는 능력이 뛰어남',
-  '소통형': '사람들과 잘 어울리며 소통 능력이 뛰어남',
+  '리더십': '팀을 이끌고 문제 해결을 주도하는 능력입니다.',
+  '분석력': '상황을 논리적으로 파악하고 문제를 구조화하는 능력입니다.',
+  '창의력': '새로운 아이디어를 제시하고 유연하게 사고하는 능력입니다.',
+  '실행력': '계획을 실천으로 옮기고 결과를 만들어내는 능력입니다.',
+  '소통력': '상대와 원활히 소통하고 협업하는 능력입니다.',
+};
+
+
+
+function formatTimestamp(ms) {
+	if (!ms || typeof ms !== 'number') return '';
+	const date = new Date(ms);
+	const yyyy = date.getFullYear();
+	const mm = String(date.getMonth() + 1).padStart(2, '0');
+	const dd = String(date.getDate()).padStart(2, '0');
+	return `생성일: ${yyyy}-${mm}-${dd}`;
+}
+
+const getComment = (subject, score) => {
+  const map = {
+    '리더십': leader,
+    '분석력': analytical,
+    '창의력': creative,
+    '실행력': executive,
+    '소통력': communicative
+  };
+  const list = map[subject];
+  if (!list || score == null) return '';
+
+  const item = list.find(({ range }) => score >= range[0] && score <= range[1]);
+  return item?.comment || '';
 };
 
 export default function RadarSection() {
@@ -292,6 +393,8 @@ export default function RadarSection() {
   const [expandedAll, setExpandedAll] = useState(false);
   const [chartType, setChartType] = useState('bar');
   const [interviews, setInterviews] = useState([]);
+  const [hoveredId, setHoveredId] = useState(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
   const perPage = 10;
   const totalPage = Math.ceil(interviews.length / perPage);
@@ -318,7 +421,8 @@ export default function RadarSection() {
             id: item.ano,
             title: item.atitle,
             result,
-            content: item.acontent // ✅ 여기 추가해야 AiHistoryForGraphPage에 데이터 전달됨
+            content: item.acontent,
+            regdate: item.aregdate  // ✅ 필드 이름 정확히!
           };
         });
 
@@ -431,11 +535,29 @@ export default function RadarSection() {
                     setSelInterviewId(iv.id);
                     setSelSubject(null);
                   }}
+                  onMouseEnter={(e) => {
+                    setHoveredId(iv.id);
+                    setTooltipPos({ x: e.clientX, y: e.clientY });
+                  }}
+                  onMouseMove={(e) => {
+                    setTooltipPos({ x: e.clientX, y: e.clientY });
+                  }}
+                  onMouseLeave={() => setHoveredId(null)}
                 >
                   <div>{iv.title}</div>
                 </InterviewCard>
               ))}
             </InterviewList>
+              <CustomTooltip
+                show={hoveredId !== null}
+                style={{
+                  top: tooltipPos.y + 10,
+                  left: tooltipPos.x + 20
+                }}
+              >
+                {hoveredId && formatTimestamp(Number(interviews.find(i => i.id === hoveredId)?.regdate))}
+              </CustomTooltip>
+
             <Paging>
               <button disabled={page === 1} onClick={() => {
                 const newPage = Math.max(page - 1, 1);
@@ -497,10 +619,13 @@ export default function RadarSection() {
                 <Panel style={{ height: '45%' }}>
                   <InfoTitle>Radar & 설명</InfoTitle>
                   <DualPanel>
-                    <PanelSection>
+                    <RadarSectionLeft>
                       <PanelContent>
                         <ResponsiveContainer width="100%" height="100%">
-                          <RadarChart data={radarData} onClick={e => setSelSubject(e?.activeLabel)}>
+                          <RadarChart
+                            data={radarData}
+                            onClick={e => setSelSubject(e?.activeLabel)}
+                          >
                             <PolarGrid stroke="#3a4a63" />
                             <PolarAngleAxis
                               dataKey="subject"
@@ -539,15 +664,28 @@ export default function RadarSection() {
                           </RadarChart>
                         </ResponsiveContainer>
                       </PanelContent>
-                    </PanelSection>
+                    </RadarSectionLeft>
 
-                    <PanelSection>
-                      <InfoTitle>{selSubject || '설명 영역'}</InfoTitle>
-                      <div style={{ color: '#b0c4de' }}>
-                        {selSubject ? descriptions[selSubject] : '유형을 클릭해 주세요.'}
-                      </div>
-                    </PanelSection>
+                    <RadarSectionRight>
+                      <DescriptionBox>
+                        {selSubject ? (
+                          <>
+                            <TraitTitleStyled>{selSubject}</TraitTitleStyled>
+                            <TraitDescription>{descriptions[selSubject]}</TraitDescription>
+                            <TraitComment>
+                              {getComment(selSubject, radarData.find(d => d.subject === selSubject)?.A)}
+                            </TraitComment>
+                          </>
+                        ) : (
+                          <>
+                            <InfoTitle style={{ fontSize: '16px', marginBottom: '8px' }}>설명 영역</InfoTitle>
+                            <TraitDescription>유형을 클릭해 주세요.</TraitDescription>
+                          </>
+                        )}
+                      </DescriptionBox>
+                    </RadarSectionRight>
                   </DualPanel>
+
                 </Panel>
 
                 <Panel style={{ flex: 1 }}>
