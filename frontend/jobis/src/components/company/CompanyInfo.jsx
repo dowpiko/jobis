@@ -200,10 +200,13 @@ const CompanyInfo = () => {
   const handleLoadMore = () => {
     setVisibleCount(v => v + 5);
   };
-  
+  const handleCardClick = (ono) => {
+    console.log(`넘어갈 ono: ${ono}`);
+    navigate('/applyNotice', { state: { ono } });
+  };
 
 
-
+//{() => navigate('/applyNotice',{ state: {ono : o.ono} })}
   return (
     <Page>
       <Content>
@@ -225,7 +228,7 @@ const CompanyInfo = () => {
         <ListSection>
           <Grid>
             {visible.map(o => (
-              <CompanyCard key={o.ono} onClick={() => navigate(`/applyNotice`)}>   {/* /${o.ono} */}
+              <CompanyCard key={o.ono} onClick={() => handleCardClick(o.ono)}>  
                 <CardImageWrapper>
                   <CardImage src={o.profileImage} />
                 </CardImageWrapper>

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.jobis.domain.CJSVO;
 import org.jobis.domain.CompanyOfferDTO;
+import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.mapper.UserChatMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,11 +41,17 @@ public class UserChatServiceImpl implements UserChatService {
 		
 		return ucMapper.joinChat(cno,member);
 	}
-	// 이름 가져오기
+	// 이름 가져오기 (세션에서 uno받아오기)
 	@Override
 	public UserVO getNameByUno() {
 		
 		return ucMapper.getNameByUno();
+	}
+	// 다른 유저 이름 가져오기
+	@Override
+	public UserVO getOtherNameByUno(int uno) {
+		
+		return ucMapper.getOtherNameByUno(uno);
 	}
 	// 채팅방 삭제하기
 	@Override
@@ -77,6 +84,12 @@ public class UserChatServiceImpl implements UserChatService {
 	
 		return ucMapper.getCompanyOffers();
 	}
-	
+	// 기업공고 작성완료 (유저가 답변작성한것)
+	@Override
+	public int insertSubmission(SubmissionDTO submissiondto) {
+		
+
+		return ucMapper.insertSubmission(submissiondto);
+	}
 	
 }

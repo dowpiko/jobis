@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 import org.jobis.domain.CJSVO;
 import org.jobis.domain.CompanyOfferDTO;
+import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
 
 public interface UserChatMapper {
@@ -24,6 +25,9 @@ public interface UserChatMapper {
 	// 이름 가져오기
 	public UserVO getNameByUno();
 	
+	// 다른 유저 이름 가져오기
+	public UserVO getOtherNameByUno(int uno);
+	
 	// 채팅 삭제하기
 	public int deleteUserChat(int cno);
 	
@@ -39,5 +43,8 @@ public interface UserChatMapper {
 	
 	// 기업정보 가져오기
 	public List<CompanyOfferDTO> getCompanyOffers();
+	
+	// 기업공고 작성 완료 (유저가 답변)
+	public int insertSubmission(SubmissionDTO submissiondto);
 
 }

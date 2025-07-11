@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.jobis.domain.CJSVO;
 import org.jobis.domain.CompanyOfferDTO;
+import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
 import org.springframework.stereotype.Service;
 @Service
@@ -21,8 +22,11 @@ public interface UserChatService {
 	// member로 참여하기
 	public int joinChat(int cno, int member);
 	
-	// 이름 가져오기
+	// 이름 가져오기(세션에서 uno받아옴)
 	public UserVO getNameByUno();
+	
+	// 다른 유저 이름 가져오기
+	public UserVO getOtherNameByUno(int uno);
 	
 	// 채팅 삭제하기
 	public int deleteUserChat(int cno);
@@ -40,5 +44,9 @@ public interface UserChatService {
 	
 	// 기업정보 가져오기
 	public List<CompanyOfferDTO> getCompanyOffers();
+	
+	// 기업공고 작성 완료 (유저가 답변)
+	public int insertSubmission(SubmissionDTO submissiondto);
+	
 	
 }

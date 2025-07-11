@@ -55,6 +55,12 @@
 		SELECT * FROM tbl_user where uno=#{uno}
 	</select>
 	
+	<!--  다른 유저 이름 가져오기 -->
+	<select id="getOtherNameByUno" parameterType="int" resultType="org.jobis.domain.UserVO">
+		SELECT * FROM tbl_user where uno=#{uno}
+	</select>
+
+	
 	<!-- 채팅 참여하기 -->
 	<update id="joinChat">
 		UPDATE tbl_userchat
@@ -101,4 +107,23 @@
 	    LEFT JOIN tbl_uprofile u ON o.uno = u.uno
 	    ORDER BY o.ono DESC
 	</select>
+	
+	<!--  공고 작성완료 (유저가 답변) -->
+	<insert id="insertSubmission">
+	 INSERT INTO tbl_submissions (
+	      uno,
+	      ono,
+	      o_title,
+	      o_tag,
+	      o_content,
+	      o_regdate
+	    ) VALUES (
+	      #{uno},
+	      #{ono},
+	      #{o_title},
+	      #{o_tag},
+	      #{o_content},
+	      SYSDATE
+	    )
+	</insert>
 </mapper>

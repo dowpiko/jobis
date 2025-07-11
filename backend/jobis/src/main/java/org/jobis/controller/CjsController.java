@@ -6,6 +6,7 @@ import javax.servlet.http.HttpSession;
 
 import org.jobis.domain.CJSVO;
 import org.jobis.domain.CompanyOfferDTO;
+import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.UserChatService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,12 +149,6 @@ public class CjsController {
 	    }
 	}
 
-//	@ResponseBody
-//	@GetMapping("/deleteUserChat")
-//	public ResponseEntity<String> deleteUserChat(@RequestParam("cno") int cno) {
-//	    ucservice.deleteUserChat(cno);
-//	    return new ResponseEntity<>("deleted", HttpStatus.OK);
-//	}
 	
 	// 직종목록 집어 넣기
 	@ResponseBody
@@ -179,6 +174,29 @@ public class CjsController {
 	public List<CompanyOfferDTO> getCompanyOfferList(){
 		return ucservice.getCompanyOffers();
 	}
+	
+	// 기업 공고 작성 완료(유저가 답변 완료)
+	@ResponseBody
+	@PostMapping(value = "/insertSubmission", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<String> insertSubmission(@RequestBody SubmissionDTO submissiondto, HttpSession session){
+	   UserVO user = (UserVO) session.getAttribute("User");
+		
+	   if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("세션 만료 또는 로그인 필요");
+       }
+	   submissiondto.setUno(user.getUno());
+	   
+	   int result = ucservice.insertSubmission(submissiondto);
+	   
+	   if (result == 1) {
+           return ResponseEntity.ok("1");  
+       } else {
+           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("0");
+       }
+		
+	}
+	
+	
 
 	
 }
