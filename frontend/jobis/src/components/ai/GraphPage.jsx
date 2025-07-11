@@ -16,11 +16,12 @@ const Container = styled.div`
 	height: 100%;
 	display: flex;
 	flex-direction: column;
-	background-color: #1f2a37;
-	color: #e1e8f0;
+	background-color:rgb(225, 226, 235);  // 기존보다 진한 회색톤으로 조정
+	color: #1E1E1E;
 	box-sizing: border-box;
 	overflow: hidden;
 `;
+
 
 const Wrapper = styled.div`
 	flex: 1;
@@ -38,21 +39,23 @@ const KpiWrapper = styled.div`
 
 const KpiCard = styled.div`
 	flex: 1;
-	background: #2c3e50;
+	background: #FFFFFF;
 	padding: 16px;
 	border-radius: 8px;
+	border: 1px solid #E2E8F0;
 	text-align: center;
 `;
 
 const KpiValue = styled.div`
 	font-size: 28px;
 	font-weight: bold;
+	color: #2563EB;
 `;
 
 const KpiLabel = styled.div`
 	font-size: 14px;
 	margin-top: 4px;
-	color: #b0c4de;
+	color: #6B7280;
 `;
 
 const ContentBox = styled.div`
@@ -65,12 +68,15 @@ const ContentBox = styled.div`
 
 const Sidebar = styled.div`
 	width: 260px;
-	background: #233049;
+	background: #E9F1F9;  // 메인과 어울리는 밝은 푸른 회색 계열
 	padding: 20px;
 	border-radius: 12px;
 	display: flex;
 	flex-direction: column;
+	border: 1px solid #D5DFEA;  // 기존보다 약간 어둡게
 `;
+
+
 
 const ToggleContainer = styled.div`
 	display: flex;
@@ -84,15 +90,15 @@ const ToggleSwitch = styled.input.attrs({ type: 'checkbox' })`
 	width: 44px;
 	height: 24px;
 	-webkit-appearance: none;
-	background: #3a4a63;
+	background: #cbd5e1;
 	border-radius: 12px;
 	outline: none;
 	transition: background 0.3s;
 	cursor: pointer;
 
-	&:checked {
-		background: #4376b6;
-	}
+  &:checked {
+    background: #60a5fa; /* 파란 계열 (blue-400) */
+  }
 
 	&::after {
 		content: '';
@@ -118,20 +124,22 @@ const InterviewList = styled.div`
 
 const InterviewCard = styled.div`
 	padding: 10px;
-	background: ${({ selected }) => (selected ? '#3d5c99' : '#233049')}; // ✅ hover용 색
+	background: ${({ selected }) => (selected ? '#D6E4FF' : '#FFFFFF')}; // 밝은 배경 톤
+	border: 1px solid ${({ selected }) => (selected ? '#2563EB' : '#E2E8F0')};
 	border-radius: 6px;
 	margin-bottom: 8px;
 	cursor: pointer;
-	color: #e1e8f0;
+	color: #1E1E1E; // 어두운 텍스트
 	display: flex;
 	justify-content: space-between;
 	overflow: hidden;
 	transition: background 0.2s ease;
 
 	&:hover {
-		background: #3d5c99;
+		background: #E8F0FF;
 	}
 `;
+
 
 
 const Paging = styled.div`
@@ -145,10 +153,11 @@ const Paging = styled.div`
 		width: 40px;
 		padding: 4px;
 		border-radius: 4px;
-		border: 1px solid #3a4a63;
-		background: #2c3e50;
-		color: #e1e8f0;
+		border: 1px solid #cbd5e1;
+    background: #ffffff;
+	  color: #1e293b;
 		text-align: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 	}
 
 	button {
@@ -176,16 +185,20 @@ const MainArea = styled.div`
 `;
 
 const Panel = styled.div`
-	background-color: #2c3e50;
+	background-color: #E9F1F9;  // 기존보다 톤 다운
 	padding: 20px;
 	border-radius: 12px;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
 	flex: 1;
-	min-height: 0; // ✅ 추가
+	min-height: 0;
 `;
+
+
+
+
 
 const DualPanel = styled.div`
 	display: flex;
@@ -212,19 +225,28 @@ const PanelContent = styled.div`
 
 const InfoTitle = styled.h4`
 	margin-bottom: 12px;
-	font-size: 22px;  // ✅ 기존보다 키움
+	font-size: 22px;
 	font-weight: bold;
-	color: #ffffff;
+	color: #1E1E1E; // 기존 #ffffff → 어두운 텍스트로 변경
 `;
 
 const ChartToggle = styled.select`
-	background: #2c3e50;
-	color: #e1e8f0;
-	border: 1px solid #3a4a63;
-	border-radius: 4px;
-	padding: 4px 8px;
-	align-self: flex-end;
+	background: #EFF4FF; /* 밝은 배경 */
+	color: #1E1E1E;      /* 어두운 글씨 */
+	border: 1px solid #CBD5E1; /* 연한 테두리 */
+	border-radius: 6px;
+	padding: 6px 10px;
+	font-size: 14px;
+	cursor: pointer;
+	box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+
+	&:focus {
+		outline: none;
+		border-color: #60A5FA;
+		box-shadow: 0 0 0 2px rgba(96,165,250,0.3);
+	}
 `;
+
 
 const PlaceholderText = styled.div`
 	font-size: 16px;
@@ -282,22 +304,23 @@ const AnimatedPanel = styled.div`
 
 const CustomTooltip = styled.div`
 	position: fixed;
-	background: #2f3e55;
-	color: #ffffff;
-	font-size: 18px;
-	padding: 10px 16px;
-	border-radius: 12px;
+	background: #F9FAFB; /* 밝은 회색 배경 */
+	color: #1E293B;       /* 짙은 남색 텍스트 */
+	font-size: 15px;
+	padding: 10px 14px;
+	border-radius: 10px;
 	white-space: nowrap;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 	transform: translateY(-100%);
 	pointer-events: none;
 	z-index: 1000;
-	backdrop-filter: blur(4px);
-	border: 1px solid #3a4a63;
+	border: 1px solid #CBD5E1;  /* 테두리도 밝게 */
 	transition: opacity 0.2s ease-in-out;
 	opacity: ${({ show }) => (show ? 1 : 0)};
 	visibility: ${({ show }) => (show ? 'visible' : 'hidden')};
+	backdrop-filter: blur(4px);
 `;
+
 
 const RadarSectionLeft = styled(PanelSection)`
 	flex: 7;
@@ -315,38 +338,42 @@ const RadarSectionRight = styled(PanelSection)`
 `;
 
 const DescriptionBox = styled.div`
-	background-color: #1f2a37;
+	background-color: #F0F6FF;
 	padding: 18px;
 	border-radius: 8px;
-	border: 1px solid #3a4a63;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-	color: #e1e8f0;
+	border: 1px solid #D0E3FF;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	color: #1E1E1E;
 	display: flex;
 	flex-direction: column;
 	height: 100%;
 	overflow: hidden;
 `;
 
+
 const TraitTitleStyled = styled.div`
 	font-size: 20px;
 	font-weight: bold;
-	color: #ffffff;
+	color: #2563EB;
 	margin-bottom: 12px;
 `;
 
+
 const TraitDescription = styled.div`
-	color: #b0c4de;
+	color: #4B5563;
 	font-size: 15px;
 	margin-bottom: 16px;
 `;
 
+
 const TraitComment = styled.div`
-	color: #e1e8f0;
+	color: #1E293B;
 	font-size: 15px;
 	line-height: 1.6;
 	overflow-y: auto;
 	flex: 1;
 `;
+
 
 
 const radarTemplate = ['리더십','분석력','창의력','실행력','소통력'];
@@ -485,9 +512,6 @@ export default function RadarSection() {
 
   const selInterviewTitle = interviews.find(i => i.id === selInterviewId)?.title;
   const selectedBarIndex = barData.findIndex(e => e.id === selInterviewId);
-
-
-
   const handlePageInput = (e) => {
     const value = e.target.value.replace(/\D/g, ''); // 숫자만
     setPageInput(value); // 입력상태 유지
@@ -548,15 +572,12 @@ export default function RadarSection() {
                 </InterviewCard>
               ))}
             </InterviewList>
-              <CustomTooltip
-                show={hoveredId !== null}
-                style={{
-                  top: tooltipPos.y + 10,
-                  left: tooltipPos.x + 20
-                }}
-              >
-                {hoveredId && formatTimestamp(Number(interviews.find(i => i.id === hoveredId)?.regdate))}
-              </CustomTooltip>
+            <CustomTooltip
+              show={hoveredId !== null}
+              style={{ top: tooltipPos.y + 10, left: tooltipPos.x + 20 }}
+            >
+              {hoveredId && formatTimestamp(Number(interviews.find(i => i.id === hoveredId)?.regdate))}
+            </CustomTooltip>
 
             <Paging>
               <button disabled={page === 1} onClick={() => {
@@ -584,7 +605,7 @@ export default function RadarSection() {
 
           <MainArea>
             <AnimatedPanelWrapper>
-              {/* 전체 보기 ON (좌우 레이아웃) */}
+              {/* 전체 보기 ON */}
               <AnimatedPanel show={expandedAll}>
                 <DualPanel>
                   <LeftPanelBox>
@@ -602,7 +623,6 @@ export default function RadarSection() {
                       />
                     </LeftPanel>
                   </LeftPanelBox>
-
                   <RightPanelBox>
                     <RightPanel>
                       <InfoTitle>오른쪽 콘텐츠 (2)</InfoTitle>
@@ -614,7 +634,7 @@ export default function RadarSection() {
                 </DualPanel>
               </AnimatedPanel>
 
-              {/* 전체 보기 OFF (위아래 레이아웃) */}
+              {/* 전체 보기 OFF */}
               <AnimatedPanel show={!expandedAll}>
                 <Panel style={{ height: '45%' }}>
                   <InfoTitle>Radar & 설명</InfoTitle>
@@ -622,11 +642,8 @@ export default function RadarSection() {
                     <RadarSectionLeft>
                       <PanelContent>
                         <ResponsiveContainer width="100%" height="100%">
-                          <RadarChart
-                            data={radarData}
-                            onClick={e => setSelSubject(e?.activeLabel)}
-                          >
-                            <PolarGrid stroke="#3a4a63" />
+                          <RadarChart data={radarData} onClick={e => setSelSubject(e?.activeLabel)}>
+                            <PolarGrid stroke="#CBD5E1" strokeWidth={1} />
                             <PolarAngleAxis
                               dataKey="subject"
                               tick={({ payload, x, y, textAnchor }) => {
@@ -636,8 +653,8 @@ export default function RadarSection() {
                                     x={x}
                                     y={y}
                                     textAnchor={textAnchor}
-                                    fill={sel ? '#ff5252' : '#e1e8f0'}
-                                    fontWeight="bold"
+                                    fill={sel ? '#e76f51' : '#374151'}
+                                    fontWeight={sel ? 'bold' : 'normal'}
                                     fontSize={14}
                                   >
                                     {payload.value}
@@ -645,27 +662,37 @@ export default function RadarSection() {
                                 );
                               }}
                             />
-                            <PolarRadiusAxis stroke="#3a4a63" domain={[0, 100]} />
+                            <PolarRadiusAxis
+                              stroke="#E5E7EB"
+                              tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                              axisLine={false}
+                              tickLine={false}
+                              domain={[0, 100]}
+                            />
                             <Radar
                               dataKey="A"
-                              stroke="#82ca9d"
-                              fill="#82ca9d"
-                              fillOpacity={0.6}
+                              stroke="#3b82f6" // blue-500
+                              fill="#3b82f6"
+                              fillOpacity={0.25}
                             />
+
                             <Tooltip
                               activeIndex={selectedBarIndex}
                               contentStyle={{
-                                backgroundColor: '#2c3e50',
-                                borderColor: '#3a4a63'
+                                backgroundColor: '#F9FAFB',  // ✅ 밝은 배경
+                                borderColor: '#CBD5E1',
+                                borderRadius: 10
                               }}
-                              itemStyle={{ color: '#e1e8f0' }}
+                              itemStyle={{
+                                color: '#1E293B',           // ✅ 진한 글자색
+                                fontSize: 14
+                              }}
                               formatter={(value) => [`${value}점`, '점수']}
                             />
                           </RadarChart>
                         </ResponsiveContainer>
                       </PanelContent>
                     </RadarSectionLeft>
-
                     <RadarSectionRight>
                       <DescriptionBox>
                         {selSubject ? (
@@ -685,7 +712,6 @@ export default function RadarSection() {
                       </DescriptionBox>
                     </RadarSectionRight>
                   </DualPanel>
-
                 </Panel>
 
                 <Panel style={{ flex: 1 }}>
@@ -704,57 +730,87 @@ export default function RadarSection() {
                     <ResponsiveContainer width="100%" height="100%">
                       {chartType === 'bar' ? (
                         <BarChart data={barData} activeIndex={selectedBarIndex}>
-                          <CartesianGrid stroke="#3a4a63" />
+                          <CartesianGrid stroke="#CBD5E1" strokeWidth={1} />
                           <XAxis dataKey="title" tick={false} />
-                          <YAxis domain={[0, 100]} tick={{ fill: '#e1e8f0' }} />
-                          <Tooltip contentStyle={{ backgroundColor: '#2c3e50', borderColor: '#3a4a63' }} />
-
+                          <YAxis domain={[0, 100]} tick={{ fill: '#374151', fontSize: 12 }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: '#F9FAFB',
+                              borderColor: '#CBD5E1',
+                              borderRadius: 10
+                            }}
+                            itemStyle={{
+                              color: '#1E293B',
+                              fontSize: 14
+                            }}
+                          />
                           {selSubject && barData.some(d => d.value !== null) && (
-                            <Bar
-                              dataKey="value"
-                              name="선택점수"
-                              isAnimationActive={true}
-                              animationDuration={600}
-                              animationEasing="ease-out"
-                            >
+                            <Bar dataKey="value" name="선택점수" isAnimationActive animationDuration={600}>
                               {barData.map((e, idx) => (
                                 <Cell
                                   key={`value-${idx}`}
-                                  fill={e.id === selInterviewId ? '#f44336' : '#82ca9d'}
-                                  fillOpacity={e.id === selInterviewId ? 1 : 0.8}
+                                  fill={e.id === selInterviewId ? '#f4a261' : '#fdd6b3'}
+                                  fillOpacity={1}
                                   stroke={e.id === selInterviewId ? '#ffffff' : 'none'}
                                   strokeWidth={e.id === selInterviewId ? 2 : 0}
+                                  style={{
+                                    filter: e.id === selInterviewId
+                                      ? 'drop-shadow(0 0 6px rgba(0,0,0,0.5))'
+                                      : 'none',
+                                    transition: 'all 0.3s ease'
+                                  }}
                                 />
                               ))}
                             </Bar>
                           )}
-
-                          <Bar
-                            dataKey="avg"
-                            name="평균점수"
-                            isAnimationActive={true}
-                            animationDuration={600}
-                            animationEasing="ease-out"
-                          >
+                          <Bar dataKey="avg" name="평균점수" isAnimationActive animationDuration={600}>
                             {barData.map((e, idx) => (
                               <Cell
                                 key={`avg-${idx}`}
-                                fill="#ffb74d"
-                                fillOpacity={e.id === selInterviewId ? 1 : 0.6}
+                                fill={e.id === selInterviewId ? '#7f99b2' : '#b3c1d1'}
+                                fillOpacity={e.id === selInterviewId ? 1 : 0.65}
                                 stroke={e.id === selInterviewId ? '#ffffff' : 'none'}
                                 strokeWidth={e.id === selInterviewId ? 2 : 0}
+                                style={{
+                                  filter: e.id === selInterviewId
+                                    ? 'drop-shadow(0 0 6px rgba(0,0,0,0.5))'
+                                    : 'none',
+                                  transition: 'all 0.3s ease'
+                                }}
                               />
                             ))}
                           </Bar>
                         </BarChart>
                       ) : (
                         <AreaChart data={areaData}>
-                          <CartesianGrid stroke="#3a4a63" />
+                          <CartesianGrid stroke="#CBD5E1" strokeWidth={1} />
                           <XAxis dataKey="title" tick={false} />
-                          <YAxis domain={[0, 100]} tick={{ fill: '#e1e8f0' }} />
-                          <Tooltip contentStyle={{ backgroundColor: '#2c3e50', borderColor: '#3a4a63' }} />
-                          <Area type="monotone" dataKey="value" stroke="#82ca9d" fill="rgba(130,202,157,0.3)" name="선택점수" />
-                          <Area type="monotone" dataKey="avg" stroke="#ffb74d" fill="rgba(255,183,77,0.3)" name="평균점수" />
+                          <YAxis domain={[0, 100]} tick={{ fill: '#374151', fontSize: 12 }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: '#F9FAFB',
+                              borderColor: '#CBD5E1',
+                              borderRadius: 10
+                            }}
+                            itemStyle={{
+                              color: '#1E293B',
+                              fontSize: 14
+                            }}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="value"
+                            stroke="#82ca9d"
+                            fill="rgba(130,202,157,0.3)"
+                            name="선택점수"
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="avg"
+                            stroke="#ffb74d"
+                            fill="rgba(255,183,77,0.3)"
+                            name="평균점수"
+                          />
                         </AreaChart>
                       )}
                     </ResponsiveContainer>
@@ -767,6 +823,7 @@ export default function RadarSection() {
       </Wrapper>
     </Container>
   );
+
 
 
 

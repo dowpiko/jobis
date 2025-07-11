@@ -1,127 +1,95 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 const Container = styled.div`
-  width: 100%;
-  height: 100%;
-  padding: 40px 40px 0;
-  font-family: sans-serif;
-  color: #1F2A37;
-  background-color: #F8F9FA;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+	width: 100%;
+	max-width: 800px;
+	margin: 0 auto;
+	height: 100%;
+	padding: 60px 40px 40px;
+	font-family: 'Inter', sans-serif;
+	color: #1F2A37;
+	background-color: #F9FAFB;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 `;
 
-const SelectWrapper = styled.div`
-  margin-bottom: 40px;
+const ContentWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
 `;
 
-const Label = styled.label`
-  display: block;
-  font-size: 15px;
-  font-weight: bold;
-  margin-bottom: 6px;
-  color: #1F2A37;
+const Title = styled.h1`
+	font-size: 32px;
+	font-weight: 700;
+	margin-bottom: 20px;
+	color: #1F2A37;
 `;
 
-const Select = styled.select`
-  padding: 10px 14px;
-  font-size: 15px;
-  border-radius: 6px;
-  border: 1px solid #B0BCCB;
-  background-color: #ffffff;
-  color: #1F2A37;
-  width: 260px;
-
-  &:focus {
-    outline: none;
-    border-color: #4376B6;
-    box-shadow: 0 0 0 2px rgba(67, 118, 182, 0.2);
-  }
+const Description = styled.div`
+	font-size: 17px;
+	line-height: 1.8;
+	color: #4B5563;
 `;
 
-const CenterBoxWrapper = styled.div`
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+const Highlight = styled.span`
+	color: #2563EB;
+	font-weight: 600;
 `;
 
-const CreateBox = styled.button`
-  width: 300px;
-  height: 300px;
-  background-color: #4376B6;
-  border: none;
-  border-radius: 12px;
-  font-size: 26px;
-  font-weight: bold;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
+const ButtonWrapper = styled.div`
+	display: flex;
+	justify-content: center;
+	margin-top: 60px;
+`;
 
-  &:hover {
-    background-color: #5C8BC4;
-    transform: scale(1.03);
-  }
+const StartButton = styled.button`
+	padding: 16px 36px;
+	background-color: #2563EB;
+	color: white;
+	font-size: 18px;
+	font-weight: 600;
+	border: none;
+	border-radius: 12px;
+	cursor: pointer;
+	transition: background-color 0.3s ease, transform 0.2s ease;
+
+	&:hover {
+		background-color: #1E40AF;
+		transform: scale(1.03);
+	}
 `;
 
 const AiInterview = () => {
-  const [interviews, setInterviews] = useState([]);
-  const [selectedAno, setSelectedAno] = useState('');
-  const navigate = useNavigate();
+	const navigate = useNavigate();
 
-  const createAiInterview = () => {
-    navigate('/createAiInterview');
-  };
-  useEffect(()=> {
-    const fetchData = async () =>{
-      try {
-        const response = await axios.get("http://localhost:9090/ymj/getAllResults", {
-          withCredentials: true
-        });
-        const res = response.data;
-        setInterviews(res);
-      } catch (error) {
-        console.error("데이터 불러오기 실패 : ",error);
-      }
-    }
-    fetchData();
-  },[]);
-  const handleSelectChange = (e) => {
-    const selectedAno = e.target.value;
-    setSelectedAno(selectedAno);
-    const selectedInterview = interviews.find(item => item.ano.toString() === selectedAno);                               
-    if (selectedInterview) {
-      navigate("/chatHistory", {
-        state: {
-          content: selectedInterview.acontent,
-          title: selectedInterview.atitle, // 👈 요거 추가
-        }
-      });
-    }
-  };
-  return (
-    <Container>
-      <SelectWrapper>
-        <Label>기록</Label>
-        <Select value={selectedAno} onChange={handleSelectChange}>
-          <option value="" disabled>--면접을 선택하세요--</option>
-          {interviews.map((item) => (
-            <option key={item.ano} value={item.ano}>
-              {item.atitle}
-            </option>
-          ))}
-        </Select>
-      </SelectWrapper>
+	const handleStartClick = () => {
+		navigate('/createAiInterview');
+	};
 
-      <CenterBoxWrapper>
-        <CreateBox onClick={createAiInterview}>생성</CreateBox>
-      </CenterBoxWrapper>
-    </Container>
-  );
+	return (
+		<Container>
+			<ContentWrapper>
+				<Title>AI 모의 면접이란?</Title>
+				<Description>
+					AI 면접은 사용자의 <Highlight>경력</Highlight>, <Highlight>직무 목표</Highlight>, <Highlight>기술 스택</Highlight>을 바탕으로
+					개인화된 질문을 생성하여, <Highlight>리더십</Highlight>, <Highlight>소통력</Highlight>, <Highlight>창의력</Highlight>, <Highlight>분석력</Highlight>, <Highlight>실행력</Highlight> 등
+					핵심 역량을 종합적으로 평가합니다. <br /><br />
+					실제 면접 상황을 가정하여 질문과 피드백이 주어지며, 그에 대한 답변은 AI에 의해 평가되어 역량별 점수와 함께
+					개선 코멘트를 받을 수 있습니다.
+				</Description>
+			</ContentWrapper>
+
+			<ButtonWrapper>
+				<StartButton onClick={handleStartClick}>
+					AI 면접 시작하기
+				</StartButton>
+			</ButtonWrapper>
+		</Container>
+	);
 };
 
 export default AiInterview;

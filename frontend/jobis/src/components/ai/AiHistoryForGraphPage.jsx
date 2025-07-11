@@ -15,8 +15,8 @@ const Header = styled.div`
 	font-weight: bold;
 	font-size: 1.15rem;
 	text-align: center;
-	border-bottom: 1px solid #3a4a63;
-	color: #ffffff;
+	border-bottom: 1px solid #CBD5E1; // 부드러운 경계
+	color: #1F2A37; // 기본 텍스트 색
 `;
 
 const ChatContainer = styled.div`
@@ -37,44 +37,48 @@ const ProfileImage = styled.img`
 	height: 48px;
 	border-radius: 50%;
 	margin: 0 8px;
-	background-color: #3a4a63;
+	background-color: #E0E7EF; // 기존 중립 배경 유지
 	object-fit: cover;
-	border: 2px solid #4f6583;
+	border: 3px solid #94A3B8; // 💡 테두리만 한 단계 진하게
 `;
 
+
 const MessageBubble = styled.div`
-	padding: 12px;
+	padding: 12px 16px;
 	border-radius: 12px;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 	font-size: 16px;
+	line-height: 1.6;
 	max-width: 800px;
 	word-break: break-word;
 	white-space: pre-wrap;
 	margin: ${({ $isAi }) => ($isAi ? '0 0 0 8px' : '0 8px 0 0')};
-	color: #ecf0f1;
+	color: #1F2A37;
+	background-color: ${({ $isAi }) => ($isAi ? '#D0E2F2' : '#CDE7DA')}; // 💡 대비 확실한 색
 `;
 
 const AiMessageBubble = styled(MessageBubble)`
-	background-color: #34495e;
+	background-color: #B6CDE2; // 💬 AI - 약간 더 어두운 블루
+`;
+const UserMessageBubble = styled(MessageBubble)`
+	background-color: #CDE7DA; // 연한 민트, 패널과 구분 확실
 `;
 
-const UserMessageBubble = styled(MessageBubble)`
-	background-color: #2d7d9a;
-`;
 
 const QuestionLabel = styled.div`
-	font-size: 16px;
-	font-weight: bold;
-	color: #f9cb9c;
+	font-size: 15px;
+	font-weight: 600;
+	color: #3B4A5A;
 	margin-bottom: 6px;
 `;
 
 const Placeholder = styled.div`
 	font-size: 16px;
-	color: #aab2bd;
+	color: #6B7280;
 	padding: 20px;
 	text-align: center;
 `;
+
 
 
 const AiHistoryForGraphPage = ({ title = "면접 기록", records = [] }) => {
