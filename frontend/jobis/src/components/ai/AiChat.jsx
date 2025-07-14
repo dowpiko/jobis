@@ -503,27 +503,28 @@ const AiChat = () => {
           getQuestionResponse();
         }
 
-        // 공통 처리
         currentStreamRef.current = '';
         setCurrentStream('');
         setIsStreaming(false);
       }
     } else {
       currentStreamRef.current += data;
-      
-      // question 부분만 추출해서 임시 표시
+
       const match = currentStreamRef.current.match(/"question"\s*:\s*"([^"]*)/);
 
       if (match && match[1]) {
-          if (match[1] !== currentStreamRef.current) {
-            setCurrentStream(match[1]);
-          }
+        const newText = match[1];
+        if (newText !== currentStream) {      // ✅ 상태랑 비교
+          setCurrentStream(newText);
+        }
       } else {
-        // 아직 question이 시작되지 않거나 파싱 불가 상태면 아무것도 출력하지 않음
-        setCurrentStream('');
+        if (currentStream !== '') {
+          setCurrentStream('');
+        }
       }
     }
-  }, [lastMessage, count]);
+  }, [lastMessage, count]);  // ❗ currentStream을 의존성 배열에 절대 넣지 말 것
+
 
 
   return (

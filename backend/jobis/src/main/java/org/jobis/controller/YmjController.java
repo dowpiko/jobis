@@ -1,6 +1,7 @@
 package org.jobis.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpSession;
 
@@ -49,5 +50,12 @@ public class YmjController {
 		System.out.println(User);
 		int uno = User.getUno();
 		return iService.getAllResults(uno);
+	}
+	
+	@PostMapping(value = "/getFeedback", produces = "text/plain; charset=UTF-8")
+	public String getFeedback(@RequestBody Map<String, Integer> payload) {
+		int ano = payload.get("ano");
+		System.out.println("!!!"+ano+"!!!");
+		return iService.getFeedbackFromAI(ano);
 	}
 }

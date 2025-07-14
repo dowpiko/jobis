@@ -27,7 +27,6 @@ import NaverCallback from './components/NaverCallback';
 import KakaoCallback from './components/KakaoCallback';
 import GoogleCallback from './components/GoolgleCallback';
 import VideoChat from './components/chat/VideoChat';
-import AiHistory from './components/ai/AiHistory';
 import CompanyChatLayout from './components/company/CompanyChatLayout';
 import UserChatLayout from './components/userChatLayout';
 
@@ -163,14 +162,6 @@ import UserChatLayout from './components/userChatLayout';
             element={
               <UserSidebar>
                 <AiChat/>
-              </UserSidebar>
-            }
-          />
-          <Route
-            path="/chatHistory"
-            element={
-              <UserSidebar>
-                <AiHistory />
               </UserSidebar>
             }
           />

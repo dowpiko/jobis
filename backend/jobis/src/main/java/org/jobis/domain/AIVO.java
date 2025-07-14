@@ -17,4 +17,5 @@ public class AIVO {
     private String aContent;    // A_CONTENT - 본문
     private Date aRegdate;      // A_REGDATE - 등록일
     private String aScore;      // A_SCORE - 점수
+    private String feedback;   // FEEDBACK - AI 피드백 (CLOB)
 }

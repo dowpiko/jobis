@@ -46,4 +46,25 @@ public class AiServiceImpl implements AiService {
 			}
 		});
 	}
+	@Override
+	public String getResultSync(String prompt) {
+		try {
+			OpenAIClient client = OpenAIOkHttpClient.builder()
+				.apiKey(aiApiKey)
+				.build();
+
+			ChatCompletionCreateParams params = ChatCompletionCreateParams.builder()
+				.addUserMessage(prompt)
+				.model(ChatModel.CHATGPT_4O_LATEST)
+				.build();
+
+			var response = client.chat().completions().create(params);
+			return response.choices().get(0).message().content().get();
+
+		} catch (Exception e) {
+			System.err.println("❌ 동기 요청 에러: " + e.getMessage());
+			return null;
+		}
+	}
+
 }

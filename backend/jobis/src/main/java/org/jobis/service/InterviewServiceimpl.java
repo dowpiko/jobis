@@ -16,6 +16,7 @@ import org.jobis.domain.AISurveyDTO;
 import org.jobis.domain.AIVO;
 import org.jobis.domain.InterviewResultDTO;
 import org.jobis.domain.UserVO;
+import org.jobis.generators.FeedbackPromptGenerator;
 import org.jobis.generators.PromptGenerator;
 import org.jobis.generators.QuestionPromptGenerator;
 import org.jobis.generators.ResultPromptGenerator;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import kotlin.jvm.Throws;
 import lombok.extern.log4j.Log4j;
 
 @Log4j
@@ -37,6 +39,9 @@ public class InterviewServiceimpl implements InterviewService{
 	
 	@Autowired
 	AIMapper aMapper;
+	
+	@Autowired
+	AiService aService;
 	
 	@Override
 	public String getPrompt(HttpSession httpSession, Session session) {
@@ -105,7 +110,7 @@ public class InterviewServiceimpl implements InterviewService{
 		UserVO User = (UserVO) session.getAttribute("User");
 		
 		long uno = User.getUno();
-		AIVO aVO = new AIVO(null, uno, aTitle, sDTO.getSubCategory(), aContent, null, resultScore);
+		AIVO aVO = new AIVO(null, uno, aTitle, sDTO.getSubCategory(), aContent, null, resultScore, null);
 		return aMapper.insertData(aVO);
 	}
 	
@@ -116,6 +121,16 @@ public class InterviewServiceimpl implements InterviewService{
 		return test;
 	}
 	
+	@Override
+	public String getFeedbackFromAI(int ano) {
+		AIVO aVO = aMapper.getDataByAno(ano);
+		PromptGenerator gen = new FeedbackPromptGenerator(aVO);
+		String prompt = gen.generatePrompt();
+		String result = aService.getResultSync(prompt);
+		System.out.println(result);
+		aVO.setFeedback(result);
+		return aMapper.updateFeedback(aVO) >= 1? result : "DB 업데이트 오류";
+	}
 	
 	//------------------헬퍼 함수----------------
 	// json 점수 데이터의 평균을 계산하고 문자열로 변환

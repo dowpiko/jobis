@@ -1,4 +1,3 @@
-// src/components/RadarSection.jsx
 import React, { useState, useMemo, useEffect } from 'react';
 import styled from 'styled-components';
 import {
@@ -10,6 +9,8 @@ import {
 import axios from 'axios';
 import AiHistoryForGraphPage from './AiHistoryForGraphPage';
 import { leader, analytical, creative, executive, communicative } from '../../data/evaluation';
+import LoadingModal from '../modal/LoadingModal';
+import FeedbackReportPanel from './FeedbackReportPanel';
 
 
 const Container = styled.div`
@@ -196,10 +197,6 @@ const Panel = styled.div`
 	min-height: 0;
 `;
 
-
-
-
-
 const DualPanel = styled.div`
 	display: flex;
 	gap: 20px;
@@ -247,13 +244,6 @@ const ChartToggle = styled.select`
 	}
 `;
 
-
-const PlaceholderText = styled.div`
-	font-size: 16px;
-	color: #e1e8f0;
-	opacity: 0.8;
-`;
-
 const LeftPanelBox = styled(PanelSection)`
 	flex: 7;
 	height: 100%;
@@ -274,14 +264,6 @@ const RightPanel = styled(Panel)`
 	height: 100%;
 	display: flex;
 	flex-direction: column;
-`;
-
-const CenteredContent = styled(PanelContent)`
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	height: 100%;
-	min-height: 0;
 `;
 
 const AnimatedPanelWrapper = styled.div`
@@ -373,6 +355,54 @@ const TraitComment = styled.div`
 	overflow-y: auto;
 	flex: 1;
 `;
+const AIContentWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	padding: 24px;
+	background-color: #EFF6FF;
+	border-radius: 12px;
+	border: 1px solid #DBEAFE;
+	box-sizing: border-box;
+`;
+
+const AIUnifiedTitle = styled.h3`
+	font-size: 24px;
+	font-weight: bold;
+	color: #1E293B;
+	margin-bottom: 24px;  // 제목 아래 여백 증가
+`;
+
+const AIUnifiedDescription = styled.p`
+	font-size: 18px;
+	color: #334155;
+	line-height: 1.7;
+	margin-bottom: 24px;
+`;
+
+
+const FlexibleBottomSpacer = styled.div`
+	flex-grow: 1;
+`;
+
+const UnifiedButton = styled.button`
+	background: linear-gradient(to right, #3B82F6, #60A5FA);
+	color: white;
+	border: none;
+	border-radius: 9999px;
+	padding: 10px 24px;
+	font-size: 15px;
+	font-weight: 600;
+	cursor: pointer;
+	align-self: center;
+	margin-bottom: 8px;
+	transition: background 0.3s ease;
+
+	&:hover {
+		background: linear-gradient(to right, #2563EB, #3B82F6);
+	}
+`;
+
 
 
 
@@ -422,10 +452,12 @@ export default function RadarSection() {
   const [interviews, setInterviews] = useState([]);
   const [hoveredId, setHoveredId] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const perPage = 10;
   const totalPage = Math.ceil(interviews.length / perPage);
-
+  
+  const selInterview = interviews.find(i => i.id === selInterviewId);
   useEffect(() => {
     const getDatas = async () => {
       try {
@@ -449,7 +481,8 @@ export default function RadarSection() {
             title: item.atitle,
             result,
             content: item.acontent,
-            regdate: item.aregdate  // ✅ 필드 이름 정확히!
+            regdate: item.aregdate,  // ✅ 필드 이름 정확히!
+            feedback: item.feedback || null
           };
         });
 
@@ -530,9 +563,42 @@ export default function RadarSection() {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handlePageSubmit();
   };
+  const handleSubmitInterview = async () => {
+    setIsLoading(true);
+    try {
+      const res = await axios.post('http://localhost:9090/ymj/getFeedback', {
+        ano: selInterviewId
+      }, { withCredentials: true });
+
+      // 분석 결과 저장
+      setInterviews(prev => prev.map(i =>
+        i.id === selInterviewId ? { ...i, feedback: res.data } : i
+      ));
+    } catch (err) {
+      console.error(err);
+      alert('에러 발생');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+console.log("=== selInterview.feedback ===");
+if (selInterview) {
+  console.log(selInterview.feedback);
+  console.log("typeof:", typeof selInterview.feedback);
+
+  try {
+    const parsed = JSON.parse(selInterview.feedback);
+    console.log("✅ 파싱 성공", parsed);
+  } catch (e) {
+    console.error("❌ 파싱 실패", e.message);
+  }
+} else {
+  console.log("⛔ selInterview가 아직 정의되지 않았습니다.");
+}
 
   return (
     <Container>
+      {isLoading && <LoadingModal />}
       <Wrapper>
         <KpiWrapper>
           <KpiCard><KpiValue>{totalInterviews}</KpiValue><KpiLabel>총 면접</KpiLabel></KpiCard>
@@ -625,10 +691,34 @@ export default function RadarSection() {
                   </LeftPanelBox>
                   <RightPanelBox>
                     <RightPanel>
-                      <InfoTitle>오른쪽 콘텐츠 (2)</InfoTitle>
-                      <CenteredContent>
-                        <PlaceholderText>오른쪽 콘텐츠 영역입니다</PlaceholderText>
-                      </CenteredContent>
+                      <PanelContent>
+                        {selInterview?.feedback ? (
+                          	<FeedbackReportPanel
+                              title="AI 기반 맞춤 피드백"
+                              feedback={(() => {
+                                try {
+                                  return JSON.parse(selInterview.feedback);
+                                } catch {
+                                  return null;
+                                }
+                              })()}
+                              isExpanded={isExpanded}
+                              onToggle={() => setIsExpanded(prev => !prev)}
+                            />  
+                        ) : (
+                          <AIContentWrapper>
+                            <AIUnifiedTitle>AI 기반 맞춤 피드백</AIUnifiedTitle>
+                            <AIUnifiedDescription>
+                              사용자의 전체 면접 응답을 바탕으로 AI가 컨텍스트 기반 피드백을 제공합니다.
+                              지원자의 강점과 보완점을 분석하여 실질적인 개선 방향을 제시합니다.
+                            </AIUnifiedDescription>
+                            <FlexibleBottomSpacer />
+                            <UnifiedButton onClick={handleSubmitInterview}>
+                              전체 결과 보기
+                            </UnifiedButton>
+                          </AIContentWrapper>
+                        )}
+                      </PanelContent>
                     </RightPanel>
                   </RightPanelBox>
                 </DualPanel>

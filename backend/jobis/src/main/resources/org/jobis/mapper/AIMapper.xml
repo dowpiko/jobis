@@ -40,7 +40,8 @@
 	    A_TAG AS aTag,
 	    A_CONTENT AS aContent,
 	    A_REGDATE AS aRegdate,
-	    A_SCORE AS aScore
+	    A_SCORE AS aScore,
+	    FEEDBACK AS feedback 
 	  FROM 
 	    TBL_AI
 	  WHERE 
@@ -48,4 +49,28 @@
 	  ORDER BY 
 	    A_REGDATE DESC
 	</select>
+	
+	<!--ano에 해당하는 인터뷰 데이터 가져오기-->
+	<select id="getDataByAno" parameterType="int" resultType="org.jobis.domain.AIVO">
+		  SELECT 
+		    ANO,
+		    UNO,
+		    A_TITLE AS aTitle,
+		    A_TAG AS aTag,
+		    A_CONTENT AS aContent,
+		    A_REGDATE AS aRegdate,
+		    A_SCORE AS aScore,
+		    FEEDBACK AS feedback
+		  FROM 
+		    TBL_AI
+		  WHERE 
+		    ANO = #{ano}
+	</select>
+	
+	<!--ano에 해당하는 튜플의 feedback update-->
+	<update id="updateFeedback" parameterType="org.jobis.domain.AIVO">
+	  UPDATE TBL_AI
+	  SET FEEDBACK = #{feedback}
+	  WHERE ANO = #{ano}
+	</update>
 </mapper>
