@@ -11,6 +11,7 @@ import AiHistoryForGraphPage from './AiHistoryForGraphPage';
 import { leader, analytical, creative, executive, communicative } from '../../data/evaluation';
 import LoadingModal from '../modal/LoadingModal';
 import FeedbackReportPanel from './FeedbackReportPanel';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 
 const Container = styled.div`
@@ -245,14 +246,20 @@ const ChartToggle = styled.select`
 `;
 
 const LeftPanelBox = styled(PanelSection)`
-	flex: 7;
+	flex: ${({ $expanded }) => ($expanded ? 0 : 7)};
 	height: 100%;
+	transition: flex 0.4s ease;
 `;
 
+
 const RightPanelBox = styled(PanelSection)`
-	flex: 3;
+	flex: ${({ $expanded }) => ($expanded ? 10 : 3)};
 	height: 100%;
+	overflow: visible;
+	position: relative;
+	transition: flex 0.4s ease;
 `;
+
 
 const LeftPanel = styled(Panel)`
 	height: 100%;
@@ -403,8 +410,49 @@ const UnifiedButton = styled.button`
 	}
 `;
 
+const RightPanelToggleButton = styled.button`
+	position: absolute;
+	left: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 10;
 
+	width: 30px;
+	height: 75px;
 
+	background: rgba(80, 80, 80, 0.5);  // 🔵 기존보다 진한 배경
+	backdrop-filter: blur(4px);
+	border: 1px solid rgba(200, 200, 200, 0.3);
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	transition: background-color 0.3s ease, transform 0.2s ease;
+
+	svg {
+		color: white;  // ✅ 항상 흰색으로
+		transition: color 0.3s ease;
+	}
+
+	&:hover {
+		background: rgba(60, 60, 60, 0.6);  // 🔵 더 진한 배경으로 hover 효과
+		transform: translateY(-50%) scale(1.05);
+	}
+`;
+
+const BlurredPanelWrapper = styled.div`
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	overflow-y: hidden; 
+	overflow-x: hidden;
+	filter: ${({ $expanded }) => ($expanded ? 'none' : 'blur(3px)' )};
+	pointer-events: ${({ $expanded }) => ($expanded ? 'auto' : 'none')};
+	transition: filter 0.3s ease, opacity 0.3s ease;
+`;
 
 const radarTemplate = ['리더십','분석력','창의력','실행력','소통력'];
 const radarDataTemplate = radarTemplate.map(s => ({ subject: s, A: 0 }));
@@ -457,7 +505,10 @@ export default function RadarSection() {
   const perPage = 10;
   const totalPage = Math.ceil(interviews.length / perPage);
   
-  const selInterview = interviews.find(i => i.id === selInterviewId);
+  const selInterview = useMemo(
+    () => interviews.find(i => i.id === selInterviewId),
+    [interviews, selInterviewId]
+  );
   useEffect(() => {
     const getDatas = async () => {
       try {
@@ -465,12 +516,27 @@ export default function RadarSection() {
           withCredentials: true
         });
         const raw = response.data;
-
         const parsed = raw.map((item, idx) => {
-          const parsedAnswers = JSON.parse(item.acontent); // 문자열로 온 JSON 파싱
-          const scores = item.ascore.split(',').map(s => Number(s));
+          // 1. 로그 찍기
+          console.log(`🔹 index ${idx}번`);
+          console.log('🟨 acontent 원본:', item.acontent);
+          console.log('🟨 feedback 원본:', item.feedback);
 
-          // 각 유형에 해당하는 점수 매핑
+          // 2. 문제 파악 위해 try-catch
+          let parsedFeedback = null;
+          try {
+            if (typeof item.feedback === 'string') {
+              parsedFeedback = JSON.parse(item.feedback);
+            } else if (typeof item.feedback === 'object') {
+              parsedFeedback = item.feedback;
+            }
+          } catch (e) {
+            console.error('🚨 JSON parse 에러 발생한 feedback:', item.feedback);
+            console.error('👉 에러:', e.message);
+          }
+
+          // 3. 원래 로직
+          const scores = item.ascore.split(',').map(s => Number(s));
           const result = {};
           radarTemplate.forEach((key, i) => {
             result[key] = scores[i];
@@ -481,8 +547,8 @@ export default function RadarSection() {
             title: item.atitle,
             result,
             content: item.acontent,
-            regdate: item.aregdate,  // ✅ 필드 이름 정확히!
-            feedback: item.feedback || null
+            regdate: item.aregdate,
+            feedback: parsedFeedback
           };
         });
 
@@ -561,8 +627,8 @@ export default function RadarSection() {
 
   const handlePageBlur = () => handlePageSubmit();
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handlePageSubmit();
-  };
+      if (e.key === 'Enter') handlePageSubmit();
+    };
   const handleSubmitInterview = async () => {
     setIsLoading(true);
     try {
@@ -571,9 +637,15 @@ export default function RadarSection() {
       }, { withCredentials: true });
 
       // 분석 결과 저장
-      setInterviews(prev => prev.map(i =>
-        i.id === selInterviewId ? { ...i, feedback: res.data } : i
-      ));
+    setInterviews(prev => prev.map(i =>
+      i.id === selInterviewId
+        ? {
+            ...i,
+            feedback: typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+          }
+        : i
+    ));
+
     } catch (err) {
       console.error(err);
       alert('에러 발생');
@@ -581,20 +653,9 @@ export default function RadarSection() {
       setIsLoading(false);
     }
   };
-console.log("=== selInterview.feedback ===");
-if (selInterview) {
-  console.log(selInterview.feedback);
-  console.log("typeof:", typeof selInterview.feedback);
-
-  try {
-    const parsed = JSON.parse(selInterview.feedback);
-    console.log("✅ 파싱 성공", parsed);
-  } catch (e) {
-    console.error("❌ 파싱 실패", e.message);
-  }
-} else {
-  console.log("⛔ selInterview가 아직 정의되지 않았습니다.");
-}
+  useEffect(() => {
+    setIsExpanded(false);
+  }, [selInterviewId]);
 
   return (
     <Container>
@@ -674,7 +735,7 @@ if (selInterview) {
               {/* 전체 보기 ON */}
               <AnimatedPanel show={expandedAll}>
                 <DualPanel>
-                  <LeftPanelBox>
+                  <LeftPanelBox $expanded={isExpanded}>
                     <LeftPanel>
                       <AiHistoryForGraphPage
                         title={selInterviewTitle}
@@ -689,37 +750,37 @@ if (selInterview) {
                       />
                     </LeftPanel>
                   </LeftPanelBox>
-                  <RightPanelBox>
-                    <RightPanel>
-                      <PanelContent>
-                        {selInterview?.feedback ? (
-                          	<FeedbackReportPanel
+
+                  <RightPanelBox $expanded={isExpanded}>
+                    {selInterview?.feedback ? (
+                      <>
+                        <RightPanelToggleButton onClick={() => setIsExpanded(prev => !prev)}>
+                          {isExpanded ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                        </RightPanelToggleButton>
+                        <RightPanel>
+                          <BlurredPanelWrapper $expanded={isExpanded}>
+                            <FeedbackReportPanel
                               title="AI 기반 맞춤 피드백"
-                              feedback={(() => {
-                                try {
-                                  return JSON.parse(selInterview.feedback);
-                                } catch {
-                                  return null;
-                                }
-                              })()}
+                              feedback={selInterview.feedback}
                               isExpanded={isExpanded}
-                              onToggle={() => setIsExpanded(prev => !prev)}
-                            />  
-                        ) : (
-                          <AIContentWrapper>
-                            <AIUnifiedTitle>AI 기반 맞춤 피드백</AIUnifiedTitle>
-                            <AIUnifiedDescription>
-                              사용자의 전체 면접 응답을 바탕으로 AI가 컨텍스트 기반 피드백을 제공합니다.
-                              지원자의 강점과 보완점을 분석하여 실질적인 개선 방향을 제시합니다.
-                            </AIUnifiedDescription>
-                            <FlexibleBottomSpacer />
-                            <UnifiedButton onClick={handleSubmitInterview}>
-                              전체 결과 보기
-                            </UnifiedButton>
-                          </AIContentWrapper>
-                        )}
-                      </PanelContent>
-                    </RightPanel>
+                            />
+                          </BlurredPanelWrapper>
+                        </RightPanel>
+                      </>
+                    ) : (
+                      <RightPanel>
+                        <AIContentWrapper>
+                          <AIUnifiedTitle>AI 기반 맞춤 피드백</AIUnifiedTitle>
+                          <AIUnifiedDescription>
+                            사용자의 전체 면접 응답을 바탕으로 AI가 컨텍스트 기반 피드백을 제공합니다.
+                          </AIUnifiedDescription>
+                          <FlexibleBottomSpacer />
+                          <UnifiedButton onClick={handleSubmitInterview}>
+                            전체 결과 보기
+                          </UnifiedButton>
+                        </AIContentWrapper>
+                      </RightPanel>
+                    )}
                   </RightPanelBox>
                 </DualPanel>
               </AnimatedPanel>

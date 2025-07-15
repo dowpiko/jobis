@@ -1,6 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+const PanelContainer = styled.div`
+	position: relative;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+`;
+
 
 const Wrapper = styled.div`
 	position: relative;
@@ -9,32 +16,12 @@ const Wrapper = styled.div`
 	display: flex;
 	flex-direction: column;
 	background-color: #f9fafb;
-	padding: 24px;
+	padding: 24px 32px 24px 32px;  // ✅ 오른쪽 여백 확보
+	box-sizing: border-box;       // ✅ 패딩 포함 계산
 	overflow-y: auto;
+	overflow-x: hidden;
 `;
 
-const ToggleButton = styled.button`
-	position: absolute;
-	left: -16px;
-	top: 50%;
-	transform: translateY(-50%);
-	width: 32px;
-	height: 64px;
-	border: none;
-	background-color: #e2e8f0;
-	border-top-right-radius: 8px;
-	border-bottom-right-radius: 8px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-	cursor: pointer;
-	transition: background-color 0.2s;
-
-	&:hover {
-		background-color: #cbd5e1;
-	}
-`;
 
 const Title = styled.h2`
 	font-size: 24px;
@@ -76,32 +63,37 @@ const Text = styled.p`
 	white-space: pre-wrap;
 `;
 
-const FeedbackReportPanel = ({ feedback, isExpanded, onToggle }) => {
+const categoryLabels = {
+	coreCompetency: '핵심 역량 전달력',
+	jobRelevance: '직무 연관성',
+	expressionClarity: '표현력 및 커뮤니케이션',
+	languagePolish: '문장 구성 및 문체 적합성',
+	attitudeMessage: '태도 및 메타 메시지'
+};
+
+const FeedbackReportPanel = ({ feedback }) => {
 	if (!feedback || typeof feedback !== 'object') return null;
 
 	const entries = Object.entries(feedback);
-  console.log(feedback);
 	return (
-		<Wrapper>
-			<ToggleButton onClick={onToggle}>
-				{isExpanded ? <ChevronLeft size={24} /> : <ChevronRight size={24} />}
-			</ToggleButton>
-
-			<Title>AI 평가 결과</Title>
-			{entries.map(([key, value]) => (
-				<FeedbackCard key={key}>
-					<CategoryTitle>{key}</CategoryTitle>
-					<Section>
-						<Label>현재 수준</Label>
-						<Text>{value.currentState}</Text>
-					</Section>
-					<Section>
-						<Label>개선 방안</Label>
-						<Text>{value.suggestion}</Text>
-					</Section>
-				</FeedbackCard>
-			))}
-		</Wrapper>
+		<PanelContainer>
+			<Wrapper>
+				<Title>AI 평가 결과</Title>
+				{entries.map(([key, value]) => (
+					<FeedbackCard key={key}>
+						<CategoryTitle>{categoryLabels[key] || key}</CategoryTitle>
+						<Section>
+							<Label>현재 수준</Label>
+							<Text>{value.currentState}</Text>
+						</Section>
+						<Section>
+							<Label>개선 방안</Label>
+							<Text>{value.suggestion}</Text>
+						</Section>
+					</FeedbackCard>
+				))}
+			</Wrapper>
+		</PanelContainer>
 	);
 };
 

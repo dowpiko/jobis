@@ -127,9 +127,14 @@ public class InterviewServiceimpl implements InterviewService{
 		PromptGenerator gen = new FeedbackPromptGenerator(aVO);
 		String prompt = gen.generatePrompt();
 		String result = aService.getResultSync(prompt);
-		System.out.println(result);
-		aVO.setFeedback(result);
-		return aMapper.updateFeedback(aVO) >= 1? result : "DB 업데이트 오류";
+
+		// 🔧 JSON 보정
+		String sanitized = fixJsonIfNeeded(result);
+
+		aVO.setFeedback(sanitized);
+		System.out.println("✅ 보정된 결과 저장: " + sanitized);
+
+		return aMapper.updateFeedback(aVO) >= 1 ? sanitized : "DB 업데이트 오류";
 	}
 	
 	//------------------헬퍼 함수----------------
@@ -193,6 +198,24 @@ public class InterviewServiceimpl implements InterviewService{
 
 	    return baseTitle + " (" + (maxNumber + 1) + ")";
 	}
+	private String fixJsonIfNeeded(String json) {
+		if (json == null) return null;
 
 
+		try {
+			oMapper.readTree(json); // 정상 JSON이면 그대로 반환
+			return json;
+		} catch (Exception e) {
+			// 혹시 중괄호 하나 빠졌나? 보정 시도
+			String fixed = json.trim() + "}";
+			try {
+				oMapper.readTree(fixed); // 보정한 게 파싱 되면 성공
+				System.out.println("⚠️ JSON 끝 중괄호 보정됨");
+				return fixed;
+			} catch (Exception ex) {
+				System.err.println("❌ JSON 보정 실패 → 원본 유지");
+				return json; // 또는 return null;
+			}
+		}
+	}
 }
