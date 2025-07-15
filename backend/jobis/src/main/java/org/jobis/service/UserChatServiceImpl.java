@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.jobis.domain.CJSVO;
 import org.jobis.domain.CompanyOfferDTO;
+import org.jobis.domain.FavDTO;
 import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.mapper.UserChatMapper;
@@ -101,15 +102,15 @@ public class UserChatServiceImpl implements UserChatService {
 	}
 	// 공고 스크랩하기
 	@Override
-	public int addFavorite(int uno, int ono) {
+	public int addFavorite(FavDTO favdto) {
 		
-		return ucMapper.addFavorite(uno, ono);
+		return ucMapper.addFavorite(favdto);
 	}
 	// 스크랩 취소하기
 	@Override
-	public int removeFavorite(int uno, int ono) {
+	public int removeFavorite(FavDTO favdto) {
 		
-		return ucMapper.removeFavorite(uno, ono);
+		return ucMapper.removeFavorite(favdto);
 	}
 	
 }

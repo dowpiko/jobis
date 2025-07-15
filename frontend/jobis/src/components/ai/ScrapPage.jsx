@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 
 const Page = styled.div`
   flex-grow: 1;
@@ -63,9 +64,29 @@ const EmptyMessage = styled.div`
 
 const ScrapPage = () => {
   const [activeTab, setActiveTab] = useState('scrap');
+  const [uno, setUno] = useState(null);
+  const [scrapData, setScrapData] = useState([]);
+  const [appliedData, setAppliedData] = useState([]); // 지원 목록 필요시 나중에
 
-  const scrapData = []; // 예시
-  const appliedData = []; // 예시
+  // uno 가져오기
+  useEffect(() => {
+    fetch('/getMyUno', { credentials: 'include' })
+      .then((res) => res.json())
+      .then((data) => {
+        setUno(data);
+      });
+  }, []);
+
+  // 스크랩 목록 가져오기
+  useEffect(() => {
+    if (!uno) return;
+    axios.post('/getFavorites', { uno }, { withCredentials: true })
+      .then((res) => {
+        console.log('스크랩 응답:', res.data);
+        setScrapData(res.data);
+      })
+      .catch((err) => console.error('스크랩 목록 조회 실패', err));
+  }, [uno]);
 
   const data = activeTab === 'scrap' ? scrapData : appliedData;
 
@@ -78,7 +99,7 @@ const ScrapPage = () => {
           active={activeTab === 'scrap'}
           onClick={() => setActiveTab('scrap')}
         >
-          스크랩(n)
+          스크랩 ({scrapData.length})
         </Tab>
         <Tab
           active={activeTab === 'applied'}
@@ -90,8 +111,11 @@ const ScrapPage = () => {
 
       {data.length > 0 ? (
         <List>
-          {data.map((_, idx) => (
-            <ListItem key={idx}>리스트 아이템 {idx + 1}</ListItem>
+          {data.map((item, idx) => (
+            <ListItem key={idx}>
+              <div>공고명: {item.o_title || '없음'}</div>
+              <div>태그: {item.o_tag || '없음'}</div>
+            </ListItem>
           ))}
         </List>
       ) : (

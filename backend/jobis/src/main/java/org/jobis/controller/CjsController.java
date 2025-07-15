@@ -7,6 +7,7 @@ import javax.servlet.http.HttpSession;
 
 import org.jobis.domain.CJSVO;
 import org.jobis.domain.CompanyOfferDTO;
+import org.jobis.domain.FavDTO;
 import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.UserChatService;
@@ -212,26 +213,14 @@ public class CjsController {
     }
     // 공고 스크랩하기
     @PostMapping("/addFavorite")
-    public ResponseEntity<Integer> addFavorite(@RequestBody Map<String, Integer> payload) {
-        Integer uno = payload.get("uno");
-        Integer ono = payload.get("ono");
-        if (uno == null || ono == null) {
-            return ResponseEntity.badRequest().body(0);
-        }
-
-        int result = ucservice.addFavorite(uno, ono);
+    public ResponseEntity<Integer> addFavorite(@RequestBody FavDTO favdto) {
+        int result = ucservice.addFavorite(favdto);
         return ResponseEntity.ok(result);
     }
     // 스크랩 취소하기
     @DeleteMapping("/removeFavorite")
-    public ResponseEntity<Integer> removeFavorite(@RequestBody Map<String, Integer> payload) {
-        Integer uno = payload.get("uno");
-        Integer ono = payload.get("ono");
-        if (uno == null || ono == null) {
-            return ResponseEntity.badRequest().body(0);
-        }
-
-        int result = ucservice.removeFavorite(uno, ono);
+    public ResponseEntity<Integer> removeFavorite(@RequestBody FavDTO favdto) {
+        int result = ucservice.removeFavorite(favdto);
         return ResponseEntity.ok(result);
     }
 	

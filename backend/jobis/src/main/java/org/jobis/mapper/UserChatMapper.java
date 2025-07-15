@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 import org.jobis.domain.CJSVO;
 import org.jobis.domain.CompanyOfferDTO;
+import org.jobis.domain.FavDTO;
 import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
 
@@ -51,9 +52,9 @@ public interface UserChatMapper {
 	public List<SubmissionDTO> getFavByUno(int uno);
 	
 	// 공고 스크랩하기
-	public int addFavorite(int uno,int ono);
+	public int addFavorite(FavDTO favdto);
 	
 	// 공고 스크랩 취소하기
-	public int removeFavorite(int uno,int ono);
+	public int removeFavorite(FavDTO favdto);
 
 }
