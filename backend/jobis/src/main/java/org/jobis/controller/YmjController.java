@@ -2,6 +2,7 @@ package org.jobis.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import javax.servlet.http.HttpSession;
 
@@ -53,9 +54,17 @@ public class YmjController {
 	}
 	
 	@PostMapping(value = "/getFeedback", produces = "text/plain; charset=UTF-8")
-	public String getFeedback(@RequestBody Map<String, Integer> payload) {
+	public CompletableFuture<ResponseEntity<String>> getFeedback(@RequestBody Map<String, Integer> payload) {
 		int ano = payload.get("ano");
-		System.out.println("!!!"+ano+"!!!");
-		return iService.getFeedbackFromAI(ano);
+		System.out.println("📩 받은 ano: " + ano);
+
+		return iService.getFeedbackFromAI(ano)
+			.thenApply(feedback -> ResponseEntity.ok(feedback))
+			.exceptionally(e -> {
+				String msg = "❌ 처리 실패: " + e.getMessage();
+				System.err.println(msg);
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(msg);
+			});
 	}
+
 }

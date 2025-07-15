@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -122,20 +123,24 @@ public class InterviewServiceimpl implements InterviewService{
 	}
 	
 	@Override
-	public String getFeedbackFromAI(int ano) {
+	public CompletableFuture<String> getFeedbackFromAI(int ano) {
 		AIVO aVO = aMapper.getDataByAno(ano);
 		PromptGenerator gen = new FeedbackPromptGenerator(aVO);
 		String prompt = gen.generatePrompt();
-		String result = aService.getResultSync(prompt);
 
-		// 🔧 JSON 보정
-		String sanitized = fixJsonIfNeeded(result);
-
-		aVO.setFeedback(sanitized);
-		System.out.println("✅ 보정된 결과 저장: " + sanitized);
-
-		return aMapper.updateFeedback(aVO) >= 1 ? sanitized : "DB 업데이트 오류";
+		return aService.getResultAsync(prompt) // ✅ AI 비동기 호출
+			.thenApply(result -> fixJsonIfNeeded(result)) // ✅ JSON 보정
+			.thenApply(sanitized -> {
+				aVO.setFeedback(sanitized);
+				int updated = aMapper.updateFeedback(aVO);
+				if (updated < 1) {
+					throw new RuntimeException("DB 업데이트 실패");
+				}
+				System.out.println("✅ 보정된 결과 저장: " + sanitized);
+				return sanitized;
+			});
 	}
+
 	
 	//------------------헬퍼 함수----------------
 	// json 점수 데이터의 평균을 계산하고 문자열로 변환
