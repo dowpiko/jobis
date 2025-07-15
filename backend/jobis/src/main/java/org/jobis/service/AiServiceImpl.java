@@ -1,9 +1,7 @@
 package org.jobis.service;
 
 import com.openai.client.OpenAIClient;
-import com.openai.client.OpenAIClientAsync;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
-import com.openai.client.okhttp.OpenAIOkHttpClientAsync;
 import com.openai.core.http.StreamResponse;
 import com.openai.models.ChatModel;
 import com.openai.models.chat.completions.ChatCompletionChunk;
@@ -11,7 +9,6 @@ import com.openai.models.chat.completions.ChatCompletionCreateParams;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -50,29 +47,23 @@ public class AiServiceImpl implements AiService {
 		});
 	}
 	@Override
-	public CompletableFuture<String> getResultAsync(String prompt) {
+	public String getResultSync(String prompt) {
 		try {
-			OpenAIClientAsync asyncClient = OpenAIOkHttpClientAsync.builder()
+			OpenAIClient client = OpenAIOkHttpClient.builder()
 				.apiKey(aiApiKey)
 				.build();
 
 			ChatCompletionCreateParams params = ChatCompletionCreateParams.builder()
 				.addUserMessage(prompt)
-				.model(ChatModel.CHATGPT_4O_LATEST) // 또는 GPT_4_1, GPT_3_5_TURBO 등 사용 중인 모델
+				.model(ChatModel.CHATGPT_4O_LATEST)
 				.build();
 
-			return asyncClient.chat()
-				.completions()
-				.create(params)
-				.thenApply(response -> {
-					String content = response.choices().get(0).message().content().orElse("");
-					System.out.println("✅ 비동기 응답 도착: " + content);
-					return content;
-				});
+			var response = client.chat().completions().create(params);
+			return response.choices().get(0).message().content().get();
 
 		} catch (Exception e) {
-			System.err.println("❌ getResultAsync 예외: " + e.getMessage());
-			return CompletableFuture.failedFuture(e);
+			System.err.println("❌ 동기 요청 에러: " + e.getMessage());
+			return null;
 		}
 	}
 
