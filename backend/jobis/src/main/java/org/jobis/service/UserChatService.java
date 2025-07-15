@@ -50,7 +50,7 @@ public interface UserChatService {
 	public int insertSubmission(SubmissionDTO submissiondto);
 	
 	// 스크랩 공고 목록 가져오기
-	public List<SubmissionDTO> getFavByUno(int uno);
+	public List<CompanyOfferDTO> getFavByUno(int uno);
 	
 	// 공고 스크랩하기
 	public int addFavorite(FavDTO favdto);
