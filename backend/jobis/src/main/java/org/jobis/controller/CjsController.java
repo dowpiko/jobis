@@ -224,9 +224,31 @@ public class CjsController {
         int result = ucservice.removeFavorite(favdto);
         return ResponseEntity.ok(result);
     }
+	// 유저가 지원한 공고 목록 가져오기
+    @ResponseBody
+    @PostMapping("/getApplied")
+    public ResponseEntity<List<SubmissionDTO>> getApplied(@RequestBody Map<String, Integer> payload) {
+        int uno = payload.get("uno");
+        
+        List<SubmissionDTO> list = ucservice.getAppliedByUno(uno);
+        return ResponseEntity.ok(list);
+    }
+    
+    // 공고 지원 취소하기
+    @PostMapping("/deleteSubmission")
+    @ResponseBody
+    public ResponseEntity<?> deleteSubmission(@RequestBody Map<String, Integer> payload) {
+        int uno = payload.get("uno");  // React에서 보낸 uno
+        int ono = payload.get("ono");  // React에서 보낸 ono
+        
+        int result = ucservice.deleteSubmission(uno, ono);
+
+        return ResponseEntity.ok(result);
+    }
+
 	
-	
-	
+ 
+
 
 	
 }

@@ -111,5 +111,17 @@ public class UserChatServiceImpl implements UserChatService {
 		
 		return ucMapper.removeFavorite(favdto);
 	}
+	// 유저가 지원한 공고 목록 가져오기
+	@Override
+	public List<SubmissionDTO> getAppliedByUno(int uno) {
+		
+		return ucMapper.getAppliedByUno(uno);
+	}
+	// 공고 지원 취소하기
+	@Override
+	public int deleteSubmission(int uno, int ono) {
+		
+		return ucMapper.deleteSubmission(uno, ono);
+	}
 	
 }

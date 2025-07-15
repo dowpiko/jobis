@@ -30,15 +30,15 @@ const TabMenu = styled.div`
 const Tab = styled.button`
   flex: 1;
   padding: 12px;
-  background-color: ${(props) => (props.active ? '#4376B6' : 'transparent')};
-  color: ${(props) => (props.active ? 'white' : '#1F2A37')};
+  background-color: ${(props) => (props.$active ? '#4376B6' : 'transparent')};
+  color: ${(props) => (props.$active ? 'white' : '#1F2A37')};
   font-weight: bold;
   border: none;
   cursor: pointer;
   font-size: 15px;
 
   &:hover {
-    background-color: ${(props) => (props.active ? '#5C8BC4' : '#DDE5F1')};
+    background-color: ${(props) => (props.$active ? '#5C8BC4' : '#DDE5F1')};
   }
 `;
 
@@ -62,6 +62,16 @@ const EmptyMessage = styled.div`
   font-size: 15px;
   color: #6B7280;
 `;
+  // 탭 분리
+  const ScrapItem = ({ item, onApply }) => {
+    return (
+      <ListItem onClick={() => onApply(item.ono)} style={{ cursor: 'pointer' }}>
+        <div>기업명: {item.corpName || '없음'}</div>
+        <div>제목: {item.title || '없음'}</div>
+        <div>태그: {item.category || '없음'}</div>
+      </ListItem>
+    );
+  };
 
 const ScrapPage = () => {
   const navigate = useNavigate();
@@ -100,6 +110,31 @@ const ScrapPage = () => {
       return;
     }
   };
+  
+
+  // 지원한 공고 목록 가져오기
+  useEffect(() => {
+    if (!uno) return;
+    axios.post('/getApplied', { uno }, { withCredentials: true })
+      .then((res) => {
+        console.log('지원 응답:', res.data);
+        setAppliedData(res.data);
+      })
+      .catch((err) => console.error('지원 목록 조회 실패', err));
+  }, [uno]);
+
+  // 공고 지원 취소하기
+  const handleCancel = (uno, ono) => {
+    axios.post('/deleteSubmission', { uno, ono }, { withCredentials: true })
+      .then(() => {
+        alert('지원이 취소되었습니다.');
+        // 상태 다시 갱신 필요
+      })
+      .catch((err) => console.error('지원 취소 실패', err));
+  };
+
+
+
 
   return (
     <Page>
@@ -107,35 +142,49 @@ const ScrapPage = () => {
 
       <TabMenu>
         <Tab
-          active={activeTab === 'scrap'}
+          $active={activeTab === 'scrap'}
           onClick={() => setActiveTab('scrap')}
         >
           스크랩 ({scrapData.length})
         </Tab>
         <Tab
-          active={activeTab === 'applied'}
+          $active={activeTab === 'applied'}
           onClick={() => setActiveTab('applied')}
         >
-          지원
+          지원 ({appliedData.length})
         </Tab>
       </TabMenu>
 
-      {data.length > 0 ? (
-        <List>
-          {data.map((item, idx) => (
-            <ListItem key={idx}  onClick={() => handleItemClick(item.ono)} style={{ cursor: 'pointer' }}>
-              <div>기업명: {item.corpName || '없음'}</div>
-              <div>제목: {item.title || '없음'}</div>
-              <div>태그: {item.category || '없음'}</div>
-            </ListItem>
-          ))}
-        </List>
+      {activeTab === 'scrap' ? (
+        scrapData.length > 0 ? (
+          <List>
+            {scrapData.map((item, idx) => (
+              <ScrapItem key={idx} item={item} onApply={handleItemClick} />
+            ))}
+          </List>
+        ) : (
+          <EmptyMessage>스크랩한 공고가 없습니다.</EmptyMessage>
+        )
       ) : (
-        <EmptyMessage>
-          {activeTab === 'scrap'
-            ? '스크랩한 공고가 없습니다.'
-            : '지원한 기업이 없습니다.'}
-        </EmptyMessage>
+        appliedData.length > 0 ? (
+          <List>
+            {appliedData.map((item, idx) => (
+              <ListItem key={idx}>
+                <div>기업명: {item.corpName || '없음'}</div>
+                <div>제목: {item.o_title || '없음'}</div>
+                <div>태그: {item.o_tag || '없음'}</div>
+                <button
+                  onClick={() => handleCancel(item.uno, item.ono)}
+                  style={{ marginTop: '10px' }}
+                >
+                  지원 취소
+                </button>
+              </ListItem>
+            ))}
+          </List>
+        ) : (
+          <EmptyMessage>지원한 기업이 없습니다.</EmptyMessage>
+        )
       )}
     </Page>
   );

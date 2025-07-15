@@ -153,15 +153,22 @@
 	</delete>
 	
 	<!-- 유저가 지원한 공고 목록 가져오기 -->
-	<select id="getAppliedByUno" parameterType="int">
+	<select id="getAppliedByUno" parameterType="int" resultType="org.jobis.domain.SubmissionDTO">
 		SELECT 
 	        s.uno, 
 	        s.ono, 
-	        o.o_title AS o_title, 
-	        o.o_tag AS o_tag, 
-	        s.o_content AS o_content
+	        c.corpnm AS corpName,   
+	        o.o_title AS o_title,     
+	        o.o_tag AS o_tag,    
+	        s.o_content AS o_content 
 	    FROM tbl_submissions s
 	    JOIN tbl_offers o ON s.ono = o.ono
+	    JOIN tbl_cinfo c ON o.uno = c.uno
 	    WHERE s.uno = #{uno}
 	</select>
+	
+	<!--  공고지원 취소하기 -->
+	<delete id="deleteSubmission">
+		DELETE FROM tbl_submissions WHERE uno = #{uno} AND ono = #{ono}
+	</delete>
 </mapper>
