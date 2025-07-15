@@ -15,6 +15,7 @@ import lombok.ToString;
 public class SubmissionDTO {
     private int uno;
     private int ono;
+    private String corpName;
     private String o_title;
     private String o_tag;
     private String o_content;

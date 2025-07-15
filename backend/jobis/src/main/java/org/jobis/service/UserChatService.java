@@ -58,4 +58,10 @@ public interface UserChatService {
 	// 공고 스크랩 취소하기
 	public int removeFavorite(FavDTO favdto);
 	
+	// 유저가 지원한 공고 목록 가져오기
+	public List<SubmissionDTO> getAppliedByUno(int uno);
+	
+	// 공고 지원 취소하기
+	public int deleteSubmission(int uno, int ono);
+	
 }
