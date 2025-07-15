@@ -62,6 +62,26 @@ const EmptyMessage = styled.div`
   font-size: 15px;
   color: #6B7280;
 `;
+const CancelButton = styled.button`
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background-color: #4376B6;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+
+  &:hover {
+    background-color: #5C8BC4;
+  }
+`;
+
+const AppliedItem = styled(ListItem)`
+  position: relative;
+`;
   // 탭 분리
   const ScrapItem = ({ item, onApply }) => {
     return (
@@ -169,17 +189,17 @@ const ScrapPage = () => {
         appliedData.length > 0 ? (
           <List>
             {appliedData.map((item, idx) => (
-              <ListItem key={idx}>
+              <AppliedItem  key={idx}>
                 <div>기업명: {item.corpName || '없음'}</div>
                 <div>제목: {item.o_title || '없음'}</div>
                 <div>태그: {item.o_tag || '없음'}</div>
-                <button
+                <CancelButton 
                   onClick={() => handleCancel(item.uno, item.ono)}
                   style={{ marginTop: '10px' }}
                 >
                   지원 취소
-                </button>
-              </ListItem>
+                </CancelButton>
+              </AppliedItem>
             ))}
           </List>
         ) : (
