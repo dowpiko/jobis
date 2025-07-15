@@ -21,14 +21,14 @@
   import ApplyNotice from './components/ai/ApplyNotice';
   import CompanyMain from './components/company/CompanyMain';
   import ProfileSidebar from './components/sidebar/ProfileSidebar';
-import CreateProfile from './components/chat/CreateProfile';
-import CreateProfileForm from './components/chat/CreateProfileForm';
-import NaverCallback from './components/NaverCallback';
-import KakaoCallback from './components/KakaoCallback';
-import GoogleCallback from './components/GoolgleCallback';
-import VideoChat from './components/chat/VideoChat';
-import CompanyChatLayout from './components/company/CompanyChatLayout';
-import UserChatLayout from './components/userChatLayout';
+  import CreateProfile from './components/chat/CreateProfile';
+  import CreateProfileForm from './components/chat/CreateProfileForm';
+  import NaverCallback from './components/NaverCallback';
+  import KakaoCallback from './components/KakaoCallback';
+  import GoogleCallback from './components/GoolgleCallback';
+  import VideoChat from './components/chat/VideoChat';
+  import CompanyChatLayout from './components/company/CompanyChatLayout';
+  import UserChatLayout from './components/UserChatLayout';
 
 
 
