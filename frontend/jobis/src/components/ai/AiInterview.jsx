@@ -2,37 +2,50 @@ import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 
+
 const Container = styled.div`
 	width: 100%;
-	max-width: 800px;
-	margin: 0 auto;
+	max-width: 800px; /* ✅ 전체 회색 영역 제한 */
+	margin: 0 auto;     /* ✅ 가운데 정렬 */
 	height: 100%;
-	padding: 60px 40px 40px;
-	font-family: 'Inter', sans-serif;
-	color: #1F2A37;
-	background-color: #F9FAFB;
-	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
+	align-items: center;
 	justify-content: space-between;
+	padding: 32px 24px;
+	box-sizing: border-box;
+	background-color: #F9FAFB;
+	font-family: 'Inter', sans-serif;
+	overflow: hidden;
+	border-radius: 16px; /* 선택사항: 살짝 둥글게 */
+	box-shadow: 0 0 8px rgba(0, 0, 0, 0.03); /* 선택사항: 살짝 입체감 */
 `;
 
+
 const ContentWrapper = styled.div`
+	width: 100%;
+	margin: 0 auto; /* ✅ 화면 내에서 중앙 정렬 (left align 유지하면서) */
 	display: flex;
 	flex-direction: column;
+	flex-grow: 1;
+	align-items: flex-start; 
+	overflow: hidden;
 `;
+
 
 const Title = styled.h1`
 	font-size: 32px;
 	font-weight: 700;
-	margin-bottom: 20px;
 	color: #1F2A37;
+	margin-bottom: 16px;
+	text-align: left; /* ✅ 명시적 왼쪽 정렬 */
 `;
 
-const Description = styled.div`
-	font-size: 17px;
-	line-height: 1.8;
+const Description = styled.p`
+	font-size: 16px;
 	color: #4B5563;
+	line-height: 1.6;
+	text-align: left; /* ✅ */
 `;
 
 const Highlight = styled.span`
@@ -40,22 +53,49 @@ const Highlight = styled.span`
 	font-weight: 600;
 `;
 
+const ImageBox = styled.div`
+	width: 100%;
+	max-width: 800px;
+	background-color: #E5E7EB;
+	border-radius: 12px;
+	overflow: hidden;
+	margin: 40px 0 20px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	img {
+		width: 100%;
+		height: auto;         /* ✅ 이미지 비율 유지하면서 잘리지 않게 */
+		object-fit: contain;  /* ✅ 이미지 전체 보이게 */
+	}
+`;
+
+
+const ImageDescription = styled.p`
+	font-size: 14px;
+	color: #6B7280;
+	text-align: left; /* ✅ */
+	width: 100%; /* 텍스트 너비를 부모에 맞추기 위해 */
+	max-width: 800px;
+`;
+
 const ButtonWrapper = styled.div`
 	display: flex;
 	justify-content: center;
-	margin-top: 60px;
+	margin-top: 20px;
 `;
 
 const StartButton = styled.button`
-	padding: 16px 36px;
+	padding: 14px 28px;
 	background-color: #2563EB;
 	color: white;
-	font-size: 18px;
+	font-size: 16px;
 	font-weight: 600;
 	border: none;
 	border-radius: 12px;
 	cursor: pointer;
-	transition: background-color 0.3s ease, transform 0.2s ease;
+	transition: 0.3s;
 
 	&:hover {
 		background-color: #1E40AF;
@@ -75,18 +115,25 @@ const AiInterview = () => {
 			<ContentWrapper>
 				<Title>AI 모의 면접이란?</Title>
 				<Description>
-					AI 면접은 사용자의 <Highlight>경력</Highlight>, <Highlight>직무 목표</Highlight>, <Highlight>기술 스택</Highlight>을 바탕으로
-					개인화된 질문을 생성하여, <Highlight>리더십</Highlight>, <Highlight>소통력</Highlight>, <Highlight>창의력</Highlight>, <Highlight>분석력</Highlight>, <Highlight>실행력</Highlight> 등
-					핵심 역량을 종합적으로 평가합니다. <br /><br />
-					실제 면접 상황을 가정하여 질문과 피드백이 주어지며, 그에 대한 답변은 AI에 의해 평가되어 역량별 점수와 함께
-					개선 코멘트를 받을 수 있습니다.
+					AI 면접은 <Highlight>경력</Highlight>, <Highlight>직무 목표</Highlight>, <Highlight>기술 스택</Highlight>을 바탕으로 질문을 생성하고,
+					<Highlight>리더십</Highlight>, <Highlight>소통력</Highlight>, <Highlight>창의력</Highlight> 등의 역량을 종합 평가합니다. <br /><br />
+					면접은 실제 상황처럼 구성되며, AI가 질문하고 응답을 분석하여 각 역량별 <Highlight>점수</Highlight>와 <Highlight>개선 피드백</Highlight>을 제공합니다.
+					이를 통해 본인의 면접 역량을 구체적으로 점검하고, 반복 훈련을 통해 성장할 수 있습니다.
 				</Description>
+
+
+				<ImageBox>
+					<img src="/img/resEx.png" alt="예시 이미지 1" />
+				</ImageBox>
+
+				<ImageDescription>
+					면접 결과를 <Highlight>레이다 차트</Highlight> 및 <Highlight>막대그래프</Highlight>로 시각화하여
+					자신의 <Highlight>성장 추이</Highlight>를 쉽게 확인할 수 있습니다.
+				</ImageDescription>
 			</ContentWrapper>
 
 			<ButtonWrapper>
-				<StartButton onClick={handleStartClick}>
-					AI 면접 시작하기
-				</StartButton>
+				<StartButton onClick={handleStartClick}>AI 면접 시작하기</StartButton>
 			</ButtonWrapper>
 		</Container>
 	);
