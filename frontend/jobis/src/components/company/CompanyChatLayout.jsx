@@ -261,22 +261,39 @@ const CompanyChatLayout = () => {
       setOfferSubmission(res.data);
 
       const { rno } = res.data;
+      console.log('[handleChatCardClick] 채팅방 rno:', rno);
       setSelectedChat({ ono, emp, company: myUno, rno });
 
       await fetchByRnoChatMessages(rno, myUno);
 
+      const sendEnterRoom = () => {
+        const payload = {
+          type: "ENTER_ROOM",
+          uno: myUno,
+          rno: rno,
+        };
+        socketRef.current.send(JSON.stringify(payload));
+      };
+
       if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
         const ws = new WebSocket('ws://localhost:9090/ws/userChat');
 
-        ws.onopen = () => console.log('✅ WebSocket 연결됨');
+        ws.onopen = () => {
+          console.log('✅ WebSocket 연결됨');
+          sendEnterRoom();
+        };
+
         ws.onmessage = (event) => {
           const message = JSON.parse(event.data);
           setChatMessages(prev => [...prev, message]);
         };
+
         ws.onclose = () => console.log('❌ WebSocket 닫힘');
         ws.onerror = (err) => console.error('⚠ WebSocket 오류:', err);
 
         socketRef.current = ws;
+      } else {
+        sendEnterRoom();
       }
 
     } catch (err) {
@@ -346,10 +363,10 @@ const CompanyChatLayout = () => {
         <ChatContent>
           {chatMessages.map((msg, idx) => {
             const isMine = msg.sender !== selectedChat?.company;
-
+            
             return (
               <ChatMessageWrapper key={idx} isMine={isMine}>
-                {isMine && msg.hit !== 1 && <ReadCount>1</ReadCount>}
+                {isMine && msg.hit === 1 && <ReadCount>1</ReadCount>}
                 <ChatBubble isMine={isMine}>
                   <div style={{ fontSize: '13px' }}>{msg.content}</div>
                 </ChatBubble>

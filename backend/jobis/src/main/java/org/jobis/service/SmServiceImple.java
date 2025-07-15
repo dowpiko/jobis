@@ -149,7 +149,9 @@ public class SmServiceImple implements SmService {
     // 기업이 채팅방 가져오기
     @Override
     public List<CompanyRoomDTO> initCompanyChatLayout(int cno) {
-    	return mapper.initCompanyChatLayout(cno);
+    	List<CompanyRoomDTO> result = mapper.initCompanyChatLayout(cno);
+    	System.out.println(result);
+    	return result;
     }
     
     // 유저가 채팅방 가져오기

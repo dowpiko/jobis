@@ -196,7 +196,7 @@
 	<update id="updateChatHit" parameterType="map">
 	  UPDATE TBL_CHATLOG
 	  SET HIT = 1
-	  WHERE RNO = #{rno} AND HIT = 0 AND sender != #{uno}
+	  WHERE RNO = #{rno} AND HIT = 0 AND sender = #{uno}
 	</update>
 
 	<!-- 기업 데이터 가져오기 -->

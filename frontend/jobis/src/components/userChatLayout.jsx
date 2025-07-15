@@ -259,24 +259,42 @@ const UserChatLayout = () => {
       setCno(company);
       await fetchByRnoChatMessages(rno);
 
+      const sendEnterRoom = () => {
+        const payload = {
+          type: "ENTER_ROOM",
+          uno: myUno,
+          rno: rno
+        };
+        socketRef.current.send(JSON.stringify(payload));
+      };
+
       if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
         const ws = new WebSocket('ws://localhost:9090/ws/userChat');
 
-        ws.onopen = () => console.log('✅ WebSocket 연결됨');
+        ws.onopen = () => {
+          console.log('✅ WebSocket 연결됨');
+          sendEnterRoom();
+        };
+
         ws.onmessage = (event) => {
           const message = JSON.parse(event.data);
           setChatMessages(prev => [...prev, message]);
         };
+
         ws.onclose = () => console.log('❌ WebSocket 닫힘');
         ws.onerror = (err) => console.error('⚠ WebSocket 오류:', err);
 
         socketRef.current = ws;
+      } else {
+        sendEnterRoom();
       }
+
     } catch (err) {
       console.error('오류 발생:', err);
       alert('데이터 조회 중 오류가 발생했습니다.');
     }
   };
+
 
   const formatDate = (value) => {
     if (!value) return '-';
@@ -328,7 +346,7 @@ const UserChatLayout = () => {
             <>
               {/* ✅ 내가 보낸 메시지의 왼쪽에 읽음 여부 표시 */}
               <div style={{ fontSize: '10px', color: '#888', marginRight: '6px', whiteSpace: 'nowrap' }}>
-                {msg.hit === 1 ? '' : '1'}
+                {msg.hit !== 1 ? '' : '1'}
               </div>
               <ChatBubble isMine={true}>
                 <div style={{ fontSize: '13px' }}>{msg.content}</div>
