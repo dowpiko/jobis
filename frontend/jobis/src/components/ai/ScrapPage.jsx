@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Page = styled.div`
   flex-grow: 1;
@@ -63,6 +64,7 @@ const EmptyMessage = styled.div`
 `;
 
 const ScrapPage = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('scrap');
   const [uno, setUno] = useState(null);
   const [scrapData, setScrapData] = useState([]);
@@ -90,6 +92,15 @@ const ScrapPage = () => {
 
   const data = activeTab === 'scrap' ? scrapData : appliedData;
 
+
+   const handleItemClick = (ono) => {
+    if (window.confirm('스크랩한 공고를 지원하시겠습니까?')) {
+      navigate('/applyNotice', { state: { ono } });
+    } else {
+      return;
+    }
+  };
+
   return (
     <Page>
       <Title>스크랩 / 지원</Title>
@@ -112,9 +123,10 @@ const ScrapPage = () => {
       {data.length > 0 ? (
         <List>
           {data.map((item, idx) => (
-            <ListItem key={idx}>
-              <div>공고명: {item.o_title || '없음'}</div>
-              <div>태그: {item.o_tag || '없음'}</div>
+            <ListItem key={idx}  onClick={() => handleItemClick(item.ono)} style={{ cursor: 'pointer' }}>
+              <div>기업명: {item.corpName || '없음'}</div>
+              <div>제목: {item.title || '없음'}</div>
+              <div>태그: {item.category || '없음'}</div>
             </ListItem>
           ))}
         </List>

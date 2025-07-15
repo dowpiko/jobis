@@ -11,7 +11,6 @@ import org.jobis.mapper.UserChatMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import kotlin.math.UMathKt;
 
 
 @Service
@@ -96,7 +95,7 @@ public class UserChatServiceImpl implements UserChatService {
 	}
 	// 스크랩한 공고 목록 가져오기
 	@Override
-	public List<SubmissionDTO> getFavByUno(int uno) {
+	public List<CompanyOfferDTO> getFavByUno(int uno) {
 		
 		return ucMapper.getFavByUno(uno);
 	}

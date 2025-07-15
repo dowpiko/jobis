@@ -203,14 +203,15 @@ public class CjsController {
 	}
 	// 스크랩 목록 가져오기
     @PostMapping("/getFavorites")
-    public ResponseEntity<List<SubmissionDTO>> getFavorites(@RequestBody Map<String, Integer> payload) {
-        Integer uno = payload.get("uno");
-        if (uno == null) {
-            return ResponseEntity.badRequest().build();
+    public ResponseEntity<List<CompanyOfferDTO>> getFavorites(@RequestBody Map<String, Integer> payload, HttpSession session) {
+        UserVO user = (UserVO) session.getAttribute("User");
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        List<SubmissionDTO> list = ucservice.getFavByUno(uno);
+        List<CompanyOfferDTO> list = ucservice.getFavByUno(user.getUno());
         return ResponseEntity.ok(list);
     }
+
     // 공고 스크랩하기
     @PostMapping("/addFavorite")
     public ResponseEntity<Integer> addFavorite(@RequestBody FavDTO favdto) {

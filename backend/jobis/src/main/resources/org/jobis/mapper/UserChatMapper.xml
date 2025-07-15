@@ -128,10 +128,20 @@
 	</insert>
 	
 	<!--  스크랩한 공고 목록 가져오기 -->
-	 <select id="getFavByUno" parameterType="int"  resultType="org.jobis.domain.FavDTO">
-	    SELECT * FROM tbl_fav WHERE uno = #{uno}
-	  </select>
-	  
+	<select id="getFavByUno" parameterType="int" resultType="org.jobis.domain.CompanyOfferDTO">
+	    SELECT 
+	        o.ono,
+	        c.corpnm AS corpName,
+	        u.profileimage AS profileImage,
+	        o.o_tag AS category,
+	        o.o_title AS title
+	    FROM tbl_fav f
+	    JOIN tbl_offers o ON f.ono = o.ono
+	    JOIN tbl_cinfo c ON o.uno = c.uno
+	    LEFT JOIN tbl_uprofile u ON o.uno = u.uno
+	    WHERE f.uno = #{uno}
+	</select>
+ 
 	<!--  공고 스크랩하기 -->
 	<insert id="addFavorite" parameterType="org.jobis.domain.FavDTO">
 		INSERT INTO tbl_fav (uno,ono) VALUES (#{uno}, #{ono})
