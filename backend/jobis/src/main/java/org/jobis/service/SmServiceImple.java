@@ -13,7 +13,8 @@ import org.jobis.domain.CUserVO;
 import org.jobis.domain.ChatMessageVO;
 import org.jobis.domain.InterViewBCVO;
 import org.jobis.domain.OfferSubmissionDTO;
-import org.jobis.domain.RoomDTO;
+import org.jobis.domain.UserRoomDTO;
+import org.jobis.domain.CompanyRoomDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.mapper.SmMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,18 +138,24 @@ public class SmServiceImple implements SmService {
     @Override
     @Transactional
     public int insertChatRoom(int cno, int uno, int ono) {
-    	RoomDTO rvo = new RoomDTO();
-    	rvo.setCompany(cno);
-    	rvo.setEmp(uno);
-    	rvo.setOno(ono);
+    	CompanyRoomDTO crvo = new CompanyRoomDTO();
+    	crvo.setCompany(cno);
+    	crvo.setEmp(uno);
+    	crvo.setOno(ono);
     	
-    	return mapper.insertChatRoom(rvo) > 0 ? 1 : -1;
+    	return mapper.insertChatRoom(crvo) > 0 ? 1 : -1;
     }
     
-    // 채팅방 가져오기
+    // 기업이 채팅방 가져오기
     @Override
-    public List<RoomDTO> initChatLayout(int cno) {
-    	return mapper.initChatLayout(cno);
+    public List<CompanyRoomDTO> initCompanyChatLayout(int cno) {
+    	return mapper.initCompanyChatLayout(cno);
+    }
+    
+    // 유저가 채팅방 가져오기
+    @Override
+    public List<UserRoomDTO> initUserChatLayout(int uno) {
+    	return mapper.initUserChatLayout(uno);
     }
     
     // 공고 답변, 질문 가져오기
@@ -187,8 +194,10 @@ public class SmServiceImple implements SmService {
     }
     
     // 채팅 불러오기
+    @Transactional
     @Override
-    public List<ChatMessageVO> selectByRnoChatMessages(int rno) {
+    public List<ChatMessageVO> selectByRnoChatMessages(int rno, int uno) {
+    	mapper.updateChatHit(Map.of("rno", rno, "uno", uno));
         return mapper.selectByRnoChatMessages(rno);
     }
     

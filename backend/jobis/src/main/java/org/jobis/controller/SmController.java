@@ -6,7 +6,8 @@ import org.jobis.domain.CUserVO;
 import org.jobis.domain.ChatMessageVO;
 import org.jobis.domain.InterViewBCVO;
 import org.jobis.domain.OfferSubmissionDTO;
-import org.jobis.domain.RoomDTO;
+import org.jobis.domain.UserRoomDTO;
+import org.jobis.domain.CompanyRoomDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.SmService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,11 +97,18 @@ public class SmController {
 		return service.insertChatRoom(cno, uno, ono);
 	}
 	
-	// 채팅방 가져오기
-	@GetMapping("initChatLayout")
-	public List<RoomDTO> initChatLayout(int cno) {
-		System.out.println("채팅방 가져오기");
-		return service.initChatLayout(cno);
+	// 기업이 채팅방 가져오기
+	@GetMapping("initCompanyChatLayout")
+	public List<CompanyRoomDTO> initCompanyChatLayout(int cno) {
+		System.out.println("기업이 채팅방 가져오기");
+		return service.initCompanyChatLayout(cno);
+	}
+	
+	// 유저가 채팅방 가져오기
+	@GetMapping("initUserChatLayout")
+	public List<UserRoomDTO> initUserChatLayout(int uno) {
+		System.out.println("유저가 채팅방 가져오기");
+		return service.initUserChatLayout(uno);
 	}
 	
 	// 공고 답변, 질문 가져오기
@@ -124,8 +132,8 @@ public class SmController {
 	
 	// 채팅 불러오기
 	@GetMapping("/selectByRnoChatMessages")
-	public List<ChatMessageVO> selectByRnoChatMessages(@RequestParam("rno") int rno) {
-	    return service.selectByRnoChatMessages(rno);
+	public List<ChatMessageVO> selectByRnoChatMessages(@RequestParam("rno") int rno, int uno) {
+	    return service.selectByRnoChatMessages(rno, uno);
 	}
 	
 	// 기업 데이터 가져오기

@@ -169,6 +169,20 @@ const SearchInput = styled.input`
   height: 28px;
 `;
 
+const ChatMessageWrapper = styled.div`
+  display: flex;
+  align-items: flex-end;
+  justify-content: ${({ isMine }) => (isMine ? 'flex-end' : 'flex-start')};
+  margin-bottom: 4px;
+  gap: 6px;
+`;
+
+const ReadCount = styled.div`
+  font-size: 10px;
+  color: #888;
+  white-space: nowrap;
+`;
+
 const CompanyChatLayout = () => {
   const [chatList, setChatList] = useState([]);
   const [showAnnouncement, setShowAnnouncement] = useState(false);
@@ -185,7 +199,7 @@ const CompanyChatLayout = () => {
   
   const initChatLayout = async (uno) => {
     try {
-      const res = await axios.get(`http://localhost:9090/sm/initChatLayout?cno=${uno}`);
+      const res = await axios.get(`http://localhost:9090/sm/initCompanyChatLayout?cno=${uno}`);
 
       const processedData = res.data.map(item => ({
         ...item,
@@ -249,10 +263,12 @@ const CompanyChatLayout = () => {
       const { rno } = res.data;
       setSelectedChat({ ono, emp, company: myUno, rno });
 
-      await fetchByRnoChatMessages(rno);
+      await fetchByRnoChatMessages(rno, myUno);
 
       if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
         const ws = new WebSocket('ws://localhost:9090/ws/userChat');
+
+        ws.onopen = () => console.log('✅ WebSocket 연결됨');
         ws.onmessage = (event) => {
           const message = JSON.parse(event.data);
           setChatMessages(prev => [...prev, message]);
@@ -268,10 +284,12 @@ const CompanyChatLayout = () => {
     }
   };
 
-  const fetchByRnoChatMessages = async (rno) => {
+  const fetchByRnoChatMessages = async (rno, uno) => {
     try {
       const res = await axios.get(`http://localhost:9090/sm/selectByRnoChatMessages`, {
-        params: { rno }
+        params: { rno ,
+          uno : uno
+        }
       });
       setChatMessages(res.data);
     } catch (err) {
@@ -285,7 +303,8 @@ const CompanyChatLayout = () => {
     const payload = {
       rno: selectedChat?.rno,
       sender: selectedChat?.emp,
-      content: inputText.trim()
+      content: inputText.trim(),
+      leader : myUno,
     };
     socketRef.current.send(JSON.stringify(payload));
     axios.post('http://localhost:9090/sm/insertChatMessage', payload);
@@ -326,11 +345,15 @@ const CompanyChatLayout = () => {
       <ChatPanel>
         <ChatContent>
           {chatMessages.map((msg, idx) => {
-            const isMine = msg.sender === selectedChat?.company;
+            const isMine = msg.sender !== selectedChat?.company;
+
             return (
-              <ChatBubble key={idx} isMine={isMine}>
-                <div style={{ fontSize: '13px' }}>{msg.content}</div>
-              </ChatBubble>
+              <ChatMessageWrapper key={idx} isMine={isMine}>
+                {isMine && msg.hit !== 1 && <ReadCount>1</ReadCount>}
+                <ChatBubble isMine={isMine}>
+                  <div style={{ fontSize: '13px' }}>{msg.content}</div>
+                </ChatBubble>
+              </ChatMessageWrapper>
             );
           })}
           <div ref={chatEndRef} />

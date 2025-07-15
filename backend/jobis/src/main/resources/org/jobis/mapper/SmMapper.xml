@@ -98,7 +98,7 @@
 	</select>
 	
 	<!-- 채팅방 생성 -->
-	<insert id="insertChatRoom" parameterType="org.jobis.domain.RoomDTO">
+	<insert id="insertChatRoom" parameterType="org.jobis.domain.CompanyRoomDTO">
 	    INSERT INTO tbl_room (rno, company, emp, ono)
 	    SELECT SEQ_RNO.NEXTVAL, #{company}, #{emp}, #{ono}
 	    FROM dual
@@ -110,8 +110,8 @@
 	    )
 	</insert>
 	
-	<!-- 채팅방 가져오기 -->
-	<select id="initChatLayout" parameterType="int" resultType="org.jobis.domain.RoomDTO">
+	<!-- 기업이 채팅방 가져오기 -->
+	<select id="initCompanyChatLayout" parameterType="int" resultType="org.jobis.domain.CompanyRoomDTO">
 	    SELECT 
 	        R.RNO,
 	        R.COMPANY,
@@ -127,6 +127,23 @@
 	        R.EMP = U.UNO
 	    WHERE 
 	        R.COMPANY = #{cno}
+	</select>
+	
+	
+	<!-- 유저가 채팅방 가져오기 -->
+	<select id="initUserChatLayout" parameterType="int" resultType="org.jobis.domain.UserRoomDTO">
+	    SELECT 
+	        r.RNO,
+	        r.COMPANY,
+	        r.EMP,
+	        r.ONO,
+	        c.corpNm
+	    FROM 
+	        TBL_ROOM r
+	    LEFT JOIN 
+	        TBL_CINFO c ON r.COMPANY = c.uno
+	    WHERE 
+	        r.EMP = #{uno}
 	</select>
 	
 	<!-- 공고 정보 (tbl_offers) -->
@@ -175,6 +192,13 @@
 	    ORDER BY CL_REGDATE ASC, CLNO ASC
 	</select>
 	
+	<!-- 채팅 읽음 표시 -->
+	<update id="updateChatHit" parameterType="map">
+	  UPDATE TBL_CHATLOG
+	  SET HIT = 1
+	  WHERE RNO = #{rno} AND HIT = 0 AND sender != #{uno}
+	</update>
+
 	<!-- 기업 데이터 가져오기 -->
 	<select id="selectCinofoByUno" parameterType="int" resultType="org.jobis.domain.CUserVO">
 		SELECT * FROM TBL_CINFO

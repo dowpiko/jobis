@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoomDTO {
+public class CompanyRoomDTO {
 	private int rno;
 	private int company;
 	private int emp;

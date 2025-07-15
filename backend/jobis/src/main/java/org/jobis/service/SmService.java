@@ -6,7 +6,8 @@ import org.jobis.domain.CUserVO;
 import org.jobis.domain.ChatMessageVO;
 import org.jobis.domain.InterViewBCVO;
 import org.jobis.domain.OfferSubmissionDTO;
-import org.jobis.domain.RoomDTO;
+import org.jobis.domain.UserRoomDTO;
+import org.jobis.domain.CompanyRoomDTO;
 import org.jobis.domain.UserVO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -45,8 +46,11 @@ public interface SmService {
 	// 채팅방 생성
 	public int insertChatRoom(int cno, int uno, int ono);
 	
-	// 채팅방 가져오기
-	public List<RoomDTO> initChatLayout(int cno);
+	// 기업이 채팅방 가져오기
+	public List<CompanyRoomDTO> initCompanyChatLayout(int cno);
+	
+	// 유저가 채팅방 가져오기
+	public List<UserRoomDTO> initUserChatLayout(int uno);
 	
 	// 공고 답변, 질문 가져오기
 	public OfferSubmissionDTO selectOfferAndSubmission(int ono, int emp, int company);
@@ -55,7 +59,7 @@ public interface SmService {
 	public int insertChatMessage(ChatMessageVO message);
 	
 	// 채팅 불러오기
-	public List<ChatMessageVO> selectByRnoChatMessages(int rno);
+	public List<ChatMessageVO> selectByRnoChatMessages(int rno, int uno);
 	
 	// 기업 데이터 가져오기
 	public CUserVO selectCinofoByUno(int uno);

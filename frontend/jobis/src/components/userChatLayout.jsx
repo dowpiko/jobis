@@ -238,7 +238,9 @@ const UserChatLayout = () => {
   const fetchByRnoChatMessages = async (rno) => {
     try {
       const res = await axios.get(`http://localhost:9090/sm/selectByRnoChatMessages`, {
-        params: { rno }
+        params: { rno ,
+          uno : myUno
+        }
       });
       setChatMessages(res.data);
     } catch (err) {
@@ -259,17 +261,11 @@ const UserChatLayout = () => {
 
       if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
         const ws = new WebSocket('ws://localhost:9090/ws/userChat');
+
+        ws.onopen = () => console.log('✅ WebSocket 연결됨');
         ws.onmessage = (event) => {
           const message = JSON.parse(event.data);
-
-          setChatMessages(prev => {
-            const updatedMessage = { ...message };
-            // 현재 열려 있는 rno와 같으면 hit = 1 처리
-            if (rnoRef.current === message.rno) {
-              updatedMessage.hit = 1;
-            }
-            return [...prev, updatedMessage];
-          });
+          setChatMessages(prev => [...prev, message]);
         };
         ws.onclose = () => console.log('❌ WebSocket 닫힘');
         ws.onerror = (err) => console.error('⚠ WebSocket 오류:', err);
@@ -299,7 +295,8 @@ const UserChatLayout = () => {
     const payload = {
       rno: rno,
       sender: cno,
-      content: inputText.trim()
+      content: inputText.trim(),
+      leader : myUno,
     };
     socketRef.current.send(JSON.stringify(payload));
     axios.post('http://localhost:9090/sm/insertChatMessage', payload);
@@ -323,7 +320,7 @@ const UserChatLayout = () => {
 
   const renderChatMessages = () => {
     return chatMessages.map((msg, idx) => {
-      const isMine = msg.sender === myUno;  // ✅ 내가 보낸 메시지 확인 (=== 로 변경)
+      const isMine = msg.sender !== myUno;  // ✅ 내가 보낸 메시지 확인 (=== 로 변경)
 
       return (
         <ChatMessageWrapper key={idx} isMine={isMine}>
