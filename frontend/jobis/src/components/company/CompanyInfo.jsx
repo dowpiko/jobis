@@ -239,7 +239,7 @@ const CompanyInfo = () => {
   const filtered = useMemo(() => {
     return offers.filter(o =>
       // 카테고리 필터
-      (!selectedCategory || o.category === selectedCategory)
+      (!selectedCategory || o.category.includes(selectedCategory))
       &&
       // 검색어 필터 (법인명 or 공고명)
       (!searchTerm

@@ -135,16 +135,16 @@ public class CjsController {
 
 	    if (chat.getLeader() == uno) {
 	        if (chat.getMember() != 0 && chat.getMember() != -1) {
-	            // 🎯 리더 → 멤버로 승계
+	            // 멤버  > 리더로 교체
 	            ucservice.promoteMemberToLeader(cno);
 	            return new ResponseEntity<>("리더 승계 완료", HttpStatus.OK);
 	        } else {
-	            // 🎯 멤버 없음 → 삭제
+	            // 멤버 없음 > 삭제
 	            ucservice.deleteUserChat(cno);
 	            return new ResponseEntity<>("일정 삭제 완료", HttpStatus.OK);
 	        }
 	    } else if (chat.getMember() == uno) {
-	        // 🎯 멤버 나가기
+	        //  멤버 나가기
 	        ucservice.leaveChatAsMember(cno);
 	        return new ResponseEntity<>("참여 취소 완료", HttpStatus.OK);
 	    } else {

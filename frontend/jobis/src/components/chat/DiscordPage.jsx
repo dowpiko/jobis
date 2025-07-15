@@ -492,17 +492,21 @@ useEffect(() => {
 
                     {/* 참가 버튼 조건 분기 */}
                     {!isMine && (
-                      chat.member ? (
-                        <span style={{ marginLeft: '10px', color: 'red' }}>인원이 꽉 찼습니다</span>
-                      ) : (
+                      chat.sch_date < new Date() ? ( <span style={{ marginLeft: '10px', color: 'gray' }}>지난 일정입니다</span>)
+                      : 
+                      chat.member ? (<span style={{ marginLeft: '10px', color: 'red' }}>인원이 꽉 찼습니다</span> ) 
+                      :
+                      (
                          <ActionButton
                           onClick={() => {
-                            // ➊ sch_date 충돌 검사
+                            if (chat.sch_date < new Date()) {
+                              alert('이미 지난 일정입니다. 참여할 수 없습니다.');
+                              return;
+                            }
                             if (isConflict(chat.sch_date)) {
                               alert('⚠ 이미 일정에 겹치는 시간대가 있습니다.\n해당 방에 참여할 수 없습니다.');
                               return;
                             }
-                            // ➋ 충돌 없으면 모달 열기
                             setSelectedChat(chat);
                             setShowModal(true);
                           }}

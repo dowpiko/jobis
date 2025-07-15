@@ -162,6 +162,7 @@ function ScheduleManager() {
       const mySchedule = chatList.filter(
         chat => chat.leader === myUno || chat.member === myUno
       );
+      mySchedule.sort((a, b) => new Date(a.sch_date) - new Date(b.sch_date));   // 날짜 올림차순
 
       const calendarFormatted = mySchedule.map(chat => ({
         title: chat.r_title,
@@ -183,7 +184,8 @@ function ScheduleManager() {
     setModalData({
       date: startStr,
       title,
-      partner: extendedProps.partner
+      leaderName : extendedProps.leaderName,
+      memberName : extendedProps.memberName
     });
   };
   const handleMouseEnter = (info) => {
@@ -276,7 +278,7 @@ function ScheduleManager() {
                     <span>
                       {new Date(event.date).getFullYear()}년{' '}
                       {new Date(event.date).getMonth() + 1}월{' '}
-                      {new Date(event.date).getDate()}일 {timeStr} 모의 면접
+                      {new Date(event.date).getDate()}일 | {event.title} 
                     </span>
                     <CancelButton onClick={(e) => {e.stopPropagation(); handleDelete(event)}}>취소</CancelButton>
                   </ScheduleItem>

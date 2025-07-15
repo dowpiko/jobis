@@ -151,4 +151,17 @@
 	<delete id="removeFavorite" parameterType="org.jobis.domain.FavDTO">
 		DELETE FROM tbl_fav WHERE uno=#{uno} and ono=#{ono}
 	</delete>
+	
+	<!-- 유저가 지원한 공고 목록 가져오기 -->
+	<select id="getAppliedByUno" parameterType="int">
+		SELECT 
+	        s.uno, 
+	        s.ono, 
+	        o.o_title AS o_title, 
+	        o.o_tag AS o_tag, 
+	        s.o_content AS o_content
+	    FROM tbl_submissions s
+	    JOIN tbl_offers o ON s.ono = o.ono
+	    WHERE s.uno = #{uno}
+	</select>
 </mapper>
