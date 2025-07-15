@@ -449,8 +449,6 @@ const BlurredPanelWrapper = styled.div`
 	flex-direction: column;
 	overflow-y: hidden; 
 	overflow-x: hidden;
-	filter: ${({ $expanded }) => ($expanded ? 'none' : 'blur(3px)' )};
-	pointer-events: ${({ $expanded }) => ($expanded ? 'auto' : 'none')};
 	transition: filter 0.3s ease, opacity 0.3s ease;
 `;
 
@@ -758,7 +756,7 @@ export default function RadarSection() {
                           {isExpanded ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
                         </RightPanelToggleButton>
                         <RightPanel>
-                          <BlurredPanelWrapper $expanded={isExpanded}>
+                          <BlurredPanelWrapper>
                             <FeedbackReportPanel
                               title="AI 기반 맞춤 피드백"
                               feedback={selInterview.feedback}
