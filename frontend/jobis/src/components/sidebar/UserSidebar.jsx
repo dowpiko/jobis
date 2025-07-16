@@ -161,6 +161,19 @@ const Main = styled.main`
   background-color: #FFFFFF;
   overflow-y: auto;
 `;
+const ScrollContainer = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; // 필수: flex-item 안에서 overflow 동작하게
+`;
+
+const MenuScroll = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
+  min-height: 0;
+`;
 
 function UserSidebar({ children }) {
   const navigate = useNavigate();
@@ -214,19 +227,22 @@ function UserSidebar({ children }) {
             <ProfileButton onClick={() => navigate('/')}>로그아웃</ProfileButton>
           </ProfileActions>
         </Profile>
+        <ScrollContainer>
+          <MenuScroll>
+            <Menu>
+              <MenuItem onClick={() => navigate('/aiInterview')}>🏠 AI모의 면접</MenuItem>
+              <MenuItem onClick={() => navigate('/companyInfo')}>💬 기업 공고 정보</MenuItem>
+              <MenuItem onClick={() => navigate('/scrapPage')}>⚙️ 스크랩/지원공고</MenuItem>
+              <MenuItem onClick={() => navigate('/userChatLayout')}>💬 채팅</MenuItem>
+            </Menu>
+          </MenuScroll>
 
-        <Menu>
-          <MenuItem onClick={() => navigate('/aiInterview')}>🏠 AI모의 면접</MenuItem>
-          <MenuItem onClick={() => navigate('/companyInfo')}>💬 기업 공고 정보</MenuItem>
-          <MenuItem onClick={() => navigate('/scrapPage')}>⚙️ 스크랩/지원공고</MenuItem>
-          <MenuItem onClick={() => navigate('/userChatLayout')}>💬 채팅</MenuItem>
-        </Menu>
-
-        <Footer>
-          <FooterLink href="#">개인정보처리방침</FooterLink>
-          <FooterDivider>|</FooterDivider>
-          <FooterLink href="#">이용약관</FooterLink>
-        </Footer>
+          <Footer>
+            <FooterLink href="#">개인정보처리방침</FooterLink>
+            <FooterDivider>|</FooterDivider>
+            <FooterLink href="#">이용약관</FooterLink>
+          </Footer>
+        </ScrollContainer>
       </Sidebar>
 
       <Main>{children}</Main>

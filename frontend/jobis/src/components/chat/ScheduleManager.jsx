@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
-import { useNavigate } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -261,7 +260,6 @@ function ScheduleManager() {
             <ScheduleList>
               {scheduleData.map((event, idx) => {
                 const dateStr = new Date(event.date).toISOString().split('T')[0];
-                const timeStr = event.title.match(/\((.*?)\)/)?.[1] || '';
 
                 return (
                   <ScheduleItem

@@ -146,14 +146,6 @@ const InputRow = styled.div`
   margin-bottom: 10px;
 `;
 
-const Input = styled.input`
-  width: 100%;
-  height: 34px;
-  padding: 8px 10px;
-  font-size: 14px;
-  border: 1px solid #b0bccb;
-  border-radius: 6px;
-`;
 const SendButton = styled.button`
   padding: 8px 16px;         
   background-color: #5c8bc4;
@@ -273,7 +265,7 @@ const DiscordPage = () => {
   }, []); 
 
 
-    // ❸ 스크롤 위로 → 더 과거 추가
+    //  스크롤 위로 → 더 과거 추가
   const handleScroll = () => {
     const box = scrollRef.current;
     const isBottom = Math.abs(box.scrollHeight - box.scrollTop - box.clientHeight) <= 1;
