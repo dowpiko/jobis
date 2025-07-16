@@ -31,7 +31,7 @@
   import UserChatLayout from './components/UserChatLayout';
   import UserSidebarLayout from './components/layout/UserSidebarLayout';
   import ProfileSidebarLayout from './components/layout/ProfileSidebarLayout';
-import CompanySidebarLayout from './components/layout/CompanySidebarLayout';
+  import CompanySidebarLayout from './components/layout/CompanySidebarLayout';
 
 
 
