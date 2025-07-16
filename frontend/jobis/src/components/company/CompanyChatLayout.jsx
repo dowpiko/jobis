@@ -239,6 +239,57 @@ const CompanyChatLayout = () => {
     }
   }, [chatMessages]);
 
+  useEffect(() => {
+    if (!selectedChat?.rno || !myUno) return;
+
+    const ws = new WebSocket('ws://localhost:9090/ws/userChat');
+    socketRef.current = ws;
+
+    const sendEnterRoom = () => {
+      const payload = {
+        type: 'ENTER_ROOM',
+        uno: myUno,
+        rno: selectedChat.rno,
+      };
+      ws.send(JSON.stringify(payload));
+    };
+
+    ws.onopen = () => {
+      console.log('✅ WebSocket 연결됨');
+      sendEnterRoom();
+    };
+
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+
+      if (message.type === 'read_update') {
+        const { uno: readerUno, rno: roomNo } = message;
+        if (roomNo === selectedChat?.rno) {
+          setChatMessages((prev) =>
+            prev.map((msg) => {
+              if (msg.sender === selectedChat.emp && msg.hit !== 1) {
+                return { ...msg, hit: 1 };
+              }
+              return msg;
+            })
+          );
+        }
+      } else {
+        setChatMessages((prev) => [...prev, message]);
+      }
+    };
+
+    ws.onclose = () => {};
+    ws.onerror = () => {};
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+        ws.close();
+        console.log('🧹 WebSocket 연결 정리됨');
+      }
+    };
+  }, [selectedChat?.rno, myUno]);
+
   const formatDate = (value) => {
     if (!value) return '-';
     const date = new Date(value);
@@ -256,46 +307,14 @@ const CompanyChatLayout = () => {
 
     try {
       const res = await axios.get(`http://localhost:9090/sm/selectOfferAndSubmission`, {
-        params: { ono, emp, company: myUno }
+        params: { ono, emp, company: myUno },
       });
       setOfferSubmission(res.data);
 
       const { rno } = res.data;
-      console.log('[handleChatCardClick] 채팅방 rno:', rno);
       setSelectedChat({ ono, emp, company: myUno, rno });
 
       await fetchByRnoChatMessages(rno, myUno);
-
-      const sendEnterRoom = () => {
-        const payload = {
-          type: "ENTER_ROOM",
-          uno: myUno,
-          rno: rno,
-        };
-        socketRef.current.send(JSON.stringify(payload));
-      };
-
-      if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
-        const ws = new WebSocket('ws://localhost:9090/ws/userChat');
-
-        ws.onopen = () => {
-          console.log('✅ WebSocket 연결됨');
-          sendEnterRoom();
-        };
-
-        ws.onmessage = (event) => {
-          const message = JSON.parse(event.data);
-          setChatMessages(prev => [...prev, message]);
-        };
-
-        ws.onclose = () => console.log('❌ WebSocket 닫힘');
-        ws.onerror = (err) => console.error('⚠ WebSocket 오류:', err);
-
-        socketRef.current = ws;
-      } else {
-        sendEnterRoom();
-      }
-
     } catch (err) {
       console.error('오류 발생:', err);
     }
@@ -321,7 +340,7 @@ const CompanyChatLayout = () => {
       rno: selectedChat?.rno,
       sender: selectedChat?.emp,
       content: inputText.trim(),
-      leader : myUno,
+      leader: myUno,
     };
     socketRef.current.send(JSON.stringify(payload));
     axios.post('http://localhost:9090/sm/insertChatMessage', payload);
@@ -366,7 +385,7 @@ const CompanyChatLayout = () => {
             
             return (
               <ChatMessageWrapper key={idx} isMine={isMine}>
-                {isMine && msg.hit === 1 && <ReadCount>1</ReadCount>}
+                {isMine && msg.hit !== 1 && <ReadCount>1</ReadCount>}
                 <ChatBubble isMine={isMine}>
                   <div style={{ fontSize: '13px' }}>{msg.content}</div>
                 </ChatBubble>

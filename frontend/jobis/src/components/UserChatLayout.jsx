@@ -210,6 +210,55 @@ const UserChatLayout = () => {
     }
   }, [chatMessages]);
   
+  useEffect(() => {
+    if (!myUno || !rno) return;
+
+    const ws = new WebSocket('ws://localhost:9090/ws/userChat');
+    socketRef.current = ws;
+
+    const sendEnterRoom = () => {
+      const payload = {
+        type: "ENTER_ROOM",
+        uno: myUno,
+        rno: rnoRef.current,
+      };
+      ws.send(JSON.stringify(payload));
+    };
+
+    ws.onopen = () => {
+      console.log('✅ WebSocket 연결됨');
+      sendEnterRoom();
+    };
+
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      console.log(message);
+      if (message.type === 'read_update') {
+        const { uno: readerUno, rno: roomNo } = message;
+        if (roomNo === rnoRef.current) {
+          setChatMessages(prev =>
+            prev.map(msg =>
+              msg.sender === readerUno && msg.hit !== 1 ? { ...msg, hit: 1 } : msg
+            )
+          );
+        }
+      } else {
+        setChatMessages(prev => [...prev, message]);
+      }
+    };
+
+    ws.onclose = () => {};
+    ws.onerror = () => {};
+
+    // ✅ cleanup
+    return () => {
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+        ws.close();
+        console.log('🧹 WebSocket 연결 정리됨');
+      }
+    };
+  }, [myUno, rno]);
+
   const userCheck = () => {
     axios.get('/jsh/getUser')
       .then(res => {
@@ -258,43 +307,11 @@ const UserChatLayout = () => {
       setRno(rno);
       setCno(company);
       await fetchByRnoChatMessages(rno);
-
-      const sendEnterRoom = () => {
-        const payload = {
-          type: "ENTER_ROOM",
-          uno: myUno,
-          rno: rno
-        };
-        socketRef.current.send(JSON.stringify(payload));
-      };
-
-      if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
-        const ws = new WebSocket('ws://localhost:9090/ws/userChat');
-
-        ws.onopen = () => {
-          console.log('✅ WebSocket 연결됨');
-          sendEnterRoom();
-        };
-
-        ws.onmessage = (event) => {
-          const message = JSON.parse(event.data);
-          setChatMessages(prev => [...prev, message]);
-        };
-
-        ws.onclose = () => console.log('❌ WebSocket 닫힘');
-        ws.onerror = (err) => console.error('⚠ WebSocket 오류:', err);
-
-        socketRef.current = ws;
-      } else {
-        sendEnterRoom();
-      }
-
     } catch (err) {
       console.error('오류 발생:', err);
       alert('데이터 조회 중 오류가 발생했습니다.');
     }
   };
-
 
   const formatDate = (value) => {
     if (!value) return '-';
@@ -346,7 +363,7 @@ const UserChatLayout = () => {
             <>
               {/* ✅ 내가 보낸 메시지의 왼쪽에 읽음 여부 표시 */}
               <div style={{ fontSize: '10px', color: '#888', marginRight: '6px', whiteSpace: 'nowrap' }}>
-                {msg.hit !== 1 ? '' : '1'}
+                {msg.hit === 1 ? '' : '1'}
               </div>
               <ChatBubble isMine={true}>
                 <div style={{ fontSize: '13px' }}>{msg.content}</div>

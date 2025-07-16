@@ -40,20 +40,56 @@ public class ChatSocket {
             if ("ENTER_ROOM".equals(type)) {
                 int uno = json.getInt("uno");
                 int rno = json.getInt("rno");
-                System.out.println(json.getInt("rno"));
+
+                // ✅ 기존 같은 uno지만 다른 rno 보고 있는 세션 닫기
+                for (Session s : sessions) {
+                    if (s.isOpen()) {
+                        Integer existingUno = (Integer) s.getUserProperties().get("uno");
+                        Integer existingRno = (Integer) s.getUserProperties().get("currentRno");
+                        if (existingUno != null && existingUno == uno &&
+                            existingRno != null && existingRno != rno) {
+                            try {
+                                s.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "중복 세션 종료"));
+                                System.out.println("🔁 기존 세션 종료: uno=" + uno + ", rno=" + existingRno);
+                            } catch (IOException e) {
+                                System.err.println("⚠ 기존 세션 종료 실패: " + e.getMessage());
+                            }
+                        }
+                    }
+                }
+
+                // ✅ 현재 세션 정보 등록
                 session.getUserProperties().put("uno", uno);
                 session.getUserProperties().put("currentRno", rno);
                 System.out.println("🚪 사용자 입장 기록: uno=" + uno + ", rno=" + rno);
-                return;  // ✅ 여기서 return으로 이후 코드 건너뜀
+
+                // ✅ read_update 메시지 브로드캐스트
+                for (Session s : sessions) {
+                    if (s.isOpen()) {
+                        Integer sessionUno = (Integer) s.getUserProperties().get("uno");
+                        Integer currentRno = (Integer) s.getUserProperties().get("currentRno");
+
+                        if (sessionUno != null && sessionUno != uno &&
+                            currentRno != null && currentRno == rno) {
+                            JSONObject readUpdate = new JSONObject();
+                            readUpdate.put("type", "read_update");
+                            readUpdate.put("rno", rno);
+                            readUpdate.put("uno", uno);
+                            s.getBasicRemote().sendText(readUpdate.toString());
+                            System.out.println("📡 read_update 전송 → sessionUno=" + sessionUno);
+                        }
+                    }
+                }
+
+                return;
             }
 
-            // ✅ "ENTER_ROOM"이 아닌 경우에만 leader 관련 로직 실행
+            // ✅ 일반 메시지 처리
             if (!json.has("leader")) {
                 System.err.println("⚠️ 'leader' 필드가 없는 일반 메시지. 무시됨");
                 return;
             }
 
-            // 💬 일반 메시지 처리
             int leaderUno = json.getInt("leader");
             int rno = json.getInt("rno");
 
@@ -69,10 +105,14 @@ public class ChatSocket {
                        currentRno != null && currentRno == rno;
             });
 
-            json.put("hit", isOpponentInRoom ? 0 : 1);
+            json.put("hit", isOpponentInRoom ? 1 : 0);
+
             System.out.println("📤 브로드캐스트 메시지: " + json.toString());
             for (Session s : sessions) {
-                if (s.isOpen()) {
+                if (!s.isOpen()) continue;
+
+                Integer currentRno = (Integer) s.getUserProperties().get("currentRno");
+                if (currentRno != null && currentRno == rno) {
                     s.getBasicRemote().sendText(json.toString());
                 }
             }

@@ -15,4 +15,5 @@ public class ChatMessageVO {
     private int sender;
     private String content;
     private Date cl_regdate;
+    private int hit;
 }
