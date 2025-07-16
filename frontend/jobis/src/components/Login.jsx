@@ -179,7 +179,7 @@ const Login = () => {
 
   useEffect(() => {
     initKakao(process.env.REACT_APP_KAKAO_JS_KEY)
-      .then(() => console.log('✅ Kakao SDK Initialized'))
+      .then()
       .catch(console.error);
   }, []);
 
@@ -196,7 +196,6 @@ const Login = () => {
           return;
         }
 
-        alert('로그인 성공!');
         navigate(userType === 'user' ? '/profile' : '/companyMain');
       } else {
         alert(res.data.message || '아이디 또는 비밀번호가 일치하지 않습니다.');

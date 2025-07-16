@@ -235,7 +235,7 @@ const CompanyChatLayout = () => {
 
   useEffect(() => {
     if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      chatEndRef.current.scrollIntoView({ behavior: 'auto' });
     }
   }, [chatMessages]);
 
