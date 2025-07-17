@@ -34,7 +34,7 @@
 		FROM tbl_userchat uc
 		LEFT JOIN tbl_user u1 ON uc.leader = u1.uno
 		LEFT JOIN tbl_user u2 ON uc.member = u2.uno
-		ORDER BY uc.cno DESC
+		ORDER BY uc.r_regdate DESC
 	</select>
 	
 	<!-- 태그 별로 유저 채팅 불러오기  -->
@@ -46,7 +46,7 @@
 		LEFT JOIN tbl_user u1 ON uc.leader = u1.uno
 		LEFT JOIN tbl_user u2 ON uc.member = u2.uno
 		WHERE uc.r_tag = #{r_tag}
-		ORDER BY uc.cno DESC
+		ORDER BY uc.r_regdate DESC
 	</select>
 	
 	
@@ -83,14 +83,16 @@
 	<update id="promoteMemberToLeader">
 	  UPDATE tbl_userchat
 	  SET leader = member,
-	      member = null
+	      member = null,
+	      r_regdate = sysdate
 	  WHERE cno = #{cno}
 	</update>
 	
 	<!-- member 삭제 -->
 	<update id="leaveChatAsMember">
 	  UPDATE tbl_userchat
-	  SET member = null
+	  SET member = null,
+	  	  r_regdate=sysdate	
 	  WHERE cno = #{cno}
 	</update>
 	

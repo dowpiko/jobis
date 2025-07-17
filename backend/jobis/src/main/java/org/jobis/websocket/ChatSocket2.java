@@ -1,6 +1,7 @@
 package org.jobis.websocket;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -147,13 +148,19 @@ public class ChatSocket2 {
     
     public void broadcastChatRoom(CJSVO chat) {
         try {
+        	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        	
             JSONObject json = new JSONObject();
             json.put("cno", chat.getCno());
             json.put("r_title", chat.getR_title());
             json.put("r_tag", chat.getR_tag());
             json.put("leader", chat.getLeader());
             json.put("leader_name", ucService.getOtherNameByUno(chat.getLeader()).getName());
-            json.put("sch_date", chat.getSch_date()); ;
+            json.put("sch_date", chat.getSch_date());
+            if (chat.getR_regdate() != null) {
+                json.put("r_regdate", sdf.format(chat.getR_regdate()));
+            }
+            
 
             for (Session s : sessions) {
                 if (s.isOpen()) {

@@ -11,6 +11,7 @@ import org.jobis.domain.FavDTO;
 import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.UserChatService;
+import org.jobis.websocket.ChatSocket2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -121,6 +122,8 @@ public class CjsController {
 	@GetMapping("/deleteUserChat")
 	public ResponseEntity<String> deleteUserChat(@RequestParam("cno") int cno, HttpSession session) {
 	    UserVO user = (UserVO) session.getAttribute("User");
+	    
+
 
 	    if (user == null) {
 	        return new ResponseEntity<>("세션 만료", HttpStatus.UNAUTHORIZED);
@@ -137,6 +140,11 @@ public class CjsController {
 	        if (chat.getMember() != 0 && chat.getMember() != -1) {
 	            // 멤버  > 리더로 교체
 	            ucservice.promoteMemberToLeader(cno);
+	
+	            CJSVO updatedChat = ucservice.getChatByCno(cno);
+	            if (updatedChat != null) {
+	                ChatSocket2.getInstance().broadcastChatRoom(updatedChat);
+	            }
 	            return new ResponseEntity<>("리더 승계 완료", HttpStatus.OK);
 	        } else {
 	            // 멤버 없음 > 삭제
@@ -146,6 +154,10 @@ public class CjsController {
 	    } else if (chat.getMember() == uno) {
 	        //  멤버 나가기
 	        ucservice.leaveChatAsMember(cno);
+	        CJSVO updatedChat = ucservice.getChatByCno(cno);
+	        if (updatedChat != null) {
+	            ChatSocket2.getInstance().broadcastChatRoom(updatedChat);
+	        }
 	        return new ResponseEntity<>("참여 취소 완료", HttpStatus.OK);
 	    } else {
 	        return new ResponseEntity<>("삭제 권한이 없습니다.", HttpStatus.FORBIDDEN);

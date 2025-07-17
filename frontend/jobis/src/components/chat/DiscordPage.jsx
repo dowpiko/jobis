@@ -224,7 +224,7 @@ const DiscordPage = () => {
     fetch(url,{ credentials: 'include' })
       .then((res) => res.json())
       .then(data => {
-          console.log('서버에서 받은 데이터:', data); // ✅ 확인용
+          console.log('서버에서 받은 데이터:', data); // 확인용
         const parsed = data.map((chat) => ({
           ...chat,
           sch_date: new Date(chat.sch_date), // 문자열 → Date 객체로 변환
@@ -413,7 +413,8 @@ const handleDateChange = (date)=>{
 
 // websocket 관련
 useEffect(() => {
-  const wsUrl = 'ws://localhost:9090/ws/userChat';
+  const host = process.env.REACT_APP_HOST;
+  const wsUrl = `ws://${host}:9090/ws/userChat2`;
   console.log('▶️ 웹소켓 연결 시도:', wsUrl);
   const socket = new WebSocket(wsUrl);
   socketRef.current = socket;
@@ -421,18 +422,37 @@ useEffect(() => {
   socket.onopen = () => {
     console.log('✅ WebSocket 연결됨:', wsUrl);
   };
+
   socket.onmessage = (event) => {
-    try {
-      const message = JSON.parse(event.data);
-      console.log('📩 실시간 메시지 수신:', message);
-      setChatList(prev => [
-        ...prev,
-        { ...message, sch_date: new Date(message.sch_date) }
-      ]);
-    } catch (e) {
-      console.error('⚠️ 메시지 파싱 실패:', e);
-    }
-  };
+  try {
+    const message = JSON.parse(event.data);
+    console.log('📩 실시간 메시지 수신:', message);
+
+    setChatList(prev => {
+      const withoutOld = prev.filter(chat => chat.cno !== message.cno);
+      const updatedChatList = [...withoutOld, {
+        ...message,
+        sch_date: new Date(message.sch_date.replace(' ', 'T')),
+        r_regdate: new Date(message.r_regdate.replace(' ', 'T'))
+      }];
+      return updatedChatList.sort((a, b) => a.r_regdate - b.r_regdate);
+    });
+  } catch (e) {
+    console.error('⚠️ 메시지 파싱 실패:', e);
+  }
+};
+  // socket.onmessage = (event) => {
+  //   try {
+  //     const message = JSON.parse(event.data);
+  //     console.log('📩 실시간 메시지 수신:', message);
+  //     setChatList(prev => [
+  //       ...prev,
+  //       { ...message, sch_date: new Date(message.sch_date) }
+  //     ]);
+  //   } catch (e) {
+  //     console.error('⚠️ 메시지 파싱 실패:', e);
+  //   }
+  // };
   socket.onerror = (err) => {
     console.error('⚠️ WebSocket 오류:', err);
   };
