@@ -13,14 +13,14 @@ import logo from '../img/SIMPLELOGO.png'; // 🔹 로고 이미지 import
 const Wrapper = styled.div`
   position: fixed;
   inset: 0;
-  background-color: ${({ blur }) => (blur ? 'rgba(247,249,252,0.6)' : '#F1F5F9')};
-  backdrop-filter: ${({ blur }) => (blur ? 'blur(6px)' : 'none')};
+  background-color: ${({ $blur }) => ($blur ? 'rgba(247,249,252,0.6)' : '#F1F5F9')};
+  backdrop-filter: ${({ $blur }) => ($blur ? 'blur(6px)' : 'none')};
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;   // ✅ 중앙 정렬 → 위로 정렬
   padding-top: 80px;             // ✅ 위쪽 여백만 줌 (원하는 값으로 조절)
-  pointer-events: ${({ blur }) => (blur ? 'none' : 'all')};
+  pointer-events: ${({ $blur }) => ($blur ? 'none' : 'all')};
   font-family: 'Pretendard', 'Inter', sans-serif;
 `;
 
@@ -55,8 +55,8 @@ const Tab = styled.button`
   padding: 10px 20px;
   background: none;
   border: none;
-  border-bottom: 3px solid ${({ active }) => (active ? '#3B4F7A' : 'transparent')};
-  color: ${({ active }) => (active ? '#3B4F7A' : '#6B7280')};
+  border-bottom: 3px solid ${({ $active }) => ($active ? '#3B4F7A' : 'transparent')};
+  color: ${({ $active }) => ($active ? '#3B4F7A' : '#6B7280')};
   cursor: pointer;
 
   &:hover {
@@ -165,8 +165,8 @@ const SocialIconContainer = styled.div`
   align-items: center;
   margin-top: 20px;
   height: 60px;
-  opacity: ${({ visible }) => (visible ? 1 : 0)};
-  pointer-events: ${({ visible }) => (visible ? 'auto' : 'none')};
+  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
+  pointer-events: ${({ $visible }) => ($visible ? 'auto' : 'none')};
   transition: opacity 0.3s ease;
 `;
 
@@ -186,6 +186,10 @@ const Login = () => {
   const signUpPage = () => navigate('/signUp');
 
   const handleUserLogin = async () => {
+    if(pw==="kakao"|| pw==="naver"||pw==="google"){
+      alert("소셜 로그인을 이용해 주세요");
+      return;
+    }
     try {
       const res = await axios.post('/jsh/login', { id, pw });
 
@@ -223,28 +227,32 @@ const Login = () => {
     window.location.href = kakaoAuthUrl;
   };
 
-  const handleGoogleLogin = () => {
-    const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-    const REDIRECT_URI = encodeURIComponent(process.env.REACT_APP_GOOGLE_REDIRECT_URI);
-    const SCOPE = encodeURIComponent('email profile');
-    const RESPONSE_TYPE = 'code';
-    const googleAuthUrl =
-      `https://accounts.google.com/o/oauth2/v2/auth?` +
-      `client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${REDIRECT_URI}` +
-      `&response_type=${RESPONSE_TYPE}&scope=${SCOPE}`;
-    window.location.href = googleAuthUrl;
-  };
+const handleGoogleLogin = () => {
+  const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+  const REDIRECT_URI = encodeURIComponent(process.env.REACT_APP_GOOGLE_REDIRECT_URI);
+  const SCOPE = encodeURIComponent('openid email profile');  // ✅ 꼭 이렇게!
+  const RESPONSE_TYPE = 'code';
+
+  const googleAuthUrl =
+    `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${REDIRECT_URI}` +
+    `&response_type=${RESPONSE_TYPE}&scope=${SCOPE}` +
+    `&access_type=offline&prompt=consent`; // 👈 이 옵션도 추천 (refresh_token 받기 위함)
+
+  window.location.href = googleAuthUrl;
+};
+
 
   return (
     <>
-      <Wrapper blur={modalStep !== null}>
+      <Wrapper $blur={modalStep !== null}>
         <Header>
           <img src={logo} alt="Jobis 로고" style={{ width: '280px', marginBottom: '12px' }} />
         </Header>
         <LoginBox>
           <ToggleTabs>
-            <Tab active={isPersonal} onClick={() => setIsPersonal(true)}>👤 개인</Tab>
-            <Tab active={!isPersonal} onClick={() => setIsPersonal(false)}>🏢 기업</Tab>
+            <Tab $active={isPersonal} onClick={() => setIsPersonal(true)}>👤 개인</Tab>
+            <Tab $active={!isPersonal} onClick={() => setIsPersonal(false)}>🏢 기업</Tab>
           </ToggleTabs>
 
           <Title>login</Title>
@@ -278,7 +286,7 @@ const Login = () => {
             <span onClick={signUpPage}>회원가입</span>
           </Options>
 
-          <SocialIconContainer visible={isPersonal}>
+          <SocialIconContainer $visible={isPersonal}>
             <SocialLoginIconButton onClick={handleNaverLogin}>
               <img src={NaverIcon} alt="네이버" />
             </SocialLoginIconButton>

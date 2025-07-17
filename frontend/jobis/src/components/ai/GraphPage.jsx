@@ -515,12 +515,6 @@ export default function RadarSection() {
         });
         const raw = response.data;
         const parsed = raw.map((item, idx) => {
-          // 1. 로그 찍기
-          console.log(`🔹 index ${idx}번`);
-          console.log('🟨 acontent 원본:', item.acontent);
-          console.log('🟨 feedback 원본:', item.feedback);
-
-          // 2. 문제 파악 위해 try-catch
           let parsedFeedback = null;
           try {
             if (typeof item.feedback === 'string') {

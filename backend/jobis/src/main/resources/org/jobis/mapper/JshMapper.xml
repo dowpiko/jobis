@@ -23,9 +23,19 @@
 	</insert>
 	
 	<select id="loginUser" parameterType="map" resultType="org.jobis.domain.UserVO">
-	    SELECT * FROM tbl_user
-	    WHERE id = #{id}
-	      AND pw = #{pw}
+		SELECT 
+			uno,
+			name,
+			birthdate,
+			id,
+			pw,
+			email,
+			subscribe,
+			auth,
+			last_try_date AS lastTryDate
+		FROM tbl_user
+		WHERE id = #{id}
+		  AND pw = #{pw}
 	</select>
 	
 	<select id="getProfileByUno" parameterType="int" resultType="org.jobis.domain.ProfileVO">
@@ -40,6 +50,17 @@
 	</insert>
 	
 	<select id="getUserById" parameterType="String" resultType="org.jobis.domain.UserVO">
-		SELECT * FROM tbl_user WHERE id = #{id}
+		SELECT 
+			uno,
+			name,
+			birthdate,
+			id,
+			pw,
+			email,
+			subscribe,
+			auth,
+			last_try_date AS lastTryDate
+		FROM tbl_user
+		WHERE id = #{id}
 	</select>
 </mapper>

@@ -430,7 +430,6 @@ const AiChat = () => {
     try {
       sendTerminationMessage();
       const resultArray = JSON.parse(currentStreamRef.current);
-      console.log("✅ 최종 평가 결과: ", resultArray);
 
       // 서버에 결과 전송
       const response = await axios.post("http://localhost:9090/ymj/saveInterviewResult", resultArray, {

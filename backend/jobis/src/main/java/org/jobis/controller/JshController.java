@@ -21,10 +21,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @CrossOrigin(origins = "*")
-@Controller
+@RestController
 @RequestMapping("/jsh")
 public class JshController {
 
@@ -33,14 +34,12 @@ public class JshController {
     
 	// 아이디 중복 확인
 	@GetMapping("/checkid")
-	@ResponseBody
 	public Map<String, Boolean> checkUsername(@RequestParam String id) {
 		return Collections.singletonMap("available", jshservice.checkId(id));
 	}
 	
 	// 회원가입
 	@PostMapping("/signup")
-    @ResponseBody
     public Map<String, Object> signup(@RequestBody UserVO userVO) {		
         boolean success = jshservice.registerUser(userVO);
         Map<String, Object> result = new HashMap<>();
@@ -51,7 +50,6 @@ public class JshController {
 
 	// 이메일에 인증 코드 보내기
 	@PostMapping("/sendemailcode")
-	@ResponseBody
 	public Map<String, Object> sendCode(@RequestBody Map<String, String> body) {
 		String email = body.get("email");
 		System.out.println("SendEmailCode: " + email);
@@ -61,7 +59,6 @@ public class JshController {
 
 	// 코드 확인
 	@PostMapping("/verifyemailcode")
-	@ResponseBody
 	public Map<String, Object> verify(@RequestParam String email, @RequestParam String code) {
 		System.out.println("verifyemailcode: " + email + " / " + code);
 		boolean verified = jshservice.verifyCode(email, code);
@@ -70,7 +67,6 @@ public class JshController {
 	
 	// 로그인
 	@PostMapping("/login")
-	@ResponseBody
 	public Map<String, Object> login(@RequestBody Map<String, String> body, HttpSession session) {
 	    String id = body.get("id");
 	    String pw = body.get("pw");
@@ -93,7 +89,6 @@ public class JshController {
 	
 	// 로그인 정보 확인
 	@GetMapping("/getUser")
-	@ResponseBody
 	public UserVO getUser(HttpSession session) {
 	    UserVO User = (UserVO) session.getAttribute("User");
 	    
@@ -106,7 +101,6 @@ public class JshController {
 	
 	// 프로필 계정 확인
 	@GetMapping("/checkProfile")
-	@ResponseBody
 	public Map<String, Object> checkProfile(HttpSession session) {
 	    UserVO User = (UserVO) session.getAttribute("User");
 
@@ -129,7 +123,6 @@ public class JshController {
 	
 	// 프로필 생성
 	@PostMapping("/createProfile")
-	@ResponseBody
 	public Map<String, Object> createProfile(@RequestBody ProfileVO profileVO, HttpSession session) {
 	    UserVO User = (UserVO) session.getAttribute("User");
 	    Map<String, Object> result = new HashMap<>();
@@ -149,7 +142,6 @@ public class JshController {
 	}
 	
 	@PostMapping("/naver")
-    @ResponseBody
     public ResponseEntity<Map<String, Object>> naverLogin(@RequestBody Map<String, String> body, HttpSession session) {
         String code = body.get("code");
         Map<String, Object> userProfile  = jshservice.loginWithNaver(code);
@@ -162,7 +154,6 @@ public class JshController {
     }
 	
 	@PostMapping("/kakao/check")
-	@ResponseBody
 	public ResponseEntity<?> checkKakaoUser(@RequestBody Map<String, String> body, HttpSession session) {
 	    String code = body.get("code");
 
@@ -200,7 +191,6 @@ public class JshController {
 	}
 
 	@PostMapping("/kakao")
-	@ResponseBody
 	public ResponseEntity<?> kakaoCallback(@RequestBody Map<String, String> body, HttpSession session) {
 	    String email = body.get("email");
 	    String accessToken = body.get("accessToken");
@@ -220,7 +210,6 @@ public class JshController {
 	}
 	
 	@PostMapping("/google/check")
-	@ResponseBody
 	public ResponseEntity<?> checkGoogleUser(@RequestBody Map<String, String> body, HttpSession session) {
 	    String code = body.get("code");
 
@@ -258,7 +247,6 @@ public class JshController {
 	}
 
 	@PostMapping("/google")
-	@ResponseBody
 	public ResponseEntity<?> googleCallback(@RequestBody Map<String, String> body, HttpSession session) {
 	    String email = body.get("email");
 	    String accessToken = body.get("accessToken");
@@ -278,7 +266,6 @@ public class JshController {
 	}
 	
 	@PostMapping("/voicetotext")
-	@ResponseBody
 	public ResponseEntity<Map<String, Object>> voiceToText(@RequestParam("voice") MultipartFile voiceFile) {
 	    String result = jshservice.convertVoiceToText(voiceFile);
 	    return ResponseEntity.ok(Map.of("text", result));

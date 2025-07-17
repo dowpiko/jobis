@@ -290,25 +290,29 @@ public class JshServiceImple implements JshService{
             RestTemplate rt = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
+            System.out.println(googleClientId);
+            System.out.println(googleClientSecret);
+            System.out.println(gRedirectUri);
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
             params.add("grant_type", "authorization_code");
             params.add("client_id", googleClientId);         // 🔐 설정 필요
             params.add("client_secret", googleClientSecret); // 🔐 설정 필요
             params.add("redirect_uri", gRedirectUri);
             params.add("code", code);
-
+            System.out.println("🔥 before token exchange");
             HttpEntity<MultiValueMap<String, String>> tokenRequest = new HttpEntity<>(params, headers);
             ResponseEntity<Map> tokenResponse = rt.postForEntity("https://oauth2.googleapis.com/token", tokenRequest, Map.class);
-
+            System.out.println("???");
             String accessToken = (String) tokenResponse.getBody().get("access_token");
-
+            System.out.println("📨 accessToken: " + accessToken);
             HttpHeaders profileHeaders = new HttpHeaders();
             profileHeaders.set("Authorization", "Bearer " + accessToken);
             HttpEntity<?> profileRequest = new HttpEntity<>(profileHeaders);
 
             ResponseEntity<Map> profileResponse = rt.exchange(
                 "https://www.googleapis.com/oauth2/v3/userinfo", HttpMethod.GET, profileRequest, Map.class);
+
+            System.out.println("🧾 구글 프로필 응답: " + profileResponse.getBody());
 
             String email = (String) profileResponse.getBody().get("email");
 

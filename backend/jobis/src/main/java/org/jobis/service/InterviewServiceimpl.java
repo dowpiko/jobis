@@ -21,6 +21,7 @@ import org.jobis.generators.PromptGenerator;
 import org.jobis.generators.QuestionPromptGenerator;
 import org.jobis.generators.ResultPromptGenerator;
 import org.jobis.mapper.AIMapper;
+import org.jobis.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +40,9 @@ public class InterviewServiceimpl implements InterviewService{
 	
 	@Autowired
 	AIMapper aMapper;
+	
+	@Autowired
+	private UserMapper uMapper; 
 	
 	@Autowired
 	AiService aService;
@@ -108,10 +112,14 @@ public class InterviewServiceimpl implements InterviewService{
 		    aContent = "[]"; // 기본값 처리
 		}
 		UserVO User = (UserVO) session.getAttribute("User");
-		
 		long uno = User.getUno();
+		
 		AIVO aVO = new AIVO(null, uno, aTitle, sDTO.getSubCategory(), aContent, null, resultScore, null);
-		return aMapper.insertData(aVO);
+		int insertResult = aMapper.insertData(aVO);
+
+		uMapper.updateLastTryDate(uno);
+
+		return insertResult;
 	}
 	
 	@Override

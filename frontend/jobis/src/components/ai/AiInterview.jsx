@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { addDays, format } from 'date-fns';
+import { ko } from 'date-fns/locale';
 
 
 const Container = styled.div`
@@ -88,7 +91,7 @@ const ButtonWrapper = styled.div`
 
 const StartButton = styled.button`
 	padding: 14px 28px;
-	background-color: #2563EB;
+	background-color: ${({ $dimmed }) => ($dimmed ? '#3B82F6' : '#2563EB')}; /* 🔹 어두운 파랑 */
 	color: white;
 	font-size: 16px;
 	font-weight: 600;
@@ -96,19 +99,68 @@ const StartButton = styled.button`
 	border-radius: 12px;
 	cursor: pointer;
 	transition: 0.3s;
+	opacity: ${({ $dimmed }) => ($dimmed ? 0.75 : 1)};  /* 🔹 살짝 흐리게 */
 
 	&:hover {
-		background-color: #1E40AF;
+		background-color: ${({ $dimmed }) => ($dimmed ? '#1E3A8A' : '#1E40AF')};
 		transform: scale(1.03);
 	}
 `;
 
+
+const NextTryInfo = styled.p`
+	margin-top: 8px;
+	color: #6B7280;
+	font-size: 14px;
+	text-align: center;
+`;
 const AiInterview = () => {
 	const navigate = useNavigate();
+	const [subscribe, setSubscribe] = useState(0);
+	const [canStartToday, setCanStartToday] = useState(false);
 
 	const handleStartClick = () => {
-		navigate('/createAiInterview');
+		if (subscribe !== 1 && !canStartToday) {
+			const confirmed = window.confirm('무료 이용자는 하루에 한 번만 AI 면접이 가능합니다.\n구독 페이지로 이동하시겠습니까?');
+			if (confirmed) {
+				navigate('/subscribe'); // 👉 네 구독 페이지 경로에 맞게 조정
+			}
+		} else {
+			navigate('/createAiInterview');
+		}
 	};
+
+
+	useEffect(() => {
+		const getUserInfo = async () => {
+			try {
+				const res = await axios.get('/jsh/getUser');
+				const user = res.data;
+				if (!user) return;
+
+				console.log(user);
+				setSubscribe(user.subscribe);
+
+				if (user.subscribe === 1) {
+					setCanStartToday(true); // 구독자는 무제한
+				} else {
+					if (!user.lastTryDate) {
+						setCanStartToday(true); // 한 번도 안했으면 OK
+					} else {
+						const today = new Date().toDateString();
+						const lastDate = new Date(user.lastTryDate).toDateString();
+						setCanStartToday(today !== lastDate);
+					}
+				}
+			} catch (err) {
+				console.error('유저 정보 가져오기 실패:', err);
+			}
+		};
+
+		getUserInfo();
+	}, []);
+
+
 
 	return (
 		<Container>
@@ -131,10 +183,21 @@ const AiInterview = () => {
 					자신의 <Highlight>성장 추이</Highlight>를 쉽게 확인할 수 있습니다.
 				</ImageDescription>
 			</ContentWrapper>
-
+			
 			<ButtonWrapper>
-				<StartButton onClick={handleStartClick}>AI 면접 시작하기</StartButton>
+				<StartButton
+					onClick={handleStartClick}
+					$dimmed={subscribe !== 1 && !canStartToday}
+				>
+					AI 면접 시작하기 ({subscribe === 1 ? '∞' : canStartToday ? '1' : '0'})
+				</StartButton>
 			</ButtonWrapper>
+
+			{!canStartToday && (
+				<NextTryInfo>
+					다음 면접 가능: {format(addDays(new Date(), 1), 'M월 d일 (E)', { locale: ko })} 자정 이후
+				</NextTryInfo>
+			)}
 		</Container>
 	);
 };

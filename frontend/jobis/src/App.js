@@ -32,6 +32,7 @@
   import UserSidebarLayout from './components/layout/UserSidebarLayout';
   import ProfileSidebarLayout from './components/layout/ProfileSidebarLayout';
   import CompanySidebarLayout from './components/layout/CompanySidebarLayout';
+import Subscribe from './components/subscribe/Subscribe';
 
 
 
@@ -69,7 +70,8 @@
 
           {/* 화상 채팅 */}
           <Route path="/video" element={<VideoChat />} />
-
+          {/* 구독 페이지 */}
+          <Route path="/subscribe" element={<Subscribe />} />
           <Route element={<UserSidebarLayout />}>
             <Route path="/userChatLayout" element={<UserChatLayout />} />           {/* 유저 채팅 */}
             <Route path="/scrapPage" element={<ScrapPage />} />                     {/* 스크랩 & 지원 */}
