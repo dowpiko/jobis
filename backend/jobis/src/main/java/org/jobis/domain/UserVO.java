@@ -18,4 +18,5 @@ public class UserVO {
 	String email;
 	int subscribe;
 	String auth;
+	Date lastTryDate;  // ✅ 추가된 필드 (nullable)
 }
