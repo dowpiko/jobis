@@ -232,7 +232,7 @@ function UserSidebar({ children }) {
       .then(res => {
         if (res.data?.name) {
           setUserName(res.data.name);
-          setCount(res.data.count ?? 0);
+          setCount(res.data.count);
         } else {
           alert('로그인이 필요합니다.');
           navigate('/');
