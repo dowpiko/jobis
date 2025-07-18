@@ -213,7 +213,8 @@ const UserChatLayout = () => {
   useEffect(() => {
     if (!myUno || !rno) return;
 
-    const ws = new WebSocket('ws://localhost:9090/ws/userChat');
+    const host = process.env.REACT_APP_HOST;
+    const ws = new WebSocket(`ws://${host}:9090/ws/userChat`);
     socketRef.current = ws;
 
     const sendEnterRoom = () => {
@@ -232,7 +233,6 @@ const UserChatLayout = () => {
 
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
-      console.log(message);
       if (message.type === 'read_update') {
         const { uno: readerUno, rno: roomNo } = message;
         if (roomNo === rnoRef.current) {

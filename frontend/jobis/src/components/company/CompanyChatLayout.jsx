@@ -242,7 +242,8 @@ const CompanyChatLayout = () => {
   useEffect(() => {
     if (!selectedChat?.rno || !myUno) return;
 
-    const ws = new WebSocket('ws://localhost:9090/ws/userChat');
+    const host = process.env.REACT_APP_HOST;
+    const ws = new WebSocket(`ws://${host}:9090/ws/userChat`);
     socketRef.current = ws;
 
     const sendEnterRoom = () => {
