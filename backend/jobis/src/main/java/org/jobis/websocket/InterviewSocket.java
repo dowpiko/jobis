@@ -44,8 +44,13 @@ public class InterviewSocket {
 	@OnMessage
 	public void onMessage(String jsonString) throws IOException{
 		HttpSession httpSession = (HttpSession) session.getUserProperties().get(HttpSession.class.getName());
-		
-	    // 🔍 종료 요청인지 확인
+		System.out.println("✅ WebSocket 요청 수신 - HttpSession 존재 여부: " + (httpSession != null));
+		if (httpSession != null) {
+			System.out.println("세션 ID: " + httpSession.getId());
+		} else {
+			System.out.println("❌ HttpSession이 null입니다!!");
+		}
+		// 🔍 종료 요청인지 확인
 	    JsonNode node = MAPPER.readTree(jsonString);
 	    if (node.has("type") && "terminate".equals(node.get("type").asText())) {
 	        System.out.println("🧹 종료 요청 수신 → 세션 종료 중...");

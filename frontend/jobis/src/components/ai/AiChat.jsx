@@ -286,7 +286,7 @@ const AiChat = () => {
 
 
   // 웹소켓 관련 코드
-  const SOCKET_URL = "ws://localhost:9090/ws/interview"; // websocket 주소
+  const SOCKET_URL = `ws://${host}:9090/ws/interview`; // websocket 주소
 
   const{
     sendMessage,      //문자열을 서버(WebSocket)로 전송하는 함수
@@ -432,7 +432,7 @@ const AiChat = () => {
       const resultArray = JSON.parse(currentStreamRef.current);
 
       // 서버에 결과 전송
-      const response = await axios.post("http://localhost:9090/ymj/saveInterviewResult", resultArray, {
+      const response = await axios.post(`http://${host}:9090/ymj/saveInterviewResult`, resultArray, {
                             withCredentials: true,
                             headers: {
                               "Content-Type": "application/json"
