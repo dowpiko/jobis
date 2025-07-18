@@ -1,5 +1,6 @@
 package org.jobis.service;
 
+import java.util.Date;
 import java.util.List;
 
 import org.jobis.domain.CJSVO;
@@ -24,6 +25,14 @@ public class UserChatServiceImpl implements UserChatService {
 		
 		return ucMapper.register(cjsvo);
 	}
+	
+	// insert한 채팅 날짜 가져오기
+	@Override
+	public Date getRegdate(CJSVO cjsvo) {
+		
+		return ucMapper.getRegdate(cjsvo);
+	}
+	
 	// 유저 채팅 가져오기(전체)
 	@Override
 	public List<CJSVO> getUserChat() {

@@ -1,5 +1,6 @@
 package org.jobis.mapper;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
@@ -13,6 +14,9 @@ public interface UserChatMapper {
 	
 	// 유저채팅 insert
 	public int register(CJSVO cjsvo);
+	
+	//insert한 채팅 날짜 가져오기
+	public Date getRegdate(CJSVO cjsvo);
 	
 	// 유저채팅 불러오기(전체)
 	public List<CJSVO> getUserChat();

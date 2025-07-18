@@ -1,5 +1,6 @@
 package org.jobis.controller;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +54,17 @@ public class CjsController {
 	    cjsvo.setLeader(user.getUno());
 
 	    int result = ucservice.register(cjsvo);
-	    return new ResponseEntity<>(result > 0 ? "success" : "fail", HttpStatus.OK);
+	   
+	    Date regdate = ucservice.getRegdate(cjsvo);
+	    cjsvo.setR_regdate(regdate);
+	  
+	    if (result > 0) {
+	        ChatSocket2.getInstance().broadcastChatRoom(cjsvo);
+	        return new ResponseEntity<>("success", HttpStatus.OK);
+	    } else {
+	        return new ResponseEntity<>("fail", HttpStatus.OK);
+	    }
+//	    return new ResponseEntity<>(result > 0 ? "success" : "fail", HttpStatus.OK);
 	}
 
 	

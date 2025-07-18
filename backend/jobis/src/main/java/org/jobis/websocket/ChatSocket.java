@@ -8,6 +8,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 
 import org.jobis.config.CustomSpringConfigurator;
+import org.jobis.domain.CJSVO;
 import org.jobis.service.UserChatService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +18,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class ChatSocket {
 
-    @Autowired
-    UserChatService ucService;
+	 private static ChatSocket instance;
 
+	    public ChatSocket() {
+	        instance = this;
+	    }
+
+	    public static ChatSocket getInstance() {
+	        return instance;
+	    }
+	
+	@Autowired UserChatService ucService;
+	
     private static final Set<Session> sessions = new CopyOnWriteArraySet<>();
 
     @OnOpen
@@ -134,4 +144,25 @@ public class ChatSocket {
         System.err.println("⚠️ 채팅 소켓 오류: " + throwable.getMessage());
         throwable.printStackTrace();
     }
+    
+    public void broadcastChatRoom(CJSVO chat) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("cno", chat.getCno());
+            json.put("r_title", chat.getR_title());
+            json.put("r_tag", chat.getR_tag());
+            json.put("leader", chat.getLeader());
+            json.put("leader_name", ucService.getOtherNameByUno(chat.getLeader()).getName());
+            json.put("sch_date", chat.getSch_date()); ;
+
+            for (Session s : sessions) {
+                if (s.isOpen()) {
+                    s.getBasicRemote().sendText(json.toString());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

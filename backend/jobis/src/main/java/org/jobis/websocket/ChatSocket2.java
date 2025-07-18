@@ -19,18 +19,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class ChatSocket2 {
 
-	 private static ChatSocket2 instance;
+    private static ChatSocket2 instance;
 
-	    public ChatSocket2() {
-	        instance = this;
-	    }
+    public ChatSocket2() {
+        instance = this;
+    }
 
-	    public static ChatSocket2 getInstance() {
-	        return instance;
-	    }
-	
-	@Autowired UserChatService ucService;
-	
+    public static ChatSocket2 getInstance() {
+        return instance;
+    }
+
+    @Autowired 
+    UserChatService ucService;
+
     private static final Set<Session> sessions = new CopyOnWriteArraySet<>();
 
     @OnOpen
@@ -46,86 +47,21 @@ public class ChatSocket2 {
 
         try {
             JSONObject json = new JSONObject(message);
-            String type = json.optString("type", "CHAT");
 
-            if ("ENTER_ROOM".equals(type)) {
-                int uno = json.getInt("uno");
-                int rno = json.getInt("rno");
-
-                // ✅ 기존 같은 uno지만 다른 rno 보고 있는 세션 닫기
-                for (Session s : sessions) {
-                    if (s.isOpen()) {
-                        Integer existingUno = (Integer) s.getUserProperties().get("uno");
-                        Integer existingRno = (Integer) s.getUserProperties().get("currentRno");
-                        if (existingUno != null && existingUno == uno &&
-                            existingRno != null && existingRno != rno) {
-                            try {
-                                s.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "중복 세션 종료"));
-                                System.out.println("🔁 기존 세션 종료: uno=" + uno + ", rno=" + existingRno);
-                            } catch (IOException e) {
-                                System.err.println("⚠ 기존 세션 종료 실패: " + e.getMessage());
-                            }
-                        }
-                    }
-                }
-
-                // ✅ 현재 세션 정보 등록
-                session.getUserProperties().put("uno", uno);
-                session.getUserProperties().put("currentRno", rno);
-                System.out.println("🚪 사용자 입장 기록: uno=" + uno + ", rno=" + rno);
-
-                // ✅ read_update 메시지 브로드캐스트
-                for (Session s : sessions) {
-                    if (s.isOpen()) {
-                        Integer sessionUno = (Integer) s.getUserProperties().get("uno");
-                        Integer currentRno = (Integer) s.getUserProperties().get("currentRno");
-
-                        if (sessionUno != null && sessionUno != uno &&
-                            currentRno != null && currentRno == rno) {
-                            JSONObject readUpdate = new JSONObject();
-                            readUpdate.put("type", "read_update");
-                            readUpdate.put("rno", rno);
-                            readUpdate.put("uno", uno);
-                            s.getBasicRemote().sendText(readUpdate.toString());
-                            System.out.println("📡 read_update 전송 → sessionUno=" + sessionUno);
-                        }
-                    }
-                }
-
-                return;
-            }
-
-            // ✅ 일반 메시지 처리
+            // leader 필드 없으면 무시 (유효성 체크용)
             if (!json.has("leader")) {
-                System.err.println("⚠️ 'leader' 필드가 없는 일반 메시지. 무시됨");
+                System.err.println("⚠️ 'leader' 필드가 없는 메시지. 무시됨");
                 return;
             }
 
             int leaderUno = json.getInt("leader");
-            int rno = json.getInt("rno");
-
             String leaderName = ucService.getOtherNameByUno(leaderUno).getName();
             json.put("leader_name", leaderName);
-
-            boolean isOpponentInRoom = sessions.stream().anyMatch(s -> {
-                if (!s.isOpen()) return false;
-                Integer currentRno = (Integer) s.getUserProperties().get("currentRno");
-                Integer sessionUno = (Integer) s.getUserProperties().get("uno");
-
-                return sessionUno != null && sessionUno != leaderUno &&
-                       currentRno != null && currentRno == rno;
-            });
-
-            json.put("hit", isOpponentInRoom ? 1 : 0);
 
             System.out.println("📤 브로드캐스트 메시지: " + json.toString());
             for (Session s : sessions) {
                 if (!s.isOpen()) continue;
-
-                Integer currentRno = (Integer) s.getUserProperties().get("currentRno");
-                if (currentRno != null && currentRno == rno) {
-                    s.getBasicRemote().sendText(json.toString());
-                }
+                s.getBasicRemote().sendText(json.toString());
             }
 
         } catch (Exception e) {
@@ -145,11 +81,10 @@ public class ChatSocket2 {
         System.err.println("⚠️ 채팅 소켓 오류: " + throwable.getMessage());
         throwable.printStackTrace();
     }
-    
+
     public void broadcastChatRoom(CJSVO chat) {
+    	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");    	
         try {
-        	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        	
             JSONObject json = new JSONObject();
             json.put("cno", chat.getCno());
             json.put("r_title", chat.getR_title());
@@ -157,11 +92,8 @@ public class ChatSocket2 {
             json.put("leader", chat.getLeader());
             json.put("leader_name", ucService.getOtherNameByUno(chat.getLeader()).getName());
             json.put("sch_date", chat.getSch_date());
-            if (chat.getR_regdate() != null) {
-                json.put("r_regdate", sdf.format(chat.getR_regdate()));
-            }
-            
-
+            json.put("r_regdate", sdf.format(chat.getR_regdate()));
+            System.out.println("json 입니다."+json.toString());
             for (Session s : sessions) {
                 if (s.isOpen()) {
                     s.getBasicRemote().sendText(json.toString());
@@ -171,5 +103,4 @@ public class ChatSocket2 {
             e.printStackTrace();
         }
     }
-
 }

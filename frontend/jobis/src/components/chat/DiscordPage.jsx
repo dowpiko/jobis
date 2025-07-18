@@ -322,7 +322,9 @@ const DiscordPage = () => {
       r_tag: category,
       sch_date: formatLocalDateTime(selectedDate),
       leader : myUno,
+      r_regdate : ''
     };
+    
     //   세션 만료되면 alert
       fetch('/insertUserChat', {
       method: 'POST',
@@ -343,9 +345,9 @@ const DiscordPage = () => {
           fetchChatList();
           setVisibleCount(9); // 다시 9개부터 시작
           setShouldScrollToBottom(true); // 스크롤 맨 아래로
-          if (socketRef.current?.readyState === WebSocket.OPEN) {
-          socketRef.current.send(JSON.stringify(payload));
-        }
+        //   if (socketRef.current?.readyState === WebSocket.OPEN) {
+        //   socketRef.current.send(JSON.stringify(payload));
+        // }
         }
       })
       .catch(err => console.error('Insert 요청 에러:', err));
@@ -427,13 +429,18 @@ useEffect(() => {
   try {
     const message = JSON.parse(event.data);
     console.log('📩 실시간 메시지 수신:', message);
-
+    console.log('regdate: ' ,message.r_regdate);
+    if(message.r_regdate==null){
+      console.log("!!!경고!!!");
+    }
     setChatList(prev => {
       const withoutOld = prev.filter(chat => chat.cno !== message.cno);
       const updatedChatList = [...withoutOld, {
         ...message,
         sch_date: new Date(message.sch_date.replace(' ', 'T')),
-        r_regdate: new Date(message.r_regdate.replace(' ', 'T'))
+        r_regdate: message.r_regdate 
+        ? new Date(message.r_regdate.replace(' ', 'T')) 
+        : new Date()
       }];
       return updatedChatList.sort((a, b) => a.r_regdate - b.r_regdate);
     });

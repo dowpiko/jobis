@@ -5,7 +5,7 @@
 <mapper namespace="org.jobis.mapper.UserChatMapper">
 
 	<!-- 유저 채팅 input-->
-	<insert id="register">
+	<insert id="register" parameterType="org.jobis.domain.CJSVO">
 		INSERT INTO tbl_userchat (
 			cno,
 			r_title,
@@ -25,6 +25,21 @@
 			1
 		)
 	</insert>
+	
+	<!--  insert한 유저 채팅 날짜 가져오기 -->
+	<select id="getRegdate" parameterType="org.jobis.domain.CJSVO" resultType="java.util.Date">
+		SELECT * FROM (
+	    SELECT r_regdate
+	    FROM tbl_userchat
+	    WHERE leader = #{leader}
+	      AND r_title = #{r_title}
+	      AND sch_date = TO_DATE(#{sch_date}, 'YYYY-MM-DD HH24:MI:SS')
+	    ORDER BY cno DESC
+	)
+	WHERE ROWNUM = 1
+
+	</select>
+	
 	
 	<!-- 유저 채팅 불러오기 (전체)-->
 	<select id="getUserChat" resultType="org.jobis.domain.CJSVO">
