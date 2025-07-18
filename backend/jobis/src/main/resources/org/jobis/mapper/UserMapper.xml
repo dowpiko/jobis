@@ -22,4 +22,9 @@
 		FROM TBL_USER
 		WHERE UNO = #{uno}
 	</select>
+	<update id="updateSubscribe">
+		UPDATE TBL_USER
+			SET SUBSCRIBE = #{num}
+		WHERE UNO = #{uno}
+	</update>
 </mapper>

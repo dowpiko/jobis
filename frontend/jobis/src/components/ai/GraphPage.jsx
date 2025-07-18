@@ -12,6 +12,7 @@ import { leader, analytical, creative, executive, communicative } from '../../da
 import LoadingModal from '../modal/LoadingModal';
 import FeedbackReportPanel from './FeedbackReportPanel';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 
 const Container = styled.div`
@@ -404,11 +405,13 @@ const UnifiedButton = styled.button`
 	align-self: center;
 	margin-bottom: 8px;
 	transition: background 0.3s ease;
+	opacity: ${({ $dimmed }) => ($dimmed ? 0.75 : 1)};
 
 	&:hover {
 		background: linear-gradient(to right, #2563EB, #3B82F6);
 	}
 `;
+
 
 const RightPanelToggleButton = styled.button`
 	position: absolute;
@@ -498,6 +501,8 @@ export default function RadarSection() {
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [subscribe, setSubscribe] = useState(0);
+  const navigate = useNavigate();
   const uno = useRef(null);
   const perPage = 10;
   const totalPage = Math.ceil(interviews.length / perPage);
@@ -509,11 +514,13 @@ export default function RadarSection() {
   useEffect(() => {
     const getDatas = async () => {
       try {
-        const response1 = axios.get(`/jsh/getUser`);
-        const res = await response1;
-        uno.current = res.data.uno;
+        const userRes = await axios.get('/jsh/getUser');
+        const user = userRes.data;
+        uno.current = user.uno;
+        setSubscribe(user.subscribe); // ✅ 구독 상태 반영
+
         const response = await axios.get(`http://${host}:9090/ymj/getAllResults`, {
-          params: { uno:uno.current },  
+          params: { uno: uno.current },
           withCredentials: true
         });
         const raw = response.data;
@@ -623,22 +630,29 @@ export default function RadarSection() {
       if (e.key === 'Enter') handlePageSubmit();
     };
   const handleSubmitInterview = async () => {
+    if (subscribe === 2) {
+      const confirmed = window.confirm('무료 이용자는 평생 한 번만 피드백을 받을 수 있습니다.\n구독 페이지로 이동하시겠습니까?');
+      if (confirmed) navigate('/subscribe');
+      return; // ❗ 서버 요청 막기
+    }
+
     setIsLoading(true);
     try {
       const res = await axios.post(`http://${host}:9090/ymj/getFeedback`, {
         ano: selInterviewId
       }, { withCredentials: true });
 
-      // 분석 결과 저장
-    setInterviews(prev => prev.map(i =>
-      i.id === selInterviewId
-        ? {
-            ...i,
-            feedback: typeof res.data === 'string' ? JSON.parse(res.data) : res.data
-          }
-        : i
-    ));
+      setInterviews(prev => prev.map(i =>
+        i.id === selInterviewId
+          ? {
+              ...i,
+              feedback: typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+            }
+          : i
+      ));
 
+      const userRes = await axios.get('/jsh/getUser');
+      setSubscribe(userRes.data.subscribe); // ✅ 갱신된 구독 상태 반영
     } catch (err) {
       console.error(err);
       alert('에러 발생');
@@ -646,6 +660,7 @@ export default function RadarSection() {
       setIsLoading(false);
     }
   };
+
   useEffect(() => {
     setIsExpanded(false);
   }, [selInterviewId]);
@@ -768,8 +783,11 @@ export default function RadarSection() {
                             사용자의 전체 면접 응답을 바탕으로 AI가 컨텍스트 기반 피드백을 제공합니다.
                           </AIUnifiedDescription>
                           <FlexibleBottomSpacer />
-                          <UnifiedButton onClick={handleSubmitInterview}>
-                            전체 결과 보기
+                          <UnifiedButton
+                            onClick={handleSubmitInterview}
+                            $dimmed={subscribe === 2}
+                          >
+                            전체 결과 보기 ({subscribe === 1 ? '∞' : subscribe === 0 ? '1' : '0'})
                           </UnifiedButton>
                         </AIContentWrapper>
                       </RightPanel>

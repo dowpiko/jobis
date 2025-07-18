@@ -131,7 +131,7 @@ public class InterviewServiceimpl implements InterviewService{
 	}
 	
 	@Override
-	public String getFeedbackFromAI(int ano) {
+	public String getFeedbackFromAI(int ano, HttpSession session) {
 		AIVO aVO = aMapper.getDataByAno(ano);
 		PromptGenerator gen = new FeedbackPromptGenerator(aVO);
 		String prompt = gen.generatePrompt();
@@ -142,8 +142,13 @@ public class InterviewServiceimpl implements InterviewService{
 
 		aVO.setFeedback(sanitized);
 		System.out.println("✅ 보정된 결과 저장: " + sanitized);
-
-		return aMapper.updateFeedback(aVO) >= 1 ? sanitized : "DB 업데이트 오류";
+		String resultReturn =aMapper.updateFeedback(aVO) >= 1 ? sanitized : "DB 업데이트 오류";
+		UserVO user = (UserVO)session.getAttribute("User");
+		if(user.getSubscribe()!=1) {
+			if(uMapper.updateSubscribe(user.getUno(), 2)>0)
+				updateUserSession(session);
+		}
+		return resultReturn;
 	}
 	
 	@Override

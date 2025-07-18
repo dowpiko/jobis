@@ -56,10 +56,10 @@ public class YmjController {
 	}
 	
 	@PostMapping(value = "/getFeedback", produces = "text/plain; charset=UTF-8")
-	public String getFeedback(@RequestBody Map<String, Integer> payload) {
+	public String getFeedback(@RequestBody Map<String, Integer> payload, HttpSession session) {
 		int ano = payload.get("ano");
 		System.out.println("!!!"+ano+"!!!");
-		return iService.getFeedbackFromAI(ano);
+		return iService.getFeedbackFromAI(ano, session);
 	}
 	@PutMapping("/updateDate")
 	public String updateDate(HttpSession session) {
