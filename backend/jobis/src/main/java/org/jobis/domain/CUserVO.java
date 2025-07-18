@@ -19,4 +19,5 @@ public class CUserVO {
     private String enpBsadr;
     private String sicNm;
     private int enpEmpeCnt;
+    private int count;
 }

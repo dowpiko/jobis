@@ -12,6 +12,7 @@ import javax.servlet.http.HttpSession;
 import org.jobis.domain.ProfileVO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.JshService;
+import org.jobis.service.SmService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,8 @@ public class JshController {
 	@Autowired
 	JshService jshservice;
     
+	@Autowired
+	SmService smService;
 	// 아이디 중복 확인
 	@GetMapping("/checkid")
 	public Map<String, Boolean> checkUsername(@RequestParam String id) {
@@ -96,6 +99,7 @@ public class JshController {
 	    UserVO User = (UserVO) session.getAttribute("User");
 	    
 	    if (User != null) {
+	    	User.setCount(smService.chatLogCount(User.getUno()));
 	        return User;
 	    } else {
 	        return null; // 세션이 없으면 프론트에서 리디렉션 처리

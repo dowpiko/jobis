@@ -10,13 +10,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserVO {
-	int uno;
-	String name;
-	Date birthdate;
-	String id;
-	String pw;
-	String email;
-	int subscribe;
-	String auth;
-	Date lastTryDate;  // ✅ 추가된 필드 (nullable)
+	private int uno;
+	private String name;
+	private Date birthdate;
+	private String id;
+	private String pw;
+	private String email;
+	private int subscribe;
+	private String auth;
+	private Date lastTryDate;  // ✅ 추가된 필드 (nullable)
+	private int count;
 }

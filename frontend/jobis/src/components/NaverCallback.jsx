@@ -11,10 +11,8 @@ const NaverCallback = () => {
     const state = url.searchParams.get('state');
 
     if (code) {
-      console.log('코드 수신:', code);
       axios.post('/jsh/naver', { code, state })
         .then((res) => {
-          console.log('로그인 성공:', res.data);
           navigate('/profile');
         })
         .catch((err) => {

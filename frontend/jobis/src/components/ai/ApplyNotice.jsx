@@ -128,19 +128,16 @@ const ApplyNotice = () => {
           `/sm/oneInterViewByOno?ono=${ono}`,
           { withCredentials: true }
         );
-        console.log('interview:', interview);
         setOffer(interview);
 
         // — 회사 ID: interview.uno
         const companyUno = interview.uno;
-        console.log('companyUno으로 fetch:', companyUno);
 
         // — 회사 정보
         const { data: corp } = await axios.get(
           `/sm/selectCinofoByUno?uno=${companyUno}`,
           { withCredentials: true }
         );
-        console.log('corpInfo:', corp);
         setCorpInfo(corp);
 
         // — 질문 분리
@@ -174,7 +171,6 @@ const ApplyNotice = () => {
       answers
       // o_content: answerText
     };
-    console.log('🚀 제출 payload:', payload);
 
     try {
       const res = await axios.post('/insertSubmission', {

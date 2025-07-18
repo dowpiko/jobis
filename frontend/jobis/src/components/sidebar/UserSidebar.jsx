@@ -59,6 +59,7 @@ const ModeToggle = styled.button`
 `;
 
 const Profile = styled.div`
+  position: relative;
   background-color: #FFFFFF;
   border-radius: 12px;
   padding: 16px;
@@ -176,10 +177,44 @@ const MenuScroll = styled.div`
   min-height: 0;
 `;
 
+const NotificationWrapper = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+`;
+
+const NotificationBadge = styled.div`
+  position: absolute;
+  top: -6px;
+  right: ${(props) => 
+    props.countLength === 1 ? '-5px' : 
+    props.countLength === 2 ? '-10px' : 
+    '-15px'
+  }; 
+  background-color: #e53935;
+  color: white;
+  padding: 1px 5px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 0 4px rgba(0,0,0,0.2);
+  line-height: 1.4;
+  white-space: nowrap;
+`;
+
 function UserSidebar({ children }) {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
   const { logout } = useContext(AuthContext);
+  const [count, setCount] = useState(0);
+
+  const BellIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="#1F2A37" viewBox="0 0 24 24">
+      <path d="M12 24c1.104 0 2-.896 2-2h-4a2 2 0 002 2zm6.364-6V11c0-3.308-2.308-6.104-5.364-6.708V3a1 1 0 10-2 0v1.292C8.944 4.896 6.636 7.692 6.636 11v7L4 19v1h16v-1l-1.636-1zM18 20H6v-.382l1.636-1.636V11c0-2.757 2.243-5 5-5s5 2.243 5 5v6.982L18 19.618V20z"/>
+    </svg>
+  );
 
   const handleProfile = async () => {
     try {
@@ -197,6 +232,7 @@ function UserSidebar({ children }) {
       .then(res => {
         if (res.data?.name) {
           setUserName(res.data.name);
+          setCount(res.data.count);
         } else {
           alert('로그인이 필요합니다.');
           navigate('/');
@@ -219,6 +255,9 @@ function UserSidebar({ children }) {
     navigate('/');
   };
 
+  const displayNotificationCount = count > 99 ? '99+' : count.toString();
+  const countLength = displayNotificationCount.length;  
+
   return (
     <AppLayout>
       <Sidebar>
@@ -234,6 +273,14 @@ function UserSidebar({ children }) {
             <ProfileImg src="/img/user.svg" alt="profile" />
             <ProfileName>{userName}</ProfileName>
           </ProfileInfo>
+          <NotificationWrapper onClick={() => alert('알림 클릭!')}>
+            <BellIcon />
+            {count > 0 && (
+              <NotificationBadge countLength={countLength}>
+                {displayNotificationCount}
+              </NotificationBadge>
+            )}
+          </NotificationWrapper>
           <ProfileActions>
             <ProfileButton onClick={() => navigate('/graphPage')}>마이페이지</ProfileButton>
             <ProfileButton onClick={handleLogout}>로그아웃</ProfileButton>

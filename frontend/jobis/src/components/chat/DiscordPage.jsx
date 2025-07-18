@@ -224,7 +224,6 @@ const DiscordPage = () => {
     fetch(url,{ credentials: 'include' })
       .then((res) => res.json())
       .then(data => {
-          console.log('서버에서 받은 데이터:', data); // 확인용
         const parsed = data.map((chat) => ({
           ...chat,
           sch_date: new Date(chat.sch_date), // 문자열 → Date 객체로 변환

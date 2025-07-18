@@ -138,7 +138,6 @@ const AiInterview = () => {
 				const user = res.data;
 				if (!user) return;
 
-				console.log('user:', user);
 				setSubscribe(user.subscribe);
 
 				if (user.subscribe === 1) {
@@ -150,9 +149,6 @@ const AiInterview = () => {
 						// ✅ 날짜를 'yyyy. M. d.' 형식 문자열로 비교 (KST 기준)
 						const todayStr = new Date().toLocaleDateString('ko-KR');
 						const lastDateStr = new Date(user.lastTryDate).toLocaleDateString('ko-KR');
-
-						console.log('today:', todayStr);
-						console.log('lastTryDate:', lastDateStr);
 
 						setCanStartToday(todayStr !== lastDateStr);
 					}

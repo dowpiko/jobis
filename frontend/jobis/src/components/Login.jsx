@@ -197,7 +197,6 @@ const Login = () => {
 
       if (res.data.success) {
         login(res.data);
-        console.log(res.data);
         const userType = res.data.userType;
         if ((isPersonal && userType !== 'user') || (!isPersonal && userType !== 'company')) {
           alert('선택한 로그인 유형과 계정 유형이 일치하지 않습니다.');

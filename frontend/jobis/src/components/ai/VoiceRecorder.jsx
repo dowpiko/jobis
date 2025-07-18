@@ -125,8 +125,6 @@ const VoiceRecorder = ({ onClose, onResult }) => {
 					const res = await axios.post('/jsh/voicetotext', formData);
 					const recognizedText = res.data.text || '';
 
-					console.log("🎧 인식된 텍스트:", recognizedText);
-
 					if (recognizedText) {
 						onResult(recognizedText);
 					} else {
