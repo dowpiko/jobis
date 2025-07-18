@@ -267,6 +267,8 @@ const UserChatLayout = () => {
         console.error('데이터 조회 오류', err);
         alert('데이터 조회 중 오류가 발생했습니다.');
       }
+      
+      window.dispatchEvent(new Event('reloadSidebarCount'));
     };
 
     // 메시지 전송

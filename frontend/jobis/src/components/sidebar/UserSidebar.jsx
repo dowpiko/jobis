@@ -233,19 +233,18 @@ function UserSidebar({ children }) {
   };
   
   useEffect(() => {
-    axios.get('/jsh/getUser')
-      .then(res => {
-        const uno = res.data?.uno;
-        if (!uno) throw new Error('로그인 필요');
-        return axios.get(`/jsh/getUser?uno=${uno}`);
-      })
-      .then(res => {
-        setDbCount(res.data.count);
-      })
-      .catch(err => {
-        console.error('🔔 알림 카운트 로딩 실패', err);
-      });
-  }, []); 
+    const reload = () => {
+      axios.get(`/jsh/getUser?uno=${uno}`)
+        .then(data => {
+          console.log(data);
+          if (data.data) setDbCount(data.data.count);
+        })
+        .catch(err => {console.error('🔔 알림 카운트 재로딩 실패', err);});
+        };
+
+        window.addEventListener('reloadSidebarCount', reload);
+        return () => window.removeEventListener('reloadSidebarCount', reload);
+  }, []);
 
   useEffect(() => {
     axios.get('/jsh/getUser')

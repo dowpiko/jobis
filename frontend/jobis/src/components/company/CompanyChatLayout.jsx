@@ -315,6 +315,8 @@ const CompanyChatLayout = () => {
     } catch (err) {
       console.error('오류 발생:', err);
     }
+    
+    window.dispatchEvent(new Event('reloadSidebarCount'));
   };
 
   const fetchByRnoChatMessages = async (rno, uno) => {

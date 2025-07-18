@@ -242,25 +242,16 @@ function CompanySidebar({ children }) {
   }, [socket, uno]);
 
   useEffect(() => {
-    axios.get('/jsh/getUser')
-      .then(res => {
-        if (res.data) {
-          axios.get(`sm/selectCinofoByUno?uno=${res.data.uno}`)
-            .then(data => {
-              if (data.data) {
-                setDbCount(data.data.count);
-              }else {
-                return;
-              }
-            })
-        } else {
-          alert('로그인이 필요합니다.');
-          navigate('/');
-        }
-      })
-      .catch(err => {
-        navigate('/');
-      });
+    const reload = () => {
+      axios.get(`sm/selectCinofoByUno?uno=${uno}`)
+        .then(data => {
+          if (data.data) setDbCount(data.data.count);
+        })
+        .catch(err => {console.error('🔔 알림 카운트 재로딩 실패', err);});
+        };
+
+        window.addEventListener('reloadSidebarCount', reload);
+        return () => window.removeEventListener('reloadSidebarCount', reload);
   }, []);
 
   return (
