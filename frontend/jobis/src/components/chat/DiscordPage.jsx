@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import DatePicker from 'react-datepicker'; // 날짜 선택
 import { ko } from 'date-fns/locale';    // 달력 한글로 만들기
 import 'react-datepicker/dist/react-datepicker.css';
@@ -176,6 +176,53 @@ const DateRow = styled.div`
   gap: 10px;
 `;
 
+const slideDown = keyframes`
+  from {
+    transform: translateX(-50%) translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+`;
+
+export const NotificationBanner = styled.div`
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #5c8bc4;
+  color: white;
+  padding: 14px 20px;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 9999;
+  animation: ${slideDown} 0.4s ease forwards;
+  font-size: 14px;
+`;
+
+export const NotificationTitle = styled.div`
+  flex: 1;
+  white-space: nowrap;
+`;
+
+export const NotificationButton = styled.button`
+  background-color: white;
+  color: #5c8bc4;
+  border: none;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  &:hover {
+    background-color: #f0f0f0;
+  }
+`;
+
 // utc 시간 한국시간으로 바꾸기
 const formatLocalDateTime = (date) => {
   const pad = n => n.toString().padStart(2, '0');
@@ -205,6 +252,9 @@ const DiscordPage = () => {
   const [selectedSub, setSelectedSub] = useState(subList[0]?.name || '');
   const [titleSuffix, setTitleSuffix] = useState('');  
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
+  const [alertedCnos, setAlertedCnos] = useState(new Set());
+  const [bannerChat, setBannerChat] = useState(null);
+
 
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
@@ -309,6 +359,44 @@ const DiscordPage = () => {
       })
       .catch(err => console.error('세션 uno 가져오기 실패:', err));
   }, []);
+
+
+  // 알람 useEffect
+  useEffect(() => {
+  const checkUpcoming = () => {
+    const now = new Date();
+    const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+
+    const upcoming = allMyChats.filter(chat => {
+      return (
+        chat.sch_date > now &&
+        chat.sch_date <= oneHourLater &&
+        chat.member &&                       // 같이 할 사람 있을때만
+        !alertedCnos.has(chat.cno)   
+      );
+    });
+
+    if (upcoming.length > 0) {
+      upcoming.forEach(chat => {
+        setBannerChat(chat);
+        setAlertedCnos(prev => {
+          const newSet = new Set(prev);
+          newSet.add(chat.cno);
+          return newSet;
+        });
+      });
+    }
+  };
+
+  checkUpcoming(); 
+
+  const interval = setInterval(checkUpcoming, 60000);
+
+  return () => clearInterval(interval);
+}, [allMyChats, alertedCnos]);
+
+
+
 
 
   const handleCreateChat = () => {
@@ -428,10 +516,7 @@ useEffect(() => {
   try {
     const message = JSON.parse(event.data);
     console.log('📩 실시간 메시지 수신:', message);
-    console.log('regdate: ' ,message.r_regdate);
-    if(message.r_regdate==null){
-      console.log("!!!경고!!!");
-    }
+    
     setChatList(prev => {
       const withoutOld = prev.filter(chat => chat.cno !== message.cno);
       const updatedChatList = [...withoutOld, {
@@ -443,22 +528,11 @@ useEffect(() => {
       }];
       return updatedChatList.sort((a, b) => a.r_regdate - b.r_regdate);
     });
-  } catch (e) {
-    console.error('⚠️ 메시지 파싱 실패:', e);
-  }
-};
-  // socket.onmessage = (event) => {
-  //   try {
-  //     const message = JSON.parse(event.data);
-  //     console.log('📩 실시간 메시지 수신:', message);
-  //     setChatList(prev => [
-  //       ...prev,
-  //       { ...message, sch_date: new Date(message.sch_date) }
-  //     ]);
-  //   } catch (e) {
-  //     console.error('⚠️ 메시지 파싱 실패:', e);
-  //   }
-  // };
+    } catch (e) {
+      console.error('⚠️ 메시지 파싱 실패:', e);
+    }
+  };
+
   socket.onerror = (err) => {
     console.error('⚠️ WebSocket 오류:', err);
   };
@@ -477,10 +551,20 @@ useEffect(() => {
   };
   
   return (
+    
      <Wrapper>
+      {bannerChat && (
+        <NotificationBanner>
+          <NotificationTitle>
+            {bannerChat.r_title} |{' '}
+            {bannerChat.sch_date.toLocaleDateString('ko-KR')} {bannerChat.sch_date.toLocaleTimeString('ko-KR')}
+          </NotificationTitle>
+          <NotificationButton onClick={() => navigate('/video')}>참여</NotificationButton>
+          <NotificationButton onClick={() => setBannerChat(null)}>닫기</NotificationButton>
+        </NotificationBanner>
+      )}
       <Container>
         <Header>
-          <Title>‘박말선’님과의 화상 채팅 일정</Title>
           <Title>태그 : {category}</Title>
           <JoinButton onClick={handleJoin}>회의 참여</JoinButton>
         </Header>
@@ -570,14 +654,25 @@ useEffect(() => {
             <StyledDatePicker
               selected={selectedDate}
               onChange={handleDateChange}
-              // onChange={(date) => setSelectedDate(date)}
               placeholderText="날짜 선택"
               dateFormat="yyyy-MM-dd HH:mm"
-              filterTime={(time)=>
-                !blockedIntervals.some(({start,end})=>
-                  time >=start && time <=end
-                )
-              }
+              minDate={new Date()}
+              filterTime={(time) => {
+                const now = new Date();
+                const selectedDay = selectedDate || new Date();
+                const isToday =
+                  selectedDay.toDateString() === now.toDateString();
+
+                if (isToday) {
+                  return time.getTime() >= now.getTime() &&
+                    !blockedIntervals.some(({ start, end }) => time >= start && time <= end);
+                }
+              }}
+              // filterTime={(time)=> 
+              //   !blockedIntervals.some(({start,end})=>
+              //     time >=start && time <=end
+              //   )
+              // }
               showTimeSelect         // ✅ 시간 선택 UI 표시
               timeIntervals={30}     // ✅ 30분 간격 선택
               timeFormat="HH:mm"     // ✅ 24시간 형식으로 시간 표시

@@ -258,9 +258,15 @@ function ScheduleManager() {
           <Section>
             <SectionTitle>일정 관리</SectionTitle>
             <ScheduleList>
-              {scheduleData.map((event, idx) => {
-                const dateStr = new Date(event.date).toISOString().split('T')[0];
-
+               {scheduleData
+                .filter(event => {
+                    const eventDate = new Date(event.date);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    return eventDate >= today;
+                })
+                .map((event, idx) => {
+                    const dateStr = new Date(event.date).toISOString().split('T')[0];
                 return (
                   <ScheduleItem
                     key={idx}
