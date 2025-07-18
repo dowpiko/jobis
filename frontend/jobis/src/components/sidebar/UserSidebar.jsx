@@ -1,10 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import logo from '../../img/SIMPLELOGO.png';      // 🔹 로고 이미지
 import toggleIcon from '../../img/ChangeIcon.png'; // 🔹 토글 이미지
 import { AuthContext } from '../../contexts/AuthContext';
+import { SocketContext } from '../../contexts/SocketContext';
 
 const AppLayout = styled.div`
   display: flex;
@@ -207,8 +208,12 @@ const NotificationBadge = styled.div`
 function UserSidebar({ children }) {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
-  const { logout } = useContext(AuthContext);
-  const [count, setCount] = useState(0);
+  const { uno, logout } = useContext(AuthContext);
+  const [dbCount, setDbCount] = useState(0);
+  const location = useLocation();
+  const socket = useContext(SocketContext);
+  const display = dbCount > 99 ? '99+' : dbCount.toString();
+  const len = display.length;  
 
   const BellIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="#1F2A37" viewBox="0 0 24 24">
@@ -226,13 +231,27 @@ function UserSidebar({ children }) {
       navigate('/');
     }
   };
+  
+  useEffect(() => {
+    axios.get('/jsh/getUser')
+      .then(res => {
+        const uno = res.data?.uno;
+        if (!uno) throw new Error('로그인 필요');
+        return axios.get(`/jsh/getUser?uno=${uno}`);
+      })
+      .then(res => {
+        setDbCount(res.data.count);
+      })
+      .catch(err => {
+        console.error('🔔 알림 카운트 로딩 실패', err);
+      });
+  }, []); 
 
   useEffect(() => {
     axios.get('/jsh/getUser')
       .then(res => {
         if (res.data?.name) {
           setUserName(res.data.name);
-          setCount(res.data.count);
         } else {
           alert('로그인이 필요합니다.');
           navigate('/');
@@ -243,7 +262,23 @@ function UserSidebar({ children }) {
         alert('세션 오류');
         navigate('/');
       });
-  }, [navigate]);
+  }, [location.pathname, navigate]);
+
+  useEffect(() => {
+    if (!socket) return;
+      const handler = (evt) => {
+      
+      let msg;
+      try { msg = JSON.parse(evt.data); } catch { return; }
+ 
+      if (msg.type === 'chat_notification' && msg.message.sender === uno) {
+        setDbCount(c => c + 1);
+        return;
+      }
+    };
+    socket.addEventListener('message', handler);
+    return () => socket.removeEventListener('message', handler);
+  }, [socket, uno]);
 
   const handleLogout = async () => {
     try {
@@ -254,9 +289,6 @@ function UserSidebar({ children }) {
     logout();
     navigate('/');
   };
-
-  const displayNotificationCount = count > 99 ? '99+' : count.toString();
-  const countLength = displayNotificationCount.length;  
 
   return (
     <AppLayout>
@@ -275,9 +307,9 @@ function UserSidebar({ children }) {
           </ProfileInfo>
           <NotificationWrapper onClick={() => alert('알림 클릭!')}>
             <BellIcon />
-            {count > 0 && (
-              <NotificationBadge countLength={countLength}>
-                {displayNotificationCount}
+            {dbCount > 0 && (
+              <NotificationBadge countLength={len}>
+                {display}
               </NotificationBadge>
             )}
           </NotificationWrapper>

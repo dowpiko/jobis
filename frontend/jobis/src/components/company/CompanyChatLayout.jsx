@@ -232,7 +232,7 @@ const CompanyChatLayout = () => {
         alert('세션 오류');
         navigate('/');
       });
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (chatEndRef.current) {

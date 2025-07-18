@@ -120,9 +120,21 @@ public class ChatSocket {
             for (Session s : sessions) {
                 if (!s.isOpen()) continue;
 
+                Integer sessionUno = (Integer) s.getUserProperties().get("uno");
                 Integer currentRno = (Integer) s.getUserProperties().get("currentRno");
+
+                // 1) 채팅룸 안에 있는 사람(들)에게는 실제 채팅 JSON 전송
                 if (currentRno != null && currentRno == rno) {
                     s.getBasicRemote().sendText(json.toString());
+
+                // 2) 룸 밖에 있으면서, 메시지 보낸 사람이 아닌 상대편에게는 알림 전용 이벤트 전송
+                } else if (sessionUno != null && sessionUno != leaderUno) {
+                    JSONObject notify = new JSONObject();
+                    notify.put("type", "chat_notification");
+                    notify.put("rno", rno);
+                    notify.put("message", json);
+                    
+                    s.getBasicRemote().sendText(notify.toString());
                 }
             }
 

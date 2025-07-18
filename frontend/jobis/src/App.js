@@ -34,10 +34,10 @@
 
   function App() {
     const [socket, setSocket] = useState(null);
-    const { hasManuallyLoggedIn, uno } = useContext(AuthContext);
+    const { isLoggedIn, uno } = useContext(AuthContext);
 
     useEffect(() => {
-      if (!hasManuallyLoggedIn || !uno) return;
+      if (!isLoggedIn || !uno) return;
       const host = process.env.REACT_APP_HOST;
       const ws = new WebSocket(`ws://${host}:9090/ws/userChat?uno=${uno}`);
       ws.onopen  = () => console.log('✅ Global WS connected');
@@ -49,7 +49,7 @@
         ws.close();
         console.log('🔴 Global WS cleanup');
       };
-    }, [hasManuallyLoggedIn, uno]);
+    }, [isLoggedIn, uno]);
 
     return (
       <SocketContext.Provider value={socket}>
