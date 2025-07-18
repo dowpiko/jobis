@@ -1,7 +1,9 @@
 import axios from 'axios';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { SocketContext } from '../contexts/SocketContext';
+import { AuthContext }   from '../contexts/AuthContext';
 
 const Wrapper = styled.div`
   display: flex;
@@ -183,263 +185,187 @@ const ChatMessageWrapper = styled.div`
 `;
 
 const UserChatLayout = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const chatEndRef = useRef(null);
-  const [myUno, setMyUno] = useState('');
-  const [chatList, setChatList] = useState([]);
-  const [offerSubmission, setOfferSubmission] = useState(null);
-  const [chatMessages, setChatMessages] = useState([]);
-  const navigate = useNavigate();
-  const socketRef = useRef(null);
-  const [inputText, setInputText] = useState('');
-  const [rno, setRno] = useState('');
-  const [cno, setCno] = useState('');
-  const rnoRef = useRef(null);
+    const [searchTerm, setSearchTerm]       = useState('');
+    const chatEndRef                        = useRef(null);
+    const [chatList, setChatList]           = useState([]);
+    const [offerSubmission, setOfferSubmission] = useState(null);
+    const [chatMessages, setChatMessages]   = useState([]);
+    const [rno, setRno]                     = useState(null);
+    const [cno, setCno]                     = useState(null);
+    const [inputText, setInputText]         = useState('');
+    const navigate                          = useNavigate();
 
-  useEffect(() => {
-    rnoRef.current = rno;
-  }, [rno]);
+    const socket = useContext(SocketContext);
+    const { hasManuallyLoggedIn, uno: myUno } = useContext(AuthContext);
 
-  useEffect(() => {
-    userCheck();
-  }, []);
+    // 1) 로그인 직후 한 번만: 내 채팅방 목록 불러오기
+    useEffect(() => {
+      if (!hasManuallyLoggedIn || !myUno) {
+        navigate('/');
+        return;
+      }
+      axios.get(`http://localhost:9090/sm/initUserChatLayout?uno=${myUno}`)
+        .then(res => setChatList(res.data))
+        .catch(err => {
+          console.error('채팅방 목록 조회 실패', err);
+          alert('채팅방을 불러오는 중 오류가 발생했습니다.');
+        });
+    }, [hasManuallyLoggedIn, myUno]);
 
-  useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'auto' });
-    }
-  }, [chatMessages]);
-  
-  useEffect(() => {
-    if (!myUno || !rno) return;
+    // 2) 선택된 방(rno) 변경 시 한 번만 ENTER_ROOM 보내기
+    useEffect(() => {
+      if (!socket || !myUno || !rno) return;
+      socket.send(JSON.stringify({ type: 'ENTER_ROOM', uno: myUno, rno }));
+    }, [socket, myUno, rno]);
 
-    const host = process.env.REACT_APP_HOST;
-    const ws = new WebSocket(`ws://${host}:9090/ws/userChat`);
-    socketRef.current = ws;
-
-    const sendEnterRoom = () => {
-      const payload = {
-        type: "ENTER_ROOM",
-        uno: myUno,
-        rno: rnoRef.current,
-      };
-      ws.send(JSON.stringify(payload));
-    };
-
-    ws.onopen = () => {
-      console.log('✅ WebSocket 연결됨');
-      sendEnterRoom();
-    };
-
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'read_update') {
-        const { uno: readerUno, rno: roomNo } = message;
-        if (roomNo === rnoRef.current) {
+    // 3) 전역 소켓 메시지 리스너
+    useEffect(() => {
+      if (!socket) return;
+      const handler = event => {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'read_update') {
           setChatMessages(prev =>
-            prev.map(msg =>
-              msg.sender === readerUno && msg.hit !== 1 ? { ...msg, hit: 1 } : msg
+            prev.map(m =>
+              m.sender === msg.uno && m.rno === msg.rno && m.hit !== 1
+                ? { ...m, hit: 1 }
+                : m
             )
           );
+        } else {
+          setChatMessages(prev => [...prev, msg]);
         }
-      } else {
-        setChatMessages(prev => [...prev, message]);
+      };
+      socket.addEventListener('message', handler);
+      return () => socket.removeEventListener('message', handler);
+    }, [socket]);
+
+    // 4) 메시지 도착 시 스크롤
+    useEffect(() => {
+      if (chatEndRef.current) {
+        chatEndRef.current.scrollIntoView({ behavior: 'auto' });
       }
-    };
+    }, [chatMessages]);
 
-    ws.onclose = () => {};
-    ws.onerror = () => {};
-
-    // ✅ cleanup
-    return () => {
-      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-        ws.close();
-        console.log('🧹 WebSocket 연결 정리됨');
-      }
-    };
-  }, [myUno, rno]);
-
-  const userCheck = () => {
-    axios.get('/jsh/getUser')
-      .then(res => {
-        if (res.data) {
-          setMyUno(res.data.uno);
-          initUserChatLayout(res.data.uno).then(data => setChatList(data));
-        }
-      })
-      .catch(err => {
-        console.error('프로필 정보 가져오기 실패', err);
-        alert('세션 오류');
-        navigate('/');
-      });
-  };
-
-  const initUserChatLayout = (uno) => {
-    return axios.get(`http://localhost:9090/sm/initUserChatLayout?uno=${uno}`)
-      .then(res => res.data)
-      .catch(err => {
-        console.error('❌ 채팅방 목록 조회 실패:', err);
-        alert('채팅방을 불러오는 중 오류가 발생했습니다.');
-        return [];
-      });
-  };
-
-  const fetchByRnoChatMessages = async (rno) => {
-    try {
-      const res = await axios.get(`http://localhost:9090/sm/selectByRnoChatMessages`, {
-        params: { rno ,
-          uno : myUno
-        }
-      });
-      setChatMessages(res.data);
-    } catch (err) {
-      console.error('채팅 목록 조회 오류:', err);
-    }
-  };
-
-  const handleChatCardClick = async (rno, ono, company) => {
-    try {
-      const res = await axios.get('http://localhost:9090/sm/selectOfferAndSubmission', {
-        params: { ono, emp: myUno, company }
-      });
-
-      setOfferSubmission(res.data);
+    // 채팅방 선택
+    const handleChatCardClick = async (rno, ono, company) => {
+      setOfferSubmission(null);
+      setChatMessages([]);
       setRno(rno);
       setCno(company);
-      await fetchByRnoChatMessages(rno);
-    } catch (err) {
-      console.error('오류 발생:', err);
-      alert('데이터 조회 중 오류가 발생했습니다.');
-    }
-  };
 
-  const formatDate = (value) => {
-    if (!value) return '-';
-    const date = new Date(value);
-    if (isNaN(date.getTime())) return '-';
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-  };
+      try {
+        const resOffer = await axios.get('http://localhost:9090/sm/selectOfferAndSubmission', {
+          params: { ono, emp: myUno, company }
+        });
+        setOfferSubmission(resOffer.data);
 
-  const filteredChatList = chatList.filter(item =>
-    item.corpNm && item.corpNm.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const sendMessage = () => {
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN || !inputText.trim()) return;
-
-    const payload = {
-      rno: rno,
-      sender: cno,
-      content: inputText.trim(),
-      leader : myUno,
+        const resMsgs = await axios.get('http://localhost:9090/sm/selectByRnoChatMessages', {
+          params: { rno, uno: myUno }
+        });
+        setChatMessages(resMsgs.data);
+      } catch (err) {
+        console.error('데이터 조회 오류', err);
+        alert('데이터 조회 중 오류가 발생했습니다.');
+      }
     };
-    socketRef.current.send(JSON.stringify(payload));
-    axios.post('http://localhost:9090/sm/insertChatMessage', payload);
 
-    setInputText('');
-  };
+    // 메시지 전송
+    const sendMessage = () => {
+      if (!socket || socket.readyState !== WebSocket.OPEN || !inputText.trim()) return;
+      const payload = { rno, sender: cno, content: inputText.trim(), leader: myUno };
+      socket.send(JSON.stringify(payload));
+      axios.post('http://localhost:9090/sm/insertChatMessage', payload).catch(console.error);
+      setInputText('');
+    };
 
-  const renderQnA = () => {
-    if (!offerSubmission) return null;
+    // 리스트 필터링
+    const filteredChatList = chatList.filter(item =>
+      item.corpNm?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-    const questions = offerSubmission.o_content ? offerSubmission.o_content.split('\n') : [];
-    const answers = offerSubmission.user_content ? offerSubmission.user_content.split('\n') : [];
+    // Q&A 렌더 헬퍼
+    const renderQnA = () => {
+      if (!offerSubmission) return null;
+      const qs = offerSubmission.o_content?.split('\n') || [];
+      const as = offerSubmission.user_content?.split('\n') || [];
+      return qs.map((q, i) => (
+        <QAItem key={i}>
+          <QuestionText>Q{i+1}. {q}</QuestionText>
+          <AnswerText>A{i+1}. {as[i] || '-'}</AnswerText>
+        </QAItem>
+      ));
+    };
 
-    return questions.map((q, idx) => (
-      <QAItem key={idx}>
-        <QuestionText>Q{idx + 1}. {q}</QuestionText>
-        <AnswerText>A{idx + 1}. {answers[idx] || '-'}</AnswerText>
-      </QAItem>
-    ));
-  };
-
-  const renderChatMessages = () => {
-    return chatMessages.map((msg, idx) => {
-      const isMine = msg.sender !== myUno;  // ✅ 내가 보낸 메시지 확인 (=== 로 변경)
-
+    // 채팅 메시지 렌더 헬퍼
+    const renderChatMessages = () => chatMessages.map((msg, i) => {
+      const isMine = msg.sender !== myUno;
       return (
-        <ChatMessageWrapper key={idx} isMine={isMine}>
-          {isMine ? (
-            <>
-              {/* ✅ 내가 보낸 메시지의 왼쪽에 읽음 여부 표시 */}
-              <div style={{ fontSize: '10px', color: '#888', marginRight: '6px', whiteSpace: 'nowrap' }}>
-                {msg.hit === 1 ? '' : '1'}
-              </div>
-              <ChatBubble isMine={true}>
-                <div style={{ fontSize: '13px' }}>{msg.content}</div>
-              </ChatBubble>
-            </>
-          ) : (
-            <>
-              <ChatBubble isMine={false}>
-                <div style={{ fontSize: '13px' }}>{msg.content}</div>
-              </ChatBubble>
-            </>
-          )}
+        <ChatMessageWrapper key={i} isMine={isMine}>
+          {isMine && msg.hit !== 1 && <div style={{ fontSize:'10px', color:'#888', marginRight:6 }}>1</div>}
+          <ChatBubble isMine={isMine}>
+            <div style={{ fontSize: '13px' }}>{msg.content}</div>
+          </ChatBubble>
         </ChatMessageWrapper>
       );
     });
-  };
-  
-  return (
-    <Wrapper>
-      <ChatListPanel>
-        <PanelHeader>
-          <PanelTitle>채팅</PanelTitle>
-          <SearchInput
-            type="text"
-            placeholder="이름 검색"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </PanelHeader>
 
-        {filteredChatList.map((item, index) => (
-          <ChatCard key={index} onClick={() => handleChatCardClick(item.rno, item.ono, item.company)}>
-            <Avatar src="https://via.placeholder.com/32" alt="avatar" />
-            <CorpName>{item.corpNm}</CorpName>
-          </ChatCard>
-        ))}
-      </ChatListPanel>
+    return (
+      <Wrapper>
+        <ChatListPanel>
+          <PanelHeader>
+            <PanelTitle>채팅</PanelTitle>
+            <SearchInput
+              type="text"
+              placeholder="회사명 검색"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+          </PanelHeader>
+          {filteredChatList.map((item, idx) => (
+            <ChatCard
+              key={idx}
+              selected={item.rno === rno}
+              onClick={() => handleChatCardClick(item.rno, item.ono, item.company)}
+            >
+              <Avatar src="https://via.placeholder.com/32" alt="avatar" />
+              <CorpName>{item.corpNm}</CorpName>
+            </ChatCard>
+          ))}
+        </ChatListPanel>
 
-      <ChatPanel>
-        <ChatContent>
-          {renderChatMessages()}
-          <div ref={chatEndRef} />
-        </ChatContent>
-        <InputContainer>
-          <Input
-            type="text"
-            placeholder="채팅을 입력하세요."
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
-          />
-          <Button onClick={sendMessage}>▶️</Button>
-          <Button>🎤</Button>
-          <Button>🔄</Button>
-        </InputContainer>
-      </ChatPanel>
+        <ChatPanel>
+          <ChatContent>
+            {renderChatMessages()}
+            <div ref={chatEndRef} />
+          </ChatContent>
+          <InputContainer>
+            <Input
+              type="text"
+              placeholder="메시지를 입력하세요"
+              value={inputText}
+              onChange={e => setInputText(e.target.value)}
+              onKeyDown={e => e.key==='Enter' && sendMessage()}
+            />
+            <Button onClick={sendMessage}>▶️</Button>
+          </InputContainer>
+        </ChatPanel>
 
-      <AnnouncementPanel>
-        <AnnouncementContent>
-          {offerSubmission ? (
-            <>
-              <InfoRow><strong>{offerSubmission.o_title}</strong></InfoRow>
-              <InfoRow><strong>{offerSubmission.o_tag}</strong></InfoRow>
-              <InfoRow><strong>지원일:</strong> {formatDate(offerSubmission.user_regdate)}</InfoRow>
-
-              <QAWrapper>
-                {renderQnA()}
-              </QAWrapper>
-            </>
-          ) : (
-            <div style={{ color: '#aaa', fontSize: '13px' }}>공고를 선택하세요</div>
-          )}
-        </AnnouncementContent>
-      </AnnouncementPanel>
-    </Wrapper>
-  );
-};
+        <AnnouncementPanel>
+          <AnnouncementContent>
+            {offerSubmission ? (
+              <>
+                <InfoRow><strong>{offerSubmission.o_title}</strong></InfoRow>
+                <InfoRow><strong>{offerSubmission.o_tag}</strong></InfoRow>
+                <InfoRow><strong>지원일:</strong> {new Date(offerSubmission.user_regdate).toLocaleDateString()}</InfoRow>
+                <QAWrapper>{renderQnA()}</QAWrapper>
+              </>
+            ) : (
+              <div style={{ color:'#aaa', fontSize:'13px' }}>공고를 선택하세요</div>
+            )}
+          </AnnouncementContent>
+        </AnnouncementPanel>
+      </Wrapper>
+    );
+  }
 
 export default UserChatLayout;

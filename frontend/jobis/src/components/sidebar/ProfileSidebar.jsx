@@ -1,11 +1,12 @@
 // ✅ 색상 업데이트 및 로고/토글 아이콘 반영 버전
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import categories from '../../data/categories';
 import logo from '../../img/SIMPLELOGO.png';
 import toggleIcon from '../../img/ChangeIcon.png';
+import { AuthContext } from '../../contexts/AuthContext';
 
 const CategoryList = styled.div`
   overflow-y: auto;
@@ -178,6 +179,7 @@ function ProfileSidebar({ children }) {
   const [nickname, setNickname] = useState(null);
   const [hasProfile, setHasProfile] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const { logout } = useContext(AuthContext);
 
   useEffect(() => {
     axios.get('/jsh/checkProfile')
@@ -191,6 +193,16 @@ function ProfileSidebar({ children }) {
       })
       .catch(() => alert('프로필 정보를 불러오지 못했습니다.'));
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await axios.post('/jsh/logout');
+    } catch (e) {
+      console.warn('서버 로그아웃 실패', e);
+    }
+    logout();
+    navigate('/');
+  };
 
   return (
     <AppLayout>
@@ -210,7 +222,7 @@ function ProfileSidebar({ children }) {
                 <ProfileName>{nickname || '이름 없음'}</ProfileName>
               </ProfileInfo>
               <ProfileActions>
-                <ProfileButton onClick={() => navigate('/')}>로그아웃</ProfileButton>
+                <ProfileButton onClick={handleLogout}>로그아웃</ProfileButton>
               </ProfileActions>
             </>
           ) : (

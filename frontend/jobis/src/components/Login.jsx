@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import styled from 'styled-components';
 import FindPwModal from './modal/FindPwModal';
 import ResetPwModal from './modal/ResetPwModal';
@@ -9,6 +9,7 @@ import NaverIcon from '../img/btn_Naver.png';
 import KakaoIcon from '../img/btn_Kakao.png';
 import GoogleIcon from '../img/btn_Google.png';
 import logo from '../img/SIMPLELOGO.png'; // 🔹 로고 이미지 import
+import { AuthContext } from '../contexts/AuthContext';
 
 const Wrapper = styled.div`
   position: fixed;
@@ -171,6 +172,7 @@ const SocialIconContainer = styled.div`
 `;
 
 const Login = () => {
+  const { login } = useContext(AuthContext);
   const [modalStep, setModalStep] = useState(null);
   const [isPersonal, setIsPersonal] = useState(true);
   const [id, setId] = useState('');
@@ -194,12 +196,13 @@ const Login = () => {
       const res = await axios.post('/jsh/login', { id, pw });
 
       if (res.data.success) {
+        login(res.data);
+        console.log(res.data);
         const userType = res.data.userType;
         if ((isPersonal && userType !== 'user') || (!isPersonal && userType !== 'company')) {
           alert('선택한 로그인 유형과 계정 유형이 일치하지 않습니다.');
           return;
         }
-
         navigate(userType === 'user' ? '/profile' : '/companyMain');
       } else {
         alert(res.data.message || '아이디 또는 비밀번호가 일치하지 않습니다.');

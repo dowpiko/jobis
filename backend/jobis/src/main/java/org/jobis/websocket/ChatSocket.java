@@ -53,17 +53,16 @@ public class ChatSocket {
 
                 // ✅ 기존 같은 uno지만 다른 rno 보고 있는 세션 닫기
                 for (Session s : sessions) {
-                    if (s.isOpen()) {
-                        Integer existingUno = (Integer) s.getUserProperties().get("uno");
-                        Integer existingRno = (Integer) s.getUserProperties().get("currentRno");
-                        if (existingUno != null && existingUno == uno &&
-                            existingRno != null && existingRno != rno) {
-                            try {
-                                s.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "중복 세션 종료"));
-                                System.out.println("🔁 기존 세션 종료: uno=" + uno + ", rno=" + existingRno);
-                            } catch (IOException e) {
-                                System.err.println("⚠ 기존 세션 종료 실패: " + e.getMessage());
-                            }
+                	if (s.equals(session)) continue;
+                    Integer existingUno = (Integer) s.getUserProperties().get("uno");
+                    Integer existingRno = (Integer) s.getUserProperties().get("currentRno");
+                    if (existingUno != null && existingUno == uno &&
+                        existingRno != null && existingRno != rno) {
+                        try {
+                            s.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "중복 세션 종료"));
+                            System.out.println("🔁 기존 세션 종료: uno=" + uno + ", rno=" + existingRno);
+                        } catch (IOException e) {
+                            System.err.println("⚠ 기존 세션 종료 실패: " + e.getMessage());
                         }
                     }
                 }

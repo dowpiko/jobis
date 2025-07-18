@@ -4,7 +4,9 @@ import java.sql.Date;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.jobis.domain.ProfileVO;
@@ -79,6 +81,7 @@ public class JshController {
 	        session.setAttribute("User", user); // ✅ 세션에 저장
 	        result.put("success", true);
 	        result.put("userType", user.getAuth());
+	        result.put("uno", user.getUno());
 	    } else {
 	        result.put("success", false);
 	        result.put("message", "아이디 또는 비밀번호가 일치하지 않습니다.");
@@ -269,6 +272,23 @@ public class JshController {
 	public ResponseEntity<Map<String, Object>> voiceToText(@RequestParam("voice") MultipartFile voiceFile) {
 	    String result = jshservice.convertVoiceToText(voiceFile);
 	    return ResponseEntity.ok(Map.of("text", result));
+	}
+	
+	@PostMapping("/logout")
+	public ResponseEntity<Void> logout(HttpServletRequest req, HttpServletResponse res) {
+	    // 1) 세션 무효화
+	    HttpSession session = req.getSession(false);
+	    if (session != null) {
+	        session.invalidate();
+	    }
+	    // 2) JSESSIONID 쿠키 만료시키기
+	    Cookie cookie = new Cookie("JSESSIONID", null);
+	    cookie.setPath("/");
+	    cookie.setHttpOnly(true);
+	    cookie.setMaxAge(0);   // 즉시 만료
+	    res.addCookie(cookie);
+
+	    return ResponseEntity.ok().build();
 	}
 }
 

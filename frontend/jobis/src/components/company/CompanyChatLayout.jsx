@@ -1,6 +1,7 @@
 import axios from 'axios';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SocketContext } from '../../contexts/SocketContext';
 import styled from 'styled-components';
 
 const Wrapper = styled.div`
@@ -193,7 +194,7 @@ const CompanyChatLayout = () => {
   const chatEndRef = useRef(null);
   const [activeChatKey, setActiveChatKey] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const socketRef = useRef(null);
+  const socket = useContext(SocketContext);
   const [myUno, setMyUno] = useState('');
   const navigate = useNavigate();
   
@@ -240,56 +241,51 @@ const CompanyChatLayout = () => {
   }, [chatMessages]);
 
   useEffect(() => {
-    if (!selectedChat?.rno || !myUno) return;
+    if (
+      !selectedChat?.rno ||
+      !myUno ||
+      !socket ||
+      socket.readyState !== WebSocket.OPEN
+    )
+      return;
 
-    const host = process.env.REACT_APP_HOST;
-    const ws = new WebSocket(`ws://${host}:9090/ws/userChat`);
-    socketRef.current = ws;
-
-    const sendEnterRoom = () => {
-      const payload = {
+    socket.send(
+      JSON.stringify({
         type: 'ENTER_ROOM',
         uno: myUno,
         rno: selectedChat.rno,
-      };
-      ws.send(JSON.stringify(payload));
-    };
+      })
+    );
+  }, [selectedChat?.rno, myUno, socket]);
 
-    ws.onopen = () => {
-      console.log('✅ WebSocket 연결됨');
-      sendEnterRoom();
-    };
+  useEffect(() => {
+    if (!socket) return;
 
-    ws.onmessage = (event) => {
+    const handleMessage = (event) => {
       const message = JSON.parse(event.data);
 
       if (message.type === 'read_update') {
         const { uno: readerUno, rno: roomNo } = message;
         if (roomNo === selectedChat?.rno) {
           setChatMessages((prev) =>
-            prev.map((msg) => {
-              if (msg.sender === selectedChat.emp && msg.hit !== 1) {
-                return { ...msg, hit: 1 };
-              }
-              return msg;
-            })
+            prev.map((msg) =>
+              msg.sender === selectedChat.emp && msg.hit !== 1
+                ? { ...msg, hit: 1 }
+                : msg
+            )
           );
         }
       } else {
+        // 일반 채팅 메시지
         setChatMessages((prev) => [...prev, message]);
       }
     };
 
-    ws.onclose = () => {};
-    ws.onerror = () => {};
-
+    socket.addEventListener('message', handleMessage);
     return () => {
-      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-        ws.close();
-        console.log('🧹 WebSocket 연결 정리됨');
-      }
+      socket.removeEventListener('message', handleMessage);
     };
-  }, [selectedChat?.rno, myUno]);
+  }, [socket, selectedChat?.rno, selectedChat?.emp]);
 
   const formatDate = (value) => {
     if (!value) return '-';
@@ -335,15 +331,15 @@ const CompanyChatLayout = () => {
   };
 
   const sendMessage = () => {
-    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN || !inputText.trim()) return;
+    if (!socket || socket.readyState !== WebSocket.OPEN || !inputText.trim()) return;
 
     const payload = {
-      rno: selectedChat?.rno,
-      sender: selectedChat?.emp,
-      content: inputText.trim(),
-      leader: myUno,
+      rno:      selectedChat?.rno,
+      sender:   selectedChat?.emp,
+      content:  inputText.trim(),
+      leader:   myUno,
     };
-    socketRef.current.send(JSON.stringify(payload));
+    socket.send(JSON.stringify(payload));
     axios.post('http://localhost:9090/sm/insertChatMessage', payload);
 
     setInputText('');

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import logo from '../../img/SIMPLELOGO.png';      // 🔹 로고 이미지
 import toggleIcon from '../../img/ChangeIcon.png'; // 🔹 토글 이미지
+import { AuthContext } from '../../contexts/AuthContext';
 
 const AppLayout = styled.div`
   display: flex;
@@ -178,6 +179,7 @@ const MenuScroll = styled.div`
 function UserSidebar({ children }) {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
+  const { logout } = useContext(AuthContext);
 
   const handleProfile = async () => {
     try {
@@ -207,6 +209,16 @@ function UserSidebar({ children }) {
       });
   }, [navigate]);
 
+  const handleLogout = async () => {
+    try {
+      await axios.post('/jsh/logout');
+    } catch (e) {
+      console.warn('서버 로그아웃 실패', e);
+    }
+    logout();
+    navigate('/');
+  };
+
   return (
     <AppLayout>
       <Sidebar>
@@ -224,7 +236,7 @@ function UserSidebar({ children }) {
           </ProfileInfo>
           <ProfileActions>
             <ProfileButton onClick={() => navigate('/graphPage')}>마이페이지</ProfileButton>
-            <ProfileButton onClick={() => navigate('/')}>로그아웃</ProfileButton>
+            <ProfileButton onClick={handleLogout}>로그아웃</ProfileButton>
           </ProfileActions>
         </Profile>
         <ScrollContainer>

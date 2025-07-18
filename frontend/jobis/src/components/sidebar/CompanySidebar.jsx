@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { AuthContext } from '../../contexts/AuthContext';
 
 const AppLayout = styled.div`
   display: flex;
@@ -179,11 +180,24 @@ function CompanySidebar({ children }) {
   const navigate = useNavigate();
   const [cName, setCName] = useState('');
   const [enpRpFnm, setEnpRpFnm] = useState('');
+  const { logout } = useContext(AuthContext);
+
   const BellIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="#1F2A37" viewBox="0 0 24 24">
       <path d="M12 24c1.104 0 2-.896 2-2h-4a2 2 0 002 2zm6.364-6V11c0-3.308-2.308-6.104-5.364-6.708V3a1 1 0 10-2 0v1.292C8.944 4.896 6.636 7.692 6.636 11v7L4 19v1h16v-1l-1.636-1zM18 20H6v-.382l1.636-1.636V11c0-2.757 2.243-5 5-5s5 2.243 5 5v6.982L18 19.618V20z"/>
     </svg>
   );
+
+  const handleLogout = async () => {
+    try {
+      await axios.post('/jsh/logout');
+    } catch (e) {
+      console.warn('서버 로그아웃 실패', e);
+    }
+    logout();
+    navigate('/');
+  };
+
   const notificationCount = 900;
   const displayNotificationCount = notificationCount > 99 ? '99+' : notificationCount.toString();
   const countLength = displayNotificationCount.length;  
@@ -240,7 +254,7 @@ function CompanySidebar({ children }) {
           </ProfileInfo>
 
           <ProfileActions>
-            <ProfileButton onClick={() => navigate('/')}>로그아웃</ProfileButton>
+            <ProfileButton onClick={handleLogout}>로그아웃</ProfileButton>
           </ProfileActions>
         </Profile>
 
