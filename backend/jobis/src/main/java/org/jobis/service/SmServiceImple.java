@@ -208,4 +208,10 @@ public class SmServiceImple implements SmService {
     public CUserVO selectCinofoByUno(int uno) {
     	return mapper.selectCinofoByUno(uno);
     }
+    
+    // 채팅 기록 가져오기
+    @Override
+    public int chatLogCount(int uno) {
+    	return mapper.chatLogCount(uno);
+    }
 }

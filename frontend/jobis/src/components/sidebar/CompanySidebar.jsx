@@ -3,23 +3,24 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../../contexts/AuthContext';
+import logo from '../../img/SIMPLELOGO.png';
 
 const AppLayout = styled.div`
   display: flex;
   height: 100vh;
-  background-color: #F8F9FA;
-  color: #1F2A37;
-  font-family: sans-serif;
+  background-color: #F7F9FC;
+  color: #1E1E1E;
+  font-family: 'Pretendard', sans-serif;
 `;
 
 const Sidebar = styled.aside`
   width: 280px;
-  background-color: #DCE3EA;
-  border-right: 1px solid #B0BCCB;
+  background-color: #EFF4FF;
+  border-right: 1px solid #E2E8F0;
   display: flex;
   flex-direction: column;
-  padding: 10px;
-  gap: 12px;
+  padding: 16px;
+  gap: 16px;
   box-sizing: border-box;
 `;
 
@@ -27,24 +28,25 @@ const TopBar = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 6px;
 `;
 
 const Logo = styled.div`
-  font-size: 24px;
-  color: #1F2A37;
-  cursor: pointer;
+  img {
+    width: 120px;
+    height: auto;
+    cursor: pointer;
+  }
 `;
 
 const Profile = styled.div`
-  position: relative;          // 👉 추가
+  position: relative;
   background-color: #FFFFFF;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  border: 1px solid #B0BCCB;
+  gap: 12px;
+  border: 1px solid #E2E8F0;
 `;
 
 const ProfileInfo = styled.div`
@@ -58,34 +60,30 @@ const ProfileInfo = styled.div`
 const ProfileLine = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;           // "기업명 :" 과 값 사이 간격
-  white-space: nowrap;  // 줄바꿈 방지
+  gap: 8px;
   font-size: 14px;
-`;
-
-const ProfileName = styled.span`
-  font-size: 17px;
-  font-weight: bold;
-  color: #1F2A37;
+  color: #1E1E1E;
 `;
 
 const ProfileActions = styled.div`
   display: flex;
-  justify-content: flex-end;   // 👉 오른쪽 정렬
+  justify-content: flex-end;
+  gap: 8px;
 `;
 
 const ProfileButton = styled.button`
-  background-color: #4376B6;
+  background-color: #2563EB;
   border: none;
   border-radius: 6px;
   padding: 6px 12px;
   color: #FFFFFF;
   font-size: 13px;
   cursor: pointer;
-  margin-top: 6px;
+  font-weight: 500;
+  transition: background-color 0.2s;
 
   &:hover {
-    background-color: #5C8BC4;
+    background-color: #1E40AF;
   }
 `;
 
@@ -93,23 +91,23 @@ const Menu = styled.nav`
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #B0BCCB;
+  padding-top: 16px;
+  border-top: 1px solid #E2E8F0;
 `;
 
 const MenuItem = styled.div`
   cursor: pointer;
-  padding: 18px 14px;
-  border-radius: 8px;
+  padding: 14px;
+  border-radius: 10px;
   background-color: #FFFFFF;
-  border: 1px solid #B0BCCB;
+  border: 1px solid #E2E8F0;
   font-size: 15px;
   font-weight: 500;
   text-align: center;
-  color: #1F2A37;
+  transition: background-color 0.2s, color 0.2s;
 
   &:hover {
-    background-color: #5C8BC4;
+    background-color: #2563EB;
     color: #FFFFFF;
   }
 `;
@@ -117,7 +115,7 @@ const MenuItem = styled.div`
 const Footer = styled.div`
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid #B0BCCB;
+  border-top: 1px solid #E2E8F0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -129,15 +127,14 @@ const Footer = styled.div`
 const FooterLink = styled.a`
   color: #6B7280;
   text-decoration: none;
-  padding: 2px 4px;
 
   &:hover {
-    color: #4376B6;
+    color: #2563EB;
   }
 `;
 
 const FooterDivider = styled.span`
-  color: #B0BCCB;
+  color: #E2E8F0;
 `;
 
 const Main = styled.main`
@@ -145,7 +142,6 @@ const Main = styled.main`
   padding: 30px;
   background-color: #FFFFFF;
   overflow-y: auto;
-  border-left: 1px solid #B0BCCB;
 `;
 
 const NotificationBadge = styled.div`
@@ -181,6 +177,7 @@ function CompanySidebar({ children }) {
   const [cName, setCName] = useState('');
   const [enpRpFnm, setEnpRpFnm] = useState('');
   const { logout } = useContext(AuthContext);
+  const [count, setCount] = useState(0);
 
   const BellIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="#1F2A37" viewBox="0 0 24 24">
@@ -198,8 +195,7 @@ function CompanySidebar({ children }) {
     navigate('/');
   };
 
-  const notificationCount = 900;
-  const displayNotificationCount = notificationCount > 99 ? '99+' : notificationCount.toString();
+  const displayNotificationCount = count > 99 ? '99+' : count.toString();
   const countLength = displayNotificationCount.length;  
 
   useEffect(() => {
@@ -211,6 +207,7 @@ function CompanySidebar({ children }) {
               if (data.data) {
                 setCName(data.data.corpNm)
                 setEnpRpFnm(data.data.enpRpFnm)
+                setCount(data.data.count);
               }else {
                 return;
               }
@@ -231,13 +228,15 @@ function CompanySidebar({ children }) {
     <AppLayout>
       <Sidebar>
         <TopBar>
-          <Logo onClick={() => navigate('/companyMain')}>🌐Jobis</Logo>
+          <Logo onClick={() => navigate('/companyMain')}>
+            <img src={logo} alt="Jobis 로고" />
+          </Logo>
         </TopBar>
 
         <Profile>
           <NotificationWrapper onClick={() => alert('알림 클릭!')}>
             <BellIcon />
-            {notificationCount > 0 && (
+            {count > 0 && (
               <NotificationBadge countLength={countLength}>
                 {displayNotificationCount}
               </NotificationBadge>

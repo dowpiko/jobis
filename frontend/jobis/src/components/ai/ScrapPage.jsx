@@ -114,7 +114,6 @@ const ScrapPage = () => {
     if (!uno) return;
     axios.post('/getFavorites', { uno }, { withCredentials: true })
       .then((res) => {
-        console.log('스크랩 응답:', res.data);
         setScrapData(res.data);
       })
       .catch((err) => console.error('스크랩 목록 조회 실패', err));
@@ -137,7 +136,6 @@ const ScrapPage = () => {
     if (!uno) return;
     axios.post('/getApplied', { uno }, { withCredentials: true })
       .then((res) => {
-        console.log('지원 응답:', res.data);
         setAppliedData(res.data);
       })
       .catch((err) => console.error('지원 목록 조회 실패', err));

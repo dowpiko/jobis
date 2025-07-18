@@ -18,7 +18,6 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     axios.get('/jsh/getUser')
       .then(res => {
-        console.log(res);
         if (res.data?.uno) {
           setIsLoggedIn(true);
           setUno(res.data.uno);

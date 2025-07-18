@@ -60,4 +60,7 @@ public interface SmMapper {
     
     // 기업 데이터 가져오기
     public CUserVO selectCinofoByUno(int uno);
+    
+    // 채팅 기록 가져오기
+    public int chatLogCount(int uno);
 }

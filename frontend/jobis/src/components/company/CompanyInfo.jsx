@@ -263,7 +263,6 @@ const CompanyInfo = () => {
     setVisibleCount(v => v + 5);
   };
   const handleCardClick = (ono) => {
-    console.log(`넘어갈 ono: ${ono}`);
     navigate('/applyNotice', { state: { ono } });
   };
 

@@ -198,10 +198,24 @@
 	  SET HIT = 1
 	  WHERE RNO = #{rno} AND HIT = 0 AND sender = #{uno}
 	</update>
-
-	<!-- 기업 데이터 가져오기 -->
+	
+	<!-- 기업 로그인 시 -->
 	<select id="selectCinofoByUno" parameterType="int" resultType="org.jobis.domain.CUserVO">
-		SELECT * FROM TBL_CINFO
-		WHERE uno = #{uno}
+	  SELECT
+	    c.*,
+	    (
+	      SELECT COUNT(*)
+	      FROM TBL_CHATLOG cl
+	      WHERE cl.sender = #{uno} AND cl.hit = 0
+	    ) AS count
+	  FROM TBL_CINFO c
+	  WHERE c.uno = #{uno}
 	</select>
+	
+	<!-- 채팅 기록 가져오기 -->
+	<select id="chatLogCount" parameterType="int" resultType="int">
+		SELECT COUNT(*) FROM TBL_CHATLOG
+		WHERE SENDER = #{uno} AND HIT = 0
+	</select>
+	
 </mapper>

@@ -297,7 +297,6 @@ const AiChat = () => {
     shouldReconnect: () => true,
     reconnectAttempts: 5,
     onOpen: () => {
-      console.log('WebSocket 연결됨');
     },
     onError: (event) => {
       console.error('WebSocket 에러', event);
