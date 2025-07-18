@@ -111,7 +111,7 @@ const ErrorMessage = styled.div`
   margin-bottom: 14px;
   text-align: center;
 `;
-
+const host = process.env.REACT_APP_HOST;
 function getCurrentDate() {
   const now = new Date();
   return now.toISOString().split('T')[0]; // YYYY-MM-DD 형식으로 반환
@@ -219,7 +219,7 @@ const CreateAiInterview = () => {
 
     async function submitSurvey() {
     try {
-        const res = await axios.post("http://localhost:9090/ymj/saveSurveyResult", surveyData, {
+        const res = await axios.post(`http://${host}:9090/ymj/saveSurveyResult`, surveyData, {
           withCredentials: true,  // 세션 쿠키 전달을 위한 옵션
           headers: {
             "Content-Type": "application/json"

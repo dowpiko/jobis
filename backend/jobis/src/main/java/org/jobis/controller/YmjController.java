@@ -18,13 +18,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.log4j.Log4j;
 
 @Log4j
 @RestController
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@CrossOrigin(origins = {
+	    "http://localhost:3000",
+	    "http://192.168.0.101:3000"
+	  }, allowCredentials = "true")
 @RequestMapping("/ymj")
 public class YmjController {
 	
@@ -45,10 +49,8 @@ public class YmjController {
 	}
 	
 	@GetMapping("/getAllResults")
-	public List<AIVO> getAllResults(HttpSession session){
-		UserVO User = (UserVO) session.getAttribute("User");
-		System.out.println(User);
-		int uno = User.getUno();
+	public List<AIVO> getAllResults(@RequestParam("uno") int uno){
+		System.out.println("uno : "+uno);
 		return iService.getAllResults(uno);
 	}
 	

@@ -265,7 +265,7 @@ const ClearButton = styled.button`
     color: #000;
   }
 `;
-
+const host = process.env.REACT_APP_HOST;
 const AiChat = () => {
   const navigate = useNavigate();
   const [started, setStarted] = useState(false);

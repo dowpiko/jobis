@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar, PolarRadiusAxis,
@@ -462,8 +462,6 @@ const descriptions = {
   '소통력': '상대와 원활히 소통하고 협업하는 능력입니다.',
 };
 
-
-
 function formatTimestamp(ms) {
 	if (!ms || typeof ms !== 'number') return '';
 	const date = new Date(ms);
@@ -487,7 +485,7 @@ const getComment = (subject, score) => {
   const item = list.find(({ range }) => score >= range[0] && score <= range[1]);
   return item?.comment || '';
 };
-
+const host = process.env.REACT_APP_HOST;
 export default function RadarSection() {
   const [selSubject, setSelSubject] = useState(null);
   const [selInterviewId, setSelInterviewId] = useState(null);
@@ -500,6 +498,7 @@ export default function RadarSection() {
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const uno = useRef(null);
   const perPage = 10;
   const totalPage = Math.ceil(interviews.length / perPage);
   
@@ -510,7 +509,11 @@ export default function RadarSection() {
   useEffect(() => {
     const getDatas = async () => {
       try {
-        const response = await axios.get("http://localhost:9090/ymj/getAllResults", {
+        const response1 = axios.get(`/jsh/getUser`);
+        const res = await response1;
+        uno.current = res.data.uno;
+        const response = await axios.get(`http://${host}:9090/ymj/getAllResults`, {
+          params: { uno:uno.current },  
           withCredentials: true
         });
         const raw = response.data;
@@ -555,8 +558,6 @@ export default function RadarSection() {
 
     getDatas();
   }, []);
-
-
   const filtered = useMemo(
     () => interviews.slice((page - 1) * perPage, page * perPage),
     [page, interviews] // ✅ interviews 추가!
@@ -624,7 +625,7 @@ export default function RadarSection() {
   const handleSubmitInterview = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.post('http://localhost:9090/ymj/getFeedback', {
+      const res = await axios.post(`http://${host}:9090/ymj/getFeedback`, {
         ano: selInterviewId
       }, { withCredentials: true });
 
