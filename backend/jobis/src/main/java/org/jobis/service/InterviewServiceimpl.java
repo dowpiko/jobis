@@ -21,6 +21,7 @@ import org.jobis.generators.PromptGenerator;
 import org.jobis.generators.QuestionPromptGenerator;
 import org.jobis.generators.ResultPromptGenerator;
 import org.jobis.mapper.AIMapper;
+import org.jobis.mapper.JshMapper;
 import org.jobis.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,10 +40,10 @@ public class InterviewServiceimpl implements InterviewService{
 	private static final ObjectMapper oMapper = new ObjectMapper();
 	
 	@Autowired
-	AIMapper aMapper;
+	private AIMapper aMapper;
 	
 	@Autowired
-	private UserMapper uMapper; 
+	private UserMapper uMapper;
 	
 	@Autowired
 	AiService aService;
@@ -118,7 +119,7 @@ public class InterviewServiceimpl implements InterviewService{
 		int insertResult = aMapper.insertData(aVO);
 
 		uMapper.updateLastTryDate(uno);
-
+		updateUserSession(session);
 		return insertResult;
 	}
 	
@@ -145,6 +146,19 @@ public class InterviewServiceimpl implements InterviewService{
 		return aMapper.updateFeedback(aVO) >= 1 ? sanitized : "DB 업데이트 오류";
 	}
 	
+	@Override
+	public boolean updateLastTryDate(int uno, HttpSession session) {
+		boolean result = uMapper.updateLastTryDate(uno)>0;
+		updateUserSession(session);
+		return result;
+	}
+	
+	public void updateUserSession(HttpSession session) {
+		UserVO user = (UserVO)session.getAttribute("User");
+		int uno = user.getUno();
+		user = uMapper.getUserByUno(uno);
+		session.setAttribute("User", user);
+	}
 	//------------------헬퍼 함수----------------
 	// json 점수 데이터의 평균을 계산하고 문자열로 변환
 	private static String getResultScoreString(List<InterviewResultDTO> resultList) {

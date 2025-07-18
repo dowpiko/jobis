@@ -138,18 +138,23 @@ const AiInterview = () => {
 				const user = res.data;
 				if (!user) return;
 
-				console.log(user);
+				console.log('user:', user);
 				setSubscribe(user.subscribe);
 
 				if (user.subscribe === 1) {
 					setCanStartToday(true); // 구독자는 무제한
 				} else {
 					if (!user.lastTryDate) {
-						setCanStartToday(true); // 한 번도 안했으면 OK
+						setCanStartToday(true); // 처음 이용자
 					} else {
-						const today = new Date().toDateString();
-						const lastDate = new Date(user.lastTryDate).toDateString();
-						setCanStartToday(today !== lastDate);
+						// ✅ 날짜를 'yyyy. M. d.' 형식 문자열로 비교 (KST 기준)
+						const todayStr = new Date().toLocaleDateString('ko-KR');
+						const lastDateStr = new Date(user.lastTryDate).toLocaleDateString('ko-KR');
+
+						console.log('today:', todayStr);
+						console.log('lastTryDate:', lastDateStr);
+
+						setCanStartToday(todayStr !== lastDateStr);
 					}
 				}
 			} catch (err) {
@@ -159,6 +164,8 @@ const AiInterview = () => {
 
 		getUserInfo();
 	}, []);
+
+
 
 
 

@@ -8,4 +8,18 @@
 		SET last_try_date = SYSDATE
 		WHERE uno = #{uno}
 	</update>
+	<select id="getUserByUno" parameterType="int" resultType="org.jobis.domain.UserVO">
+		SELECT 
+			uno,
+			name,
+			birthdate,
+			id,
+			pw,
+			email,
+			subscribe,
+			auth,
+			last_try_date AS lastTryDate
+		FROM TBL_USER
+		WHERE UNO = #{uno}
+	</select>
 </mapper>

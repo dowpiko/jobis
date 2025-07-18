@@ -14,4 +14,5 @@ public interface InterviewService {
 	public int handleResultData(List<InterviewResultDTO> resultList, HttpSession session);
 	public List<AIVO> getAllResults(int uno);
 	public String getFeedbackFromAI(int ano);
+	public boolean updateLastTryDate(int uno, HttpSession session);
 }

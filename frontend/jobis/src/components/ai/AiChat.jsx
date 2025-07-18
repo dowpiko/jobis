@@ -380,9 +380,20 @@ const AiChat = () => {
     }
   };
 
-  const earlyTermination = () => {
+  const earlyTermination = async () => {
     if (window.confirm('면접을 조기에 종료하시겠습니까?\n(일일 횟수 소진)')) {
-      navigate('/aiInterview');
+      try {
+        const response = await axios.put('http://localhost:9090/ymj/updateDate', {}, { withCredentials: true });
+
+        if (response.data === 'success') {
+          navigate('/aiInterview');
+        } else {
+          alert('조기 종료 처리에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('조기 종료 처리 중 오류 발생:', error);
+        alert('서버와의 통신 중 문제가 발생했습니다.');
+      }
     }
   };
 
