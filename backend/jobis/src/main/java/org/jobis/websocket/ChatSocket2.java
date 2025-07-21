@@ -86,6 +86,7 @@ public class ChatSocket2 {
     	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");    	
         try {
             JSONObject json = new JSONObject();
+            json.put("type", "schedule");
             json.put("cno", chat.getCno());
             json.put("r_title", chat.getR_title());
             json.put("r_tag", chat.getR_tag());
@@ -93,6 +94,7 @@ public class ChatSocket2 {
             json.put("leader_name", ucService.getOtherNameByUno(chat.getLeader()).getName());
             json.put("sch_date", chat.getSch_date());
             json.put("r_regdate", sdf.format(chat.getR_regdate()));
+            json.put("member", chat.getMember());
             System.out.println("json 입니다."+json.toString());
             for (Session s : sessions) {
                 if (s.isOpen()) {

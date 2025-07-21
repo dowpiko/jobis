@@ -248,7 +248,8 @@ const DiscordPage = () => {
   const [selectedChat,setSelectedChat] = useState(null);
   const [visibleCount, setVisibleCount] = useState(9);   // 로드시 버튼 수
   const [isAtBottom, setIsAtBottom] = useState(true);    // 스크롤 위치 상태 저장
-  const [myUno, setMyUno] = useState(() => window.myUno);
+  // const [myUno, setMyUno] = useState(() => window.myUno);
+  const [myUno, setMyUno] = useState(null);
   const [selectedSub, setSelectedSub] = useState(subList[0]?.name || '');
   const [titleSuffix, setTitleSuffix] = useState('');  
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
@@ -260,6 +261,23 @@ const DiscordPage = () => {
   const prevChatListLength = useRef(0);
   const socketRef = useRef(null);
   const navigate = useNavigate();
+
+  // 세션 uno랑 leader랑 비교
+  useEffect(() => {
+    fetch('/getMyUno', { credentials: 'include' })
+      .then(res => {
+        if (res.status === 401) {
+          alert('로그인 상태가 아닙니다.');
+          window.location.href = '/';
+          return;
+        }
+        return res.json();
+      })
+      .then(uno => {
+        if (uno !== undefined) setMyUno(uno);
+      })
+      .catch(err => console.error('세션 uno 가져오기 실패:', err));
+  }, []);
 
    useEffect(() => {
     if (subList.length > 0) setSelectedSub(subList[0].name);
@@ -343,22 +361,7 @@ const DiscordPage = () => {
   }, [chatList, isAtBottom]);
   const visibleChats = chatList.slice(-visibleCount);
 
-   // 세션 uno랑 leader랑 비교
-  useEffect(() => {
-    fetch('/getMyUno', { credentials: 'include' })
-      .then(res => {
-        if (res.status === 401) {
-          alert('로그인 상태가 아닙니다.');
-          window.location.href = '/';
-          return;
-        }
-        return res.json();
-      })
-      .then(uno => {
-        if (uno !== undefined) setMyUno(uno);
-      })
-      .catch(err => console.error('세션 uno 가져오기 실패:', err));
-  }, []);
+
 
 
   // 알람 useEffect
@@ -371,7 +374,7 @@ const DiscordPage = () => {
       return (
         chat.sch_date > now &&
         chat.sch_date <= oneHourLater &&
-        chat.member &&                       // 같이 할 사람 있을때만
+        // chat.member &&                       // 같이 할 사람 있을때만
         !alertedCnos.has(chat.cno)   
       );
     });
@@ -502,6 +505,9 @@ const handleDateChange = (date)=>{
 
 // websocket 관련
 useEffect(() => {
+
+  if (myUno === null) return;
+
   const host = process.env.REACT_APP_HOST;
   const wsUrl = `ws://${host}:9090/ws/userChat2`;
   console.log('▶️ 웹소켓 연결 시도:', wsUrl);
@@ -513,25 +519,69 @@ useEffect(() => {
   };
 
   socket.onmessage = (event) => {
-  try {
-    const message = JSON.parse(event.data);
-    console.log('📩 실시간 메시지 수신:', message);
-    
-    setChatList(prev => {
-      const withoutOld = prev.filter(chat => chat.cno !== message.cno);
-      const updatedChatList = [...withoutOld, {
-        ...message,
-        sch_date: new Date(message.sch_date.replace(' ', 'T')),
-        r_regdate: message.r_regdate 
-        ? new Date(message.r_regdate.replace(' ', 'T')) 
-        : new Date()
-      }];
-      return updatedChatList.sort((a, b) => a.r_regdate - b.r_regdate);
-    });
+    try {
+      const message = JSON.parse(event.data);
+      console.log('📩 실시간 메시지 수신:', message);
+
+      if (message.type === 'schedule') {
+        if (message.leader !== myUno && message.member !== myUno) return;
+
+        const schDate = new Date(message.sch_date.replace(' ', 'T'));
+        const regDate = message.r_regdate
+          ? new Date(message.r_regdate.replace(' ', 'T'))
+          : new Date();
+
+        setAllMyChats(prev => [...prev, {
+          ...message,
+          sch_date: schDate,
+          r_regdate: regDate
+        }]);
+
+        if (message.r_tag === category || category === '전체') {
+          setChatList(prev => {
+            const withoutOld = prev.filter(chat => chat.cno !== message.cno);
+            const updated = [...withoutOld, {
+              ...message,
+              sch_date: schDate,
+              r_regdate: regDate
+            }];
+            return updated.sort((a, b) => a.r_regdate - b.r_regdate);
+          });
+        }
+        const now = new Date();
+        const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+        if (schDate > now && schDate <= oneHourLater) {
+          setBannerChat({
+            ...message,
+            sch_date: schDate,
+            r_regdate: regDate
+          });
+        }
+      }
     } catch (e) {
       console.error('⚠️ 메시지 파싱 실패:', e);
     }
   };
+  // socket.onmessage = (event) => {
+  // try {
+  //   const message = JSON.parse(event.data);
+  //   console.log('📩 실시간 메시지 수신:', message);
+    
+  //   setChatList(prev => {
+  //     const withoutOld = prev.filter(chat => chat.cno !== message.cno);
+  //     const updatedChatList = [...withoutOld, {
+  //       ...message,
+  //       sch_date: new Date(message.sch_date.replace(' ', 'T')),
+  //       r_regdate: message.r_regdate 
+  //       ? new Date(message.r_regdate.replace(' ', 'T')) 
+  //       : new Date()
+  //     }];
+  //     return updatedChatList.sort((a, b) => a.r_regdate - b.r_regdate);
+  //   });
+  //   } catch (e) {
+  //     console.error('⚠️ 메시지 파싱 실패:', e);
+  //   }
+  // };
 
   socket.onerror = (err) => {
     console.error('⚠️ WebSocket 오류:', err);
@@ -543,7 +593,7 @@ useEffect(() => {
     console.log('🛑 WebSocket 연결 닫음:', wsUrl);
     socket.close();
   };
-}, [category]);  
+}, [category, myUno]);  
 
   // 화상채팅 참여
   const handleJoin = () => {
@@ -573,7 +623,7 @@ useEffect(() => {
             const isMine = chat.leader === myUno;
             return (
               <ChatBubble key={chat.cno} $isMine={isMine}>
-                {!isMine && <Avatar src="https://via.placeholder.com/40" alt="avatar" />}
+                {!isMine && <Avatar src="https://placehold.co/40x40" alt="avatar" />}
                 {!isMine && <div>{chat.leader_name}</div>}
                 <BubbleContainer $isMine={isMine}>
                   <Bubble $isMine={isMine}>{chat.r_title}</Bubble>
@@ -660,22 +710,18 @@ useEffect(() => {
               filterTime={(time) => {
                 const now = new Date();
                 const selectedDay = selectedDate || new Date();
-                const isToday =
-                  selectedDay.toDateString() === now.toDateString();
+                const isToday = selectedDay.toDateString() === now.toDateString();
 
                 if (isToday) {
                   return time.getTime() >= now.getTime() &&
                     !blockedIntervals.some(({ start, end }) => time >= start && time <= end);
                 }
+                return !blockedIntervals.some(({ start, end }) => time >= start && time <= end);
               }}
-              // filterTime={(time)=> 
-              //   !blockedIntervals.some(({start,end})=>
-              //     time >=start && time <=end
-              //   )
-              // }
-              showTimeSelect         // ✅ 시간 선택 UI 표시
-              timeIntervals={30}     // ✅ 30분 간격 선택
-              timeFormat="HH:mm"     // ✅ 24시간 형식으로 시간 표시
+
+              showTimeSelect         //  시간 선택 UI 표시
+              timeIntervals={30}     //  30분 간격 선택
+              timeFormat="HH:mm"     //  24시간 형식으로 시간 표시
               locale={ko}
               timeCaption="시간"
             />
