@@ -257,8 +257,6 @@ const handleGoogleLogin = () => {
             <Tab $active={!isPersonal} onClick={() => setIsPersonal(false)}>🏢 기업</Tab>
           </ToggleTabs>
 
-          <Title>login</Title>
-
           <FormGroup>
             <Label htmlFor="userId">ID :</Label>
             <Input

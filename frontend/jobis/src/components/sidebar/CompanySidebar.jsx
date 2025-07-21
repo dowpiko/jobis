@@ -205,10 +205,11 @@ function CompanySidebar({ children }) {
       .then(res => {
         if (res.data) {
           axios.get(`sm/selectCinofoByUno?uno=${res.data.uno}`)
-            .then(data => {
+          .then(data => {
               if (data.data) {
-                setCName(data.data.corpNm)
-                setEnpRpFnm(data.data.enpRpFnm)
+                setCName(data.data.corpNm);
+                setEnpRpFnm(data.data.enpRpFnm);
+                setDbCount(data.data.count);
               }else {
                 return;
               }
@@ -232,7 +233,7 @@ function CompanySidebar({ children }) {
       let msg;
       try { msg = JSON.parse(evt.data); } catch { return; }
   
-      if (msg.type === 'chat_notification' && msg.message.sender === uno) {
+      if (msg.type === 'chat_notification' && msg.message.sender === uno || !msg) {
         setDbCount(c => c + 1);
         return;
       }

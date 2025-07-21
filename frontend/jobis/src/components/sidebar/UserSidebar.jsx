@@ -231,26 +231,13 @@ function UserSidebar({ children }) {
       navigate('/');
     }
   };
-  
-  useEffect(() => {
-    const reload = () => {
-      axios.get(`/jsh/getUser?uno=${uno}`)
-        .then(data => {
-          console.log(data);
-          if (data.data) setDbCount(data.data.count);
-        })
-        .catch(err => {console.error('🔔 알림 카운트 재로딩 실패', err);});
-        };
-
-        window.addEventListener('reloadSidebarCount', reload);
-        return () => window.removeEventListener('reloadSidebarCount', reload);
-  }, []);
 
   useEffect(() => {
     axios.get('/jsh/getUser')
       .then(res => {
         if (res.data?.name) {
           setUserName(res.data.name);
+          setDbCount(res.data.count);
         } else {
           alert('로그인이 필요합니다.');
           navigate('/');
@@ -264,13 +251,26 @@ function UserSidebar({ children }) {
   }, [location.pathname, navigate]);
 
   useEffect(() => {
+    const reload = () => {
+      axios.get(`/jsh/getUser?uno=${uno}`)
+        .then(data => {
+          if (data.data) setDbCount(data.data.count);
+        })
+        .catch(err => {console.error('🔔 알림 카운트 재로딩 실패', err);});
+        };
+
+        window.addEventListener('reloadSidebarCount', reload);
+        return () => window.removeEventListener('reloadSidebarCount', reload);
+  }, []);
+
+  useEffect(() => {
     if (!socket) return;
       const handler = (evt) => {
       
       let msg;
       try { msg = JSON.parse(evt.data); } catch { return; }
  
-      if (msg.type === 'chat_notification' && msg.message.sender === uno) {
+      if (msg.type === 'chat_notification' && msg.message.sender === uno || !msg) {
         setDbCount(c => c + 1);
         return;
       }
