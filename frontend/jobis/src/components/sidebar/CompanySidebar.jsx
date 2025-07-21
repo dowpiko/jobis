@@ -210,6 +210,14 @@ function CompanySidebar({ children }) {
                 setCName(data.data.corpNm);
                 setEnpRpFnm(data.data.enpRpFnm);
                 setDbCount(data.data.count);
+
+                if (socket && socket.readyState === WebSocket.OPEN && uno) {
+                  socket.send(JSON.stringify({
+                    type: 'ENTER_ROOM',
+                    uno: uno,
+                    rno: 0,
+                  }));
+                }
               }else {
                 return;
               }

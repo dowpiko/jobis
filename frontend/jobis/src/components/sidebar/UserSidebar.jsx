@@ -238,6 +238,14 @@ function UserSidebar({ children }) {
         if (res.data?.name) {
           setUserName(res.data.name);
           setDbCount(res.data.count);
+
+          if (socket && socket.readyState === WebSocket.OPEN && uno) {
+            socket.send(JSON.stringify({
+              type: 'ENTER_ROOM',
+              uno: uno,
+              rno: 0,
+            }));
+          }
         } else {
           alert('로그인이 필요합니다.');
           navigate('/');
