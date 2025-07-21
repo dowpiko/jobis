@@ -9,7 +9,10 @@ const GlobalStyles = createGlobalStyle`
     background-color: #90C4EB !important;
     cursor: pointer !important;
   }
-
+  .fc-event-past {
+    background-color: #E0E0E0 !important;
+    color: #666 !important;
+  }
   .fc-event-hover .fc-event-title {
     color: #000000 !important;
   }
@@ -83,14 +86,28 @@ const ScheduleItem = styled.div`
   }
 `;
 
+const ScheduleItemContent = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const StatusText = styled.span`
+  font-size: 12px;
+  color: ${(props) => (props.isLeader ? '#4376B6' : 'green')};
+  white-space: nowrap;
+`;
+
 const CancelButton = styled.button`
   background-color: #ec5757;
   color: white;
   border: none;
-  padding: 6px 12px;
+  padding: 4px 8px;
+  width: 60px;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 12px;
   cursor: pointer;
+  white-space: nowrap;
 
   &:hover {
     background-color: #d04040;
@@ -133,6 +150,7 @@ function ScheduleManager() {
   const [modalData, setModalData] = useState(null);
   const [myUno, setMyUno] = useState(null);
   const [chatList, setChatList] = useState([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
 
   useEffect(() => {
     fetch('/getMyUno', { credentials: 'include' })
@@ -250,6 +268,19 @@ function ScheduleManager() {
                 eventClick={handleEventClick}
                 eventMouseEnter={handleMouseEnter}
                 eventMouseLeave={handleMouseLeave}
+                datesSet={(info) => {
+                  const centerDate = info.view.currentStart;
+                  setCurrentMonth(centerDate.getMonth());
+                }}
+                eventDidMount={(info) => {
+                  const eventDate = info.event.start;
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+
+                  if (eventDate < today) {
+                    info.el.classList.add('fc-event-past');
+                  }
+                }}
                 height="auto"
               />
             </CalendarContainer>
@@ -263,9 +294,10 @@ function ScheduleManager() {
               {scheduleData
                 .filter(event => {
                   const eventDate = new Date(event.date);
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  return eventDate >= today;
+                  return eventDate.getMonth() === currentMonth;
+                  // const today = new Date();
+                  // today.setHours(0, 0, 0, 0);
+                  // return eventDate >= today;
                 })
                 .map((event, idx) => {
                   const dateStr = new Date(event.date).toISOString().split('T')[0];
@@ -283,26 +315,28 @@ function ScheduleManager() {
                         })
                       }
                     >
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span>
-                          {new Date(event.date).getFullYear()}년{' '}
-                          {new Date(event.date).getMonth() + 1}월{' '}
-                          {new Date(event.date).getDate()}일 | {event.title}
-                        </span>
-                        <span
-                          style={{
-                            marginTop: '4px',
-                            fontSize: '12px',
-                            color: isLeader ? '#4376B6' : 'green',
-                          }}
-                        >
-                          {isLeader ? '👑 내가 만든 일정' : '🤝 참여한 일정'}
-                        </span>
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        width: '100%',
+                      }}>
+                        <div>
+                          <div>
+                            {new Date(event.date).getFullYear()}년{' '}
+                            {new Date(event.date).getMonth() + 1}월{' '}
+                            {new Date(event.date).getDate()}일 | {event.title}
+                          </div>
+                        </div>
+                        <ScheduleItemContent>
+                          <StatusText isLeader={isLeader}>
+                            {isLeader ? '👑 내가 만든 일정' : '🤝 참여한 일정'}
+                          </StatusText>
+                          <CancelButton onClick={(e) => { e.stopPropagation(); handleDelete(event); }}>
+                            취소
+                          </CancelButton>
+                        </ScheduleItemContent>
                       </div>
-
-                      <CancelButton onClick={(e) => { e.stopPropagation(); handleDelete(event); }}>
-                        취소
-                      </CancelButton>
                     </ScheduleItem>
                   );
                 })}

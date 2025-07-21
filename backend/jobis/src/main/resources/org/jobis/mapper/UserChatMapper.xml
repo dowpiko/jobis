@@ -21,6 +21,7 @@
 			#{r_tag},
 			#{leader},
 			SYSDATE,
+<!-- 			#{sch_date}, -->
 			TO_DATE(#{sch_date}, 'YYYY-MM-DD HH24:MI:SS'),
 			1
 		)
@@ -43,25 +44,27 @@
 	
 	<!-- 유저 채팅 불러오기 (전체)-->
 	<select id="getUserChat" resultType="org.jobis.domain.CJSVO">
-		SELECT uc.*, 
-		       u1.name AS leader_name, 
-		       u2.name AS member_name
-		FROM tbl_userchat uc
-		LEFT JOIN tbl_user u1 ON uc.leader = u1.uno
-		LEFT JOIN tbl_user u2 ON uc.member = u2.uno
-		ORDER BY uc.r_regdate DESC
+	    SELECT uc.*, 
+	           u1.name AS leader_name, 
+	           u2.name AS member_name
+	    FROM tbl_userchat uc
+	    LEFT JOIN tbl_user u1 ON uc.leader = u1.uno
+	    LEFT JOIN tbl_user u2 ON uc.member = u2.uno
+	    WHERE uc.sch_date &gt;= ADD_MONTHS(SYSDATE, -1)
+	    ORDER BY uc.r_regdate DESC
 	</select>
 	
 	<!-- 태그 별로 유저 채팅 불러오기  -->
 	<select id="getUserChatByTag" resultType="org.jobis.domain.CJSVO">
-		SELECT uc.*, 
-		       u1.name AS leader_name, 
-		       u2.name AS member_name
-		FROM tbl_userchat uc
-		LEFT JOIN tbl_user u1 ON uc.leader = u1.uno
-		LEFT JOIN tbl_user u2 ON uc.member = u2.uno
-		WHERE uc.r_tag = #{r_tag}
-		ORDER BY uc.r_regdate DESC
+	    SELECT uc.*, 
+	           u1.name AS leader_name, 
+	           u2.name AS member_name
+	    FROM tbl_userchat uc
+	    LEFT JOIN tbl_user u1 ON uc.leader = u1.uno
+	    LEFT JOIN tbl_user u2 ON uc.member = u2.uno
+	    WHERE uc.r_tag = #{r_tag}
+	      AND uc.sch_date &gt;= ADD_MONTHS(SYSDATE, -1)
+	    ORDER BY uc.r_regdate DESC
 	</select>
 	
 	

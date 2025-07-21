@@ -707,25 +707,26 @@ useEffect(() => {
               placeholderText="날짜 선택"
               dateFormat="yyyy-MM-dd HH:mm"
               minDate={new Date()}
+              maxDate={new Date(new Date().setMonth(new Date().getMonth() + 1))} // ✅ 한달 이내로 제한
               filterTime={(time) => {
-                const now = new Date();
-                const selectedDay = selectedDate || new Date();
-                const isToday = selectedDay.toDateString() === now.toDateString();
+                  const now = new Date();
+                  const selectedDay = selectedDate || new Date();
+                  const isToday = selectedDay.toDateString() === now.toDateString();
 
-                if (isToday) {
-                  return time.getTime() >= now.getTime() &&
-                    !blockedIntervals.some(({ start, end }) => time >= start && time <= end);
-                }
-                return !blockedIntervals.some(({ start, end }) => time >= start && time <= end);
+                  if (isToday) {
+                      return time.getTime() >= now.getTime() &&
+                          !blockedIntervals.some(({ start, end }) => time >= start && time <= end);
+                  }
+                  return !blockedIntervals.some(({ start, end }) => time >= start && time <= end);
               }}
-
-              showTimeSelect         //  시간 선택 UI 표시
-              timeIntervals={30}     //  30분 간격 선택
-              timeFormat="HH:mm"     //  24시간 형식으로 시간 표시
+              showTimeSelect
+              timeIntervals={30}
+              timeFormat="HH:mm"
               locale={ko}
               timeCaption="시간"
             />
             <SendButton onClick={handleCreateChat}>모집하기</SendButton>
+            
           </DateRow>
         </InputSection>
 
