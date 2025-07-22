@@ -80,8 +80,9 @@ public class JshController {
 	    
 	    Map<String, Object> result = new HashMap<>();
 	    if (user != null) {
+	    	jshservice.expireSubscriptionIfNeeded(user.getUno());
+	    	user = jshservice.getUserById(id);
 	        session.setAttribute("User", user); // ✅ 세션에 저장
-	        jshservice.expireSubscriptionIfNeeded(user.getUno());
 	        
 	        result.put("success", true);
 	        result.put("userType", user.getAuth());
@@ -156,8 +157,9 @@ public class JshController {
         
         String userId = (String) userProfile.get("email");
         UserVO userVO = jshservice.getUserById(userId);
-        session.setAttribute("User", userVO);
         jshservice.expireSubscriptionIfNeeded(userVO.getUno());
+        userVO = jshservice.getUserById(userId);
+        session.setAttribute("User", userVO);
         
         return ResponseEntity.ok(userProfile );
     }
@@ -178,8 +180,9 @@ public class JshController {
 
 	        UserVO userVO = jshservice.getUserById(email);
 	        if (userVO != null) {
+	        	jshservice.expireSubscriptionIfNeeded(userVO.getUno());
+	        	userVO = jshservice.getUserById(email);
 	            session.setAttribute("User", userVO);
-	            jshservice.expireSubscriptionIfNeeded(userVO.getUno());
 	            
 	            return ResponseEntity.ok(Map.of(
 	                "exists", true,
@@ -209,8 +212,9 @@ public class JshController {
 
 	    try {
 	        UserVO userVO = jshservice.handleKakaoLogin(accessToken, email, birth);
-	        session.setAttribute("User", userVO);
 	        jshservice.expireSubscriptionIfNeeded(userVO.getUno());
+	        userVO = jshservice.getUserById(email);
+	        session.setAttribute("User", userVO);
 	        
 	        return ResponseEntity.ok(Map.of("success", true, "user", userVO));
 	    } catch (Exception e) {
@@ -237,8 +241,9 @@ public class JshController {
 
 	        UserVO userVO = jshservice.getUserById(email);
 	        if (userVO != null) {
+	        	jshservice.expireSubscriptionIfNeeded(userVO.getUno());
+	        	userVO = jshservice.getUserById(email);
 	            session.setAttribute("User", userVO);
-	            jshservice.expireSubscriptionIfNeeded(userVO.getUno());
 	            
 	            return ResponseEntity.ok(Map.of(
 	                "exists", true,
@@ -268,8 +273,9 @@ public class JshController {
 
 	    try {
 	        UserVO userVO = jshservice.handleGoogleLogin(accessToken, email, birth);
-	        session.setAttribute("User", userVO);
 	        jshservice.expireSubscriptionIfNeeded(userVO.getUno());
+	        userVO = jshservice.getUserById(email);
+	        session.setAttribute("User", userVO);
 	        
 	        return ResponseEntity.ok(Map.of("success", true, "user", userVO));
 	    } catch (Exception e) {
