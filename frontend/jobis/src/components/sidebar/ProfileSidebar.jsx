@@ -1,4 +1,3 @@
-// ✅ 색상 업데이트 및 로고/토글 아이콘 반영 버전
 import React, { useContext, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +6,8 @@ import categories from '../../data/categories';
 import logo from '../../img/SIMPLELOGO.png';
 import toggleIcon from '../../img/ChangeIcon.png';
 import { AuthContext } from '../../contexts/AuthContext';
+import { profileImageList  } from '../../utils/profileImages';
+import cogwheel from '../../img/cogwheel.png';
 
 const CategoryList = styled.div`
   overflow-y: auto;
@@ -83,6 +84,8 @@ const ProfileImg = styled.img`
   height: 64px;
   border-radius: 50%;
   border: 2px solid #2563EB;
+  object-fit: cover;
+  cursor: pointer;
 `;
 
 const ProfileName = styled.span`
@@ -172,6 +175,97 @@ const Main = styled.main`
   background-color: #FFFFFF;
   overflow-y: auto;
   border-left: 1px solid #E2E8F0;
+  position: relative;
+`;
+
+// 모달 오버레이 스타일
+const ImgModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ImgModalContent = styled.div`
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  max-width: 40vw;
+  max-height: 40vh;
+`;
+
+const ModalImg = styled.img`
+  width: 220px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+`;
+
+const NickInput = styled.input`
+  padding: 8px 10px;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+`;
+
+const SmallBtn = styled.button`
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+
+  background: ${({ $bg = '#2563EB' }) => $bg};
+  color: ${({ $color = '#fff' }) => $color};
+
+  &:hover {
+    background: ${({ $hoverBg = '#1E4DB7' }) => $hoverBg};
+  }
+`;
+
+const ButtonRow = styled.div`
+  display: flex;
+  gap: 40px;
+  margin-top: 8px;
+`;
+
+const ModalBody = styled.div`
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+`;
+
+const ModalImgWrap = styled.div`
+  position: relative;
+  display: inline-block;
+`;
+
+const GearIcon = styled.img`
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
+  background: #fff;
+  border-radius: 50%;
+  padding: 3px;
+  box-shadow: 0 0 3px rgba(22, 20, 20, 0.25);
+  border: 2px solid rgba(22, 20, 20, 0.25);
+`;
+
+const LeftCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* 가운데 정렬 원치 않으면 제거 */
+  gap: 12px;
 `;
 
 function ProfileSidebar({ children }) {
@@ -180,6 +274,11 @@ function ProfileSidebar({ children }) {
   const [hasProfile, setHasProfile] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const { logout } = useContext(AuthContext);
+  const [nicknameTemp, setNicknameTemp] = useState('');
+
+  // 모달 오픈 상태
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalImgSrc, setModalImgSrc] = useState('');
 
   useEffect(() => {
     axios.get('/jsh/checkProfile')
@@ -189,6 +288,8 @@ function ProfileSidebar({ children }) {
           setNickname(res.data.nickname);
         } else {
           setHasProfile(false);
+          alert("로그인이 필요합니다.");
+          navigate('/');
         }
       })
       .catch(() => alert('프로필 정보를 불러오지 못했습니다.'));
@@ -202,6 +303,28 @@ function ProfileSidebar({ children }) {
     }
     logout();
     navigate('/');
+  };
+
+  const handleImgClick = src => {
+    setModalImgSrc(src);
+    setNicknameTemp(nickname || '');
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalImgSrc('');
+  };
+
+  const handleSaveNickname = async () => {
+    try {
+      await axios.post('/sm/updateNickname', { nickname: nicknameTemp });
+      setNickname(nicknameTemp);
+      alert('닉네임이 변경되었습니다.');
+    } catch (e) {
+      console.error(e);
+      alert('변경 실패');
+    }
   };
 
   return (
@@ -218,7 +341,11 @@ function ProfileSidebar({ children }) {
           {hasProfile ? (
             <>
               <ProfileInfo>
-                <ProfileImg src="https://via.placeholder.com/48" alt="profile" />
+                <ProfileImg
+                  src={profileImageList[0].src}
+                  alt={profileImageList[0].src}
+                  onClick={() => handleImgClick(profileImageList[0].src)}
+                />
                 <ProfileName>{nickname || '이름 없음'}</ProfileName>
               </ProfileInfo>
               <ProfileActions>
@@ -254,7 +381,34 @@ function ProfileSidebar({ children }) {
         </Footer>
       </Sidebar>
 
-      <Main>{children}</Main>
+      <Main>
+        {children}
+        {isModalOpen && (
+          <ImgModalOverlay>
+            <ImgModalContent onClick={e => e.stopPropagation()}>
+              <ModalBody>
+                <LeftCol>
+                  <ModalImgWrap>
+                    <ModalImg src={modalImgSrc} alt="profile large" />
+                    <GearIcon src={cogwheel} alt="settings" onClick={() => console.log('이미지 변경 아이콘 클릭')} />
+                  </ModalImgWrap>
+
+                  {/* ↓↓↓ 이미지 아래로 이동 ↓↓↓ */}
+                  <NickInput
+                    value={nicknameTemp}
+                    onChange={e => setNicknameTemp(e.target.value)}
+                    placeholder="닉네임 변경"
+                  />
+                  <ButtonRow>
+                    <SmallBtn $bg="#ff8b7eff" $color="#ffffffff" $hoverBg="#ff5050ff" onClick={closeModal}>취소</SmallBtn>
+                    <SmallBtn $bg="#2563EB" $hoverBg="#1E4DB7" onClick={handleSaveNickname}>저장</SmallBtn>
+                  </ButtonRow>
+                </LeftCol>
+              </ModalBody>
+            </ImgModalContent>
+          </ImgModalOverlay>
+        )}
+      </Main>
     </AppLayout>
   );
 }
