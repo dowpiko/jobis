@@ -180,7 +180,7 @@
 	<!-- 채팅 저장 -->
 	<insert id="insertChatMessage" parameterType="org.jobis.domain.ChatMessageVO">
 	    INSERT INTO TBL_CHATLOG (CLNO, RNO, SENDER, CONTENT, HIT, CL_REGDATE)
-	    VALUES (SEQ_CLNO.NEXTVAL, #{rno}, #{sender}, #{content}, 0, SYSDATE)
+	    VALUES (SEQ_CLNO.NEXTVAL, #{rno}, #{sender}, #{content}, #{hit}, SYSDATE)
 	</insert>
 	
 	<!-- 채팅 불러오기 -->

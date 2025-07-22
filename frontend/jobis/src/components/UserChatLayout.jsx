@@ -274,7 +274,8 @@ const UserChatLayout = () => {
     // 메시지 전송
     const sendMessage = () => {
       if (!socket || socket.readyState !== WebSocket.OPEN || !inputText.trim()) return;
-      const payload = { rno, sender: cno, content: inputText.trim(), leader: myUno };
+      const hit = chatMessages.at(-1).hit;
+      const payload = { rno, sender: cno, content: inputText.trim(), leader: myUno, hit : hit};
       socket.send(JSON.stringify(payload));
       axios.post('http://localhost:9090/sm/insertChatMessage', payload).catch(console.error);
       setInputText('');

@@ -10,6 +10,7 @@ import javax.websocket.server.ServerEndpoint;
 import org.jobis.config.CustomSpringConfigurator;
 import org.jobis.domain.CJSVO;
 import org.jobis.service.UserChatService;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -92,8 +93,7 @@ public class ChatSocket {
 
                 return;
             }
-
-            // ✅ 일반 메시지 처리
+            
             if (!json.has("leader")) {
                 System.err.println("⚠️ 'leader' 필드가 없는 일반 메시지. 무시됨");
                 return;

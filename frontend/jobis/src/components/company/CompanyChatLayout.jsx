@@ -196,6 +196,7 @@ const CompanyChatLayout = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const socket = useContext(SocketContext);
   const [myUno, setMyUno] = useState('');
+  const [connectedUsers, setConnectedUsers] = useState([]);
   const navigate = useNavigate();
   
   const initChatLayout = async (uno) => {
@@ -334,12 +335,14 @@ const CompanyChatLayout = () => {
 
   const sendMessage = () => {
     if (!socket || socket.readyState !== WebSocket.OPEN || !inputText.trim()) return;
-
+    const hit = chatMessages.at(-1).hit;
+    
     const payload = {
       rno:      selectedChat?.rno,
       sender:   selectedChat?.emp,
       content:  inputText.trim(),
       leader:   myUno,
+      hit: hit,
     };
     socket.send(JSON.stringify(payload));
     axios.post('http://localhost:9090/sm/insertChatMessage', payload);
