@@ -32,11 +32,13 @@
 			email,
 			subscribe,
 			auth,
-			last_try_date AS lastTryDate
+			last_try_date AS lastTryDate,
+			subscribe_date AS subscribeDate  <!-- ✅ 추가 -->
 		FROM tbl_user
 		WHERE id = #{id}
 		  AND pw = #{pw}
 	</select>
+
 	
 	<select id="getProfileByUno" parameterType="int" resultType="org.jobis.domain.ProfileVO">
 	    SELECT *
@@ -59,7 +61,8 @@
 			email,
 			subscribe,
 			auth,
-			last_try_date AS lastTryDate
+			last_try_date AS lastTryDate,
+			subscribe_date AS subscribeDate  <!-- ✅ 추가 -->
 		FROM tbl_user
 		WHERE id = #{id}
 	</select>

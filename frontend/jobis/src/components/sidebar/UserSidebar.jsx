@@ -236,6 +236,7 @@ function UserSidebar({ children }) {
     axios.get('/jsh/getUser')
       .then(res => {
         if (res.data?.name) {
+          console.log('✅ 로그인된 사용자 정보:', res.data);
           setUserName(res.data.name);
           setDbCount(res.data.count);
 

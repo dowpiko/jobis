@@ -2,11 +2,16 @@ package org.jobis.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.jobis.mapper.UserMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.Map;
 
 
@@ -18,12 +23,14 @@ public class PaymentServiceImpl implements PaymentService{
 	private String apiSecret;
 	
 	private final ObjectMapper objectMapper = new ObjectMapper();
+	
+	@Autowired
+	private UserMapper userMapper;
 
 	@Override
 	public String verifyAndCompletePayment(Map<String, Object> paymentData) {
 		try {
 			String paymentId = (String) paymentData.get("paymentId");
-			int totalAmount = (int) paymentData.get("totalAmount");
 			int months = (int) paymentData.get("months");
 			int uno = (int) paymentData.get("uno");
 
@@ -71,7 +78,12 @@ public class PaymentServiceImpl implements PaymentService{
 
 			String status = payment.path("status").asText();
 			if ("PAID".equals(status)) {
-				// TODO: 결제 성공 시 로직 구현
+				LocalDate expireDate = LocalDate.now().plusMonths(months);
+				Date subscribeDate = Date.valueOf(expireDate);
+
+				userMapper.completeSubscriptionPayment(uno, 1, subscribeDate); // ✅ DB 반영
+
+				System.out.println("✅ 구독 정보 갱신 완료: 상태 1, 만료일 " + subscribeDate);
 			}
 
 			return status;

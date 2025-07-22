@@ -27,4 +27,11 @@
 			SET SUBSCRIBE = #{num}
 		WHERE UNO = #{uno}
 	</update>
+	<update id="completeSubscriptionPayment">
+		UPDATE TBL_USER
+		SET
+			SUBSCRIBE = #{subscribe},
+			SUBSCRIBE_DATE = #{subscribeDate}
+		WHERE UNO = #{uno}
+	</update>
 </mapper>
