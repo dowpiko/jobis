@@ -504,6 +504,7 @@ export default function RadarSection() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [subscribe, setSubscribe] = useState(0);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [subscribeUpdated, setSubscribeUpdated] = useState(false);
   const uno = useRef(null);
   const perPage = 10;
   const totalPage = Math.ceil(interviews.length / perPage);
@@ -565,7 +566,7 @@ export default function RadarSection() {
     };
 
     getDatas();
-  }, []);
+  }, [subscribeUpdated]);
   const filtered = useMemo(
     () => interviews.slice((page - 1) * perPage, page * perPage),
     [page, interviews] // ✅ interviews 추가!
@@ -1003,7 +1004,13 @@ const barData = useMemo(() => {
           </MainArea>
         </ContentBox>
       </Wrapper>
-      {showSubscribeModal && <SubscribeModal onClose={() => setShowSubscribeModal(false)} uno={uno.current}/>}
+      {showSubscribeModal && (
+        <SubscribeModal
+          onClose={() => setShowSubscribeModal(false)}
+          uno={uno.current}
+          onSubscribed={() => setSubscribeUpdated(prev => !prev)}  // 상태 토글
+        />
+      )}
 
     </Container>
   );

@@ -41,4 +41,6 @@ public interface JshService {
 	public UserVO handleGoogleLogin(String accessToken, String email, String birth);
 	
 	public String convertVoiceToText(MultipartFile voiceFile);
+	
+	public void expireSubscriptionIfNeeded(int uno);
 }

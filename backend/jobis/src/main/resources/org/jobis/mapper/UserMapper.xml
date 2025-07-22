@@ -34,4 +34,14 @@
 			SUBSCRIBE_DATE = #{subscribeDate}
 		WHERE UNO = #{uno}
 	</update>
+	<update id="expireSubscriptionIfNeeded" parameterType="int">
+	<![CDATA[
+		UPDATE TBL_USER
+		SET 
+			subscribe = 0
+		WHERE uno = #{uno}
+		  AND subscribe = 1
+		  AND subscribe_date < SYSDATE
+	]]>
+	</update>
 </mapper>

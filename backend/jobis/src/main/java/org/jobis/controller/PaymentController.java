@@ -2,6 +2,8 @@ package org.jobis.controller;
 
 import java.util.Map;
 
+import javax.servlet.http.HttpSession;
+
 import org.jobis.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,9 +26,9 @@ public class PaymentController {
 	private PaymentService paymentService;
 	
 	@PostMapping(value = "/complete", produces = "application/json; charset=UTF-8")
-	public ResponseEntity<String> completePayment(@RequestBody Map<String, Object> paymentData) {
+	public ResponseEntity<String> completePayment(@RequestBody Map<String, Object> paymentData, HttpSession session) {
 		log.info("📥 결제 완료 요청 수신: " + paymentData);
-		String result = paymentService.verifyAndCompletePayment(paymentData);
+		String result = paymentService.verifyAndCompletePayment(paymentData, session);
 
 		if ("PAID".equals(result)) {
 			return ResponseEntity.ok("PAID");

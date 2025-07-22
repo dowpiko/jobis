@@ -141,7 +141,7 @@ const tossChannelKey = process.env.REACT_APP_TOSS_CHANNEL_KEY;
 const kakaoChannelKey = process.env.REACT_APP_KAKAO_CHANNEL_KEY;
 const host = process.env.REACT_APP_HOST;
 
-const SubscribeModal = ({ onClose, uno }) => {
+const SubscribeModal = ({ onClose, uno, onSubscribed}) => {
 	const [selectedPlan, setSelectedPlan] = useState(plans[0]);
 	const basePrice = 17000;
 	const handlePayment = async (type) => {
@@ -174,11 +174,18 @@ const SubscribeModal = ({ onClose, uno }) => {
 			const res = await axios.post(`http://${host}:9090/payment/complete`, {
 				paymentId: response.paymentId,
 				totalAmount,
-				months: selectedPlan.months,  // ✅ 선택한 구독 개월 수 추가
-				uno,                          // ✅ uno도 필요하다면 함께 전달
+				months: selectedPlan.months,
+				uno,
+			}, {
+				withCredentials: true  // 🔥 필수!!!
 			});
 
-			alert(res.data === 'PAID' ? '✅ 결제 완료!' : `⚠️ 상태: ${res.data}`);
+			if (res.data === 'PAID') {
+				alert('✅ 결제 완료!');
+				onSubscribed();  // ✅ 구독 상태 갱신 트리거
+			}	else {
+				alert(`⚠️ 상태: ${res.data}`);
+			}
 			onClose();
 		} catch (e) {
 			alert('서버 오류');

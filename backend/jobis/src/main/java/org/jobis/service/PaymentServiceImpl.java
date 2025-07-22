@@ -3,6 +3,8 @@ package org.jobis.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.jobis.domain.UserVO;
+import org.jobis.mapper.JshMapper;
 import org.jobis.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +15,8 @@ import org.springframework.web.client.RestTemplate;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Map;
+
+import javax.servlet.http.HttpSession;
 
 
 
@@ -26,9 +30,12 @@ public class PaymentServiceImpl implements PaymentService{
 	
 	@Autowired
 	private UserMapper userMapper;
+	
+	@Autowired
+	private JshMapper jshMapper;
 
 	@Override
-	public String verifyAndCompletePayment(Map<String, Object> paymentData) {
+	public String verifyAndCompletePayment(Map<String, Object> paymentData, HttpSession session) {
 		try {
 			String paymentId = (String) paymentData.get("paymentId");
 			int months = (int) paymentData.get("months");
@@ -81,8 +88,14 @@ public class PaymentServiceImpl implements PaymentService{
 				LocalDate expireDate = LocalDate.now().plusMonths(months);
 				Date subscribeDate = Date.valueOf(expireDate);
 
-				userMapper.completeSubscriptionPayment(uno, 1, subscribeDate); // ✅ DB 반영
-
+				int temp = userMapper.completeSubscriptionPayment(uno, 1, subscribeDate); // ✅ DB 반영
+				if(temp>0) {
+					System.out.println("유저 정보 갱신!!");
+					UserVO updatedUser = userMapper.getUserByUno(uno); // 최신값으로 다시 불러오기
+					System.out.println("새로운 구독 정보 : "+updatedUser.getSubscribe());
+					session.setAttribute("User", updatedUser);	
+					System.out.println("현재 세션 : "+ session.getAttribute("User"));
+				}
 				System.out.println("✅ 구독 정보 갱신 완료: 상태 1, 만료일 " + subscribeDate);
 			}
 

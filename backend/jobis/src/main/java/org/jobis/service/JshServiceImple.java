@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.jobis.domain.ProfileVO;
 import org.jobis.domain.UserVO;
 import org.jobis.mapper.JshMapper;
+import org.jobis.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -54,7 +55,9 @@ public class JshServiceImple implements JshService{
 
     @Autowired private StringRedisTemplate redisTemplate;
     
-    @Autowired private JshMapper jsmMapper;   
+    @Autowired private JshMapper jsmMapper;
+    
+    @Autowired private UserMapper userMapper;
 
     @Value("${spring.mail.username}")
     private String mailSenderAddress;
@@ -361,6 +364,10 @@ public class JshServiceImple implements JshService{
         }
     }
     
+    @Override
+    public void expireSubscriptionIfNeeded(int uno) {
+    	System.out.println(userMapper.expireSubscriptionIfNeeded(uno)>0?"구독 여부 자동 업데이트 완료":null);
+    }
     @Value("${clova.api.key}")
     private String clovaApiKey;
 

@@ -77,11 +77,12 @@ public class JshController {
 	    String pw = body.get("pw");
 
 	    UserVO user = jshservice.loginUser(id, pw);
-	    System.out.println(user.toString());
 	    
 	    Map<String, Object> result = new HashMap<>();
 	    if (user != null) {
 	        session.setAttribute("User", user); // ✅ 세션에 저장
+	        jshservice.expireSubscriptionIfNeeded(user.getUno());
+	        
 	        result.put("success", true);
 	        result.put("userType", user.getAuth());
 	        result.put("uno", user.getUno());
@@ -156,6 +157,7 @@ public class JshController {
         String userId = (String) userProfile.get("email");
         UserVO userVO = jshservice.getUserById(userId);
         session.setAttribute("User", userVO);
+        jshservice.expireSubscriptionIfNeeded(userVO.getUno());
         
         return ResponseEntity.ok(userProfile );
     }
@@ -177,6 +179,8 @@ public class JshController {
 	        UserVO userVO = jshservice.getUserById(email);
 	        if (userVO != null) {
 	            session.setAttribute("User", userVO);
+	            jshservice.expireSubscriptionIfNeeded(userVO.getUno());
+	            
 	            return ResponseEntity.ok(Map.of(
 	                "exists", true,
 	                "email", email,
@@ -206,7 +210,8 @@ public class JshController {
 	    try {
 	        UserVO userVO = jshservice.handleKakaoLogin(accessToken, email, birth);
 	        session.setAttribute("User", userVO);
-
+	        jshservice.expireSubscriptionIfNeeded(userVO.getUno());
+	        
 	        return ResponseEntity.ok(Map.of("success", true, "user", userVO));
 	    } catch (Exception e) {
 	        e.printStackTrace();
@@ -233,6 +238,8 @@ public class JshController {
 	        UserVO userVO = jshservice.getUserById(email);
 	        if (userVO != null) {
 	            session.setAttribute("User", userVO);
+	            jshservice.expireSubscriptionIfNeeded(userVO.getUno());
+	            
 	            return ResponseEntity.ok(Map.of(
 	                "exists", true,
 	                "email", email,
@@ -262,7 +269,8 @@ public class JshController {
 	    try {
 	        UserVO userVO = jshservice.handleGoogleLogin(accessToken, email, birth);
 	        session.setAttribute("User", userVO);
-
+	        jshservice.expireSubscriptionIfNeeded(userVO.getUno());
+	        
 	        return ResponseEntity.ok(Map.of("success", true, "user", userVO));
 	    } catch (Exception e) {
 	        e.printStackTrace();

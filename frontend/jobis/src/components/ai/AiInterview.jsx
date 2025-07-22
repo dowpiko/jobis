@@ -121,7 +121,7 @@ const AiInterview = () => {
 	const [canStartToday, setCanStartToday] = useState(false);
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false);
 	const [uno, setUno] = useState(null);
-
+	const [subscribeUpdated, setSubscribeUpdated] = useState(false);
 	const handleStartClick = () => {
 		if (subscribe !== 1 && !canStartToday) {
 			setShowSubscribeModal(true);
@@ -136,6 +136,7 @@ const AiInterview = () => {
 			try {
 				const res = await axios.get('/jsh/getUser');
 				const user = res.data;
+				console.log(user);
 				if (!user) return;
 				
 				setUno(user.uno);
@@ -160,7 +161,7 @@ const AiInterview = () => {
 		};
 
 		getUserInfo();
-	}, []);
+	}, [subscribeUpdated]);
 
 
 
@@ -205,6 +206,7 @@ const AiInterview = () => {
 			{showSubscribeModal && (
 				<SubscribeModal
 					onClose={() => setShowSubscribeModal(false)}
+					onSubscribed={() => setSubscribeUpdated(prev => !prev)}  // 상태 토글로 useEffect 트리거
 					uno={uno}
 				/>
 			)}
