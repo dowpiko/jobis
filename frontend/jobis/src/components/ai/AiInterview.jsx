@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { addDays, format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import SubscribeModal from '../subscribe/SubscribeModal';
 
 
 const Container = styled.div`
@@ -118,13 +119,12 @@ const AiInterview = () => {
 	const navigate = useNavigate();
 	const [subscribe, setSubscribe] = useState(0);
 	const [canStartToday, setCanStartToday] = useState(false);
+	const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+	const [uno, setUno] = useState(null);
 
 	const handleStartClick = () => {
 		if (subscribe !== 1 && !canStartToday) {
-			const confirmed = window.confirm('무료 이용자는 하루에 한 번만 AI 면접이 가능합니다.\n구독 페이지로 이동하시겠습니까?');
-			if (confirmed) {
-				navigate('/subscribe'); // 👉 네 구독 페이지 경로에 맞게 조정
-			}
+			setShowSubscribeModal(true);
 		} else {
 			navigate('/createAiInterview');
 		}
@@ -137,7 +137,8 @@ const AiInterview = () => {
 				const res = await axios.get('/jsh/getUser');
 				const user = res.data;
 				if (!user) return;
-
+				
+				setUno(user.uno);
 				setSubscribe(user.subscribe);
 
 				if (user.subscribe === 1) {
@@ -200,6 +201,12 @@ const AiInterview = () => {
 				<NextTryInfo>
 					다음 면접 가능: {format(addDays(new Date(), 1), 'M월 d일 (E)', { locale: ko })} 자정 이후
 				</NextTryInfo>
+			)}
+			{showSubscribeModal && (
+				<SubscribeModal
+					onClose={() => setShowSubscribeModal(false)}
+					uno={uno}
+				/>
 			)}
 		</Container>
 	);

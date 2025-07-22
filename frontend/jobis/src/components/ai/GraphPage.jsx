@@ -13,6 +13,7 @@ import LoadingModal from '../modal/LoadingModal';
 import FeedbackReportPanel from './FeedbackReportPanel';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import SubscribeModal from '../subscribe/SubscribeModal';
 
 
 const Container = styled.div`
@@ -127,8 +128,8 @@ const InterviewList = styled.div`
 
 const InterviewCard = styled.div`
 	padding: 10px;
-	background: ${({ selected }) => (selected ? '#D6E4FF' : '#FFFFFF')}; // 밝은 배경 톤
-	border: 1px solid ${({ selected }) => (selected ? '#2563EB' : '#E2E8F0')};
+	background: ${({ $selected }) => ($selected ? '#D6E4FF' : '#FFFFFF')}; // 밝은 배경 톤
+	border: 1px solid ${({ $selected }) => ($selected ? '#2563EB' : '#E2E8F0')};
 	border-radius: 6px;
 	margin-bottom: 8px;
 	cursor: pointer;
@@ -287,9 +288,9 @@ const AnimatedPanel = styled.div`
 	flex-direction: column;
 	gap: 20px;
 	transition: opacity 0.5s ease, transform 0.5s ease;
-	opacity: ${({ show }) => (show ? 1 : 0)};
-	transform: ${({ show }) => (show ? 'translateY(0)' : 'translateY(20px)')};
-	pointer-events: ${({ show }) => (show ? 'auto' : 'none')};
+	opacity: ${({ $show }) => ($show ? 1 : 0)};
+	transform: ${({ $show }) => ($show ? 'translateY(0)' : 'translateY(20px)')};
+	pointer-events: ${({ $show }) => ($show ? 'auto' : 'none')};
 `;
 
 const CustomTooltip = styled.div`
@@ -306,8 +307,8 @@ const CustomTooltip = styled.div`
 	z-index: 1000;
 	border: 1px solid #CBD5E1;  /* 테두리도 밝게 */
 	transition: opacity 0.2s ease-in-out;
-	opacity: ${({ show }) => (show ? 1 : 0)};
-	visibility: ${({ show }) => (show ? 'visible' : 'hidden')};
+	opacity: ${({ $show }) => ($show ? 1 : 0)};
+	visibility: ${({ $show }) => ($show ? 'visible' : 'hidden')};
 	backdrop-filter: blur(4px);
 `;
 
@@ -502,7 +503,7 @@ export default function RadarSection() {
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [subscribe, setSubscribe] = useState(0);
-  const navigate = useNavigate();
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const uno = useRef(null);
   const perPage = 10;
   const totalPage = Math.ceil(interviews.length / perPage);
@@ -577,14 +578,24 @@ export default function RadarSection() {
     if (pick) base.forEach(d => d.A = pick.result[d.subject]);
     return base;
   }, [selInterviewId]);
-  const barData = useMemo(() => (
-    filtered.map(i => ({
-      id: i.id,
-      title: i.title,
-      value: selSubject ? i.result[selSubject] : null,  // ✅ 0.001 대신 null!
-      avg: Math.round(Object.values(i.result).reduce((a, b) => a + b, 0) / 5),
-    })).reverse()
-  ), [selSubject, selInterviewId, filtered]);
+const barData = useMemo(() => {
+	const sliced = filtered.map(i => ({
+		id: i.id,
+		title: i.title,
+		value: selSubject ? i.result[selSubject] : null,
+		avg: Math.round(Object.values(i.result).reduce((a, b) => a + b, 0) / 5),
+	})).reverse();
+
+	// 📌 항상 10개 고정. 없는 항목은 빈 객체로 채움
+	const padded = Array.from({ length: 10 }, (_, idx) => sliced[idx] || {
+		id: `empty-${idx}`,
+		title: '',
+		value: null,
+		avg: null,
+	});
+	return padded;
+}, [selSubject, filtered]);
+
 
 
   const areaData = useMemo(() => interviews.map(i => {
@@ -631,9 +642,8 @@ export default function RadarSection() {
     };
   const handleSubmitInterview = async () => {
     if (subscribe === 2) {
-      const confirmed = window.confirm('무료 이용자는 평생 한 번만 피드백을 받을 수 있습니다.\n구독 페이지로 이동하시겠습니까?');
-      if (confirmed) navigate('/subscribe');
-      return; // ❗ 서버 요청 막기
+      setShowSubscribeModal(true);  // ✅ 모달 열기!
+      return; // 서버 요청 막기
     }
 
     setIsLoading(true);
@@ -671,7 +681,12 @@ export default function RadarSection() {
       <Wrapper>
         <KpiWrapper>
           <KpiCard><KpiValue>{totalInterviews}</KpiValue><KpiLabel>총 면접</KpiLabel></KpiCard>
-          <KpiCard><KpiValue>{avgScoreAll}</KpiValue><KpiLabel>전체 평균 점수</KpiLabel></KpiCard>
+          <KpiCard>
+            <KpiValue>
+             {Number.isFinite(avgScoreAll) ? Math.round(avgScoreAll) : ''}
+            </KpiValue>
+            <KpiLabel>전체 평균 점수</KpiLabel>
+          </KpiCard>
           <KpiCard><KpiValue>{maxScore}</KpiValue><KpiLabel>최고 점수</KpiLabel></KpiCard>
           <KpiCard><KpiValue>{minScore}</KpiValue><KpiLabel>최저 점수</KpiLabel></KpiCard>
         </KpiWrapper>
@@ -689,7 +704,7 @@ export default function RadarSection() {
               {filtered.map(iv => (
                 <InterviewCard
                   key={iv.id}
-                  selected={iv.id === selInterviewId}
+                  $selected={iv.id === selInterviewId}
                   onClick={() => {
                     setSelInterviewId(iv.id);
                     setSelSubject(null);
@@ -708,7 +723,7 @@ export default function RadarSection() {
               ))}
             </InterviewList>
             <CustomTooltip
-              show={hoveredId !== null}
+              $show={hoveredId !== null}
               style={{ top: tooltipPos.y + 10, left: tooltipPos.x + 20 }}
             >
               {hoveredId && formatTimestamp(Number(interviews.find(i => i.id === hoveredId)?.regdate))}
@@ -741,7 +756,7 @@ export default function RadarSection() {
           <MainArea>
             <AnimatedPanelWrapper>
               {/* 전체 보기 ON */}
-              <AnimatedPanel show={expandedAll}>
+              <AnimatedPanel $show={expandedAll}>
                 <DualPanel>
                   <LeftPanelBox $expanded={isExpanded}>
                     <LeftPanel>
@@ -797,7 +812,7 @@ export default function RadarSection() {
               </AnimatedPanel>
 
               {/* 전체 보기 OFF */}
-              <AnimatedPanel show={!expandedAll}>
+              <AnimatedPanel $show={!expandedAll}>
                 <Panel style={{ height: '45%' }}>
                   <InfoTitle>Radar & 설명</InfoTitle>
                   <DualPanel>
@@ -882,7 +897,7 @@ export default function RadarSection() {
                     justifyContent: 'space-between',
                     alignItems: 'center'
                   }}>
-                    <InfoTitle>{selSubject ? `${selSubject} vs 평균` : '데이터 선택 중'}</InfoTitle>
+                    <InfoTitle>{selSubject ? `${selSubject} vs 평균` : '평균 점수'}</InfoTitle>
                     <ChartToggle value={chartType} onChange={e => setChartType(e.target.value)}>
                       <option value="bar">막대차트</option>
                       <option value="area">영역 차트</option>
@@ -909,39 +924,44 @@ export default function RadarSection() {
                           {selSubject && barData.some(d => d.value !== null) && (
                             <Bar dataKey="value" name="선택점수" isAnimationActive animationDuration={600}>
                               {barData.map((e, idx) => (
-                                <Cell
-                                  key={`value-${idx}`}
-                                  fill={e.id === selInterviewId ? '#f4a261' : '#fdd6b3'}
-                                  fillOpacity={1}
-                                  stroke={e.id === selInterviewId ? '#ffffff' : 'none'}
-                                  strokeWidth={e.id === selInterviewId ? 2 : 0}
-                                  style={{
-                                    filter: e.id === selInterviewId
-                                      ? 'drop-shadow(0 0 6px rgba(0,0,0,0.5))'
-                                      : 'none',
-                                    transition: 'all 0.3s ease'
-                                  }}
-                                />
+                                e.value !== null ? (
+                                  <Cell
+                                    key={`value-${idx}`}
+                                    fill={e.id === selInterviewId ? '#f4a261' : '#fdd6b3'}
+                                    fillOpacity={1}
+                                    stroke={e.id === selInterviewId ? '#ffffff' : 'none'}
+                                    strokeWidth={e.id === selInterviewId ? 2 : 0}
+                                    style={{
+                                      filter: e.id === selInterviewId
+                                        ? 'drop-shadow(0 0 6px rgba(0,0,0,0.5))'
+                                        : 'none',
+                                      transition: 'all 0.3s ease'
+                                    }}
+                                  />
+                                ) : <Cell key={`empty-${idx}`} fill="transparent" />
                               ))}
                             </Bar>
                           )}
-                          <Bar dataKey="avg" name="평균점수" isAnimationActive animationDuration={600}>
-                            {barData.map((e, idx) => (
-                              <Cell
-                                key={`avg-${idx}`}
-                                fill={e.id === selInterviewId ? '#7f99b2' : '#b3c1d1'}
-                                fillOpacity={e.id === selInterviewId ? 1 : 0.65}
-                                stroke={e.id === selInterviewId ? '#ffffff' : 'none'}
-                                strokeWidth={e.id === selInterviewId ? 2 : 0}
-                                style={{
-                                  filter: e.id === selInterviewId
-                                    ? 'drop-shadow(0 0 6px rgba(0,0,0,0.5))'
-                                    : 'none',
-                                  transition: 'all 0.3s ease'
-                                }}
-                              />
-                            ))}
-                          </Bar>
+                            <Bar dataKey="avg" name="평균점수" isAnimationActive animationDuration={600}>
+                              {barData.map((e, idx) => (
+                                e.avg !== null ? (
+                                  <Cell
+                                    key={`avg-${idx}`}
+                                    fill={e.id === selInterviewId ? '#7f99b2' : '#b3c1d1'}
+                                    fillOpacity={e.id === selInterviewId ? 1 : 0.65}
+                                    stroke={e.id === selInterviewId ? '#ffffff' : 'none'}
+                                    strokeWidth={e.id === selInterviewId ? 2 : 0}
+                                    style={{
+                                      filter: e.id === selInterviewId
+                                        ? 'drop-shadow(0 0 6px rgba(0,0,0,0.5))'
+                                        : 'none',
+                                      transition: 'all 0.3s ease'
+                                    }}
+                                  />
+                                ) : <Cell key={`empty-${idx}`} fill="transparent" />
+                              ))}
+                            </Bar>
+
                         </BarChart>
                       ) : (
                         <AreaChart data={areaData}>
@@ -983,6 +1003,8 @@ export default function RadarSection() {
           </MainArea>
         </ContentBox>
       </Wrapper>
+      {showSubscribeModal && <SubscribeModal onClose={() => setShowSubscribeModal(false)} uno={uno.current}/>}
+
     </Container>
   );
 

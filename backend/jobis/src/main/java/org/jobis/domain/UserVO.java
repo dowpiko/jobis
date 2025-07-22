@@ -19,5 +19,6 @@ public class UserVO {
 	private int subscribe;
 	private String auth;
 	private Date lastTryDate;  // ✅ 추가된 필드 (nullable)
+	private Date subscribeDate;    // ✅ 구독 시작일 (nullable)
 	private int count;
 }

@@ -24,18 +24,29 @@ public class PaymentController {
 	private PaymentService paymentService;
 	
 	@PostMapping(value = "/complete", produces = "application/json; charset=UTF-8")
-    public ResponseEntity<?> completePayment(@RequestBody Map<String, Object> paymentData) {
-        log.info("📥 결제 완료 요청 수신: " + paymentData);
+	public ResponseEntity<String> completePayment(@RequestBody Map<String, Object> paymentData) {
+		log.info("📥 결제 완료 요청 수신: " + paymentData);
+		String result = paymentService.verifyAndCompletePayment(paymentData);
 
-        String result = paymentService.verifyAndCompletePayment(paymentData);
+		if ("PAID".equals(result)) {
+			return ResponseEntity.ok("PAID");
+		} else if ("AMOUNT_MISMATCH".equals(result)) {
+			return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body("❌ 결제 금액 불일치");
+		} else if ("INVALID_MONTHS".equals(result)) {
+			return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body("❌ 잘못된 구독 기간");
+		} else if (result.startsWith("ERROR_")) {
+			return ResponseEntity
+				.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body("❌ 서버 오류: " + result);
+		} else {
+			return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body("❌ 알 수 없는 오류: " + result);
+		}
+	}
 
-        switch (result) {
-            case "PAID":
-                return ResponseEntity.ok().body("✅ 결제 완료 처리됨");
-            case "VIRTUAL_ACCOUNT_ISSUED":
-                return ResponseEntity.ok().body("📥 가상계좌 발급됨 (입금 전)");
-            default:
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("❌ 결제 실패: " + result);
-        }
-    }
 }

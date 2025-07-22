@@ -20,34 +20,66 @@ public class PaymentServiceImpl implements PaymentService{
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Override
-    public String verifyAndCompletePayment(Map<String, Object> paymentData) {
-        try {
-            String paymentId = (String) paymentData.get("paymentId");
+	public String verifyAndCompletePayment(Map<String, Object> paymentData) {
+		try {
+			String paymentId = (String) paymentData.get("paymentId");
+			int totalAmount = (int) paymentData.get("totalAmount");
+			int months = (int) paymentData.get("months");
+			int uno = (int) paymentData.get("uno");
 
-            String url = "https://api.portone.io/payments/" + paymentId;
+			System.out.println("📥 사용자: " + uno + ", 구독 기간: " + months + "개월");
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "PortOne " + apiSecret);
-            HttpEntity<Void> request = new HttpEntity<>(headers);
+			// ✅ expectedAmount 계산
+			int expectedAmount = -1;
+			switch (months) {
+				case 1:
+					expectedAmount = 17000;
+					break;
+				case 3:
+					expectedAmount = (int) Math.round(17000 * 3 * 0.95);
+					break;
+				case 6:
+					expectedAmount = (int) Math.round(17000 * 6 * 0.88);
+					break;
+				case 12:
+					expectedAmount = (int) Math.round(17000 * 12 * 0.80);
+					break;
+				default:
+					expectedAmount = -1;
+			}
 
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
+			if (expectedAmount == -1) {
+				System.out.println("⚠️ 잘못된 구독 기간: " + months);
+				return "INVALID_MONTHS";
+			}
 
-            JsonNode payment = objectMapper.readTree(response.getBody());
+			// ✅ 결제 검증 요청
+			String url = "https://api.portone.io/payments/" + paymentId;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Authorization", "PortOne " + apiSecret);
+			HttpEntity<Void> request = new HttpEntity<>(headers);
 
-            int paidAmount = payment.at("/amount/total").asInt();
-            int expectedAmount = 10000;
+			RestTemplate restTemplate = new RestTemplate();
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
+			JsonNode payment = objectMapper.readTree(response.getBody());
 
-            if (paidAmount != expectedAmount) {
-                return "AMOUNT_MISMATCH";
-            }
+			int paidAmount = payment.at("/amount/total").asInt();
+			if (paidAmount != expectedAmount) {
+				System.out.println("❌ 금액 불일치: 예상 " + expectedAmount + ", 실제 " + paidAmount);
+				return "AMOUNT_MISMATCH";
+			}
 
-            String status = payment.path("status").asText();
-            return status; // e.g. "PAID", "VIRTUAL_ACCOUNT_ISSUED", etc.
+			String status = payment.path("status").asText();
+			if ("PAID".equals(status)) {
+				// TODO: 결제 성공 시 로직 구현
+			}
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "ERROR_" + e.getClass().getSimpleName();
-        }
-    }
+			return status;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "ERROR_" + e.getClass().getSimpleName();
+		}
+	}
+
 }
