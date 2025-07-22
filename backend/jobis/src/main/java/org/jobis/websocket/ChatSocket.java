@@ -156,24 +156,4 @@ public class ChatSocket {
         throwable.printStackTrace();
     }
     
-    public void broadcastChatRoom(CJSVO chat) {
-        try {
-            JSONObject json = new JSONObject();
-            json.put("cno", chat.getCno());
-            json.put("r_title", chat.getR_title());
-            json.put("r_tag", chat.getR_tag());
-            json.put("leader", chat.getLeader());
-            json.put("leader_name", ucService.getOtherNameByUno(chat.getLeader()).getName());
-            json.put("sch_date", chat.getSch_date()); ;
-
-            for (Session s : sessions) {
-                if (s.isOpen()) {
-                    s.getBasicRemote().sendText(json.toString());
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
 }

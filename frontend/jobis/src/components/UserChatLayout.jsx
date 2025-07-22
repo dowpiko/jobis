@@ -185,15 +185,16 @@ const ChatMessageWrapper = styled.div`
 `;
 
 const UserChatLayout = () => {
-    const [searchTerm, setSearchTerm]       = useState('');
-    const chatEndRef                        = useRef(null);
-    const [chatList, setChatList]           = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const chatEndRef = useRef(null);
+    const [chatList, setChatList] = useState([]);
     const [offerSubmission, setOfferSubmission] = useState(null);
-    const [chatMessages, setChatMessages]   = useState([]);
-    const [rno, setRno]                     = useState(null);
-    const [cno, setCno]                     = useState(null);
-    const [inputText, setInputText]         = useState('');
-    const navigate                          = useNavigate();
+    const [chatMessages, setChatMessages] = useState([]);
+    const [rno, setRno] = useState(null);
+    const [cno, setCno] = useState(null);
+    const [inputText, setInputText] = useState('');
+    const navigate = useNavigate();
+    const [initCheck, setInitCheck] = useState(true);
 
     const socket = useContext(SocketContext);
     const { hasManuallyLoggedIn, uno: myUno } = useContext(AuthContext);
@@ -221,20 +222,23 @@ const UserChatLayout = () => {
     // 3) 전역 소켓 메시지 리스너
     useEffect(() => {
       if (!socket) return;
+
       const handler = event => {
         const msg = JSON.parse(event.data);
         if (msg.type === 'read_update') {
           setChatMessages(prev =>
             prev.map(m =>
               m.sender === msg.uno && m.rno === msg.rno && m.hit !== 1
-                ? { ...m, hit: 1 }
-                : m
+              ? { ...m, hit: 1 }
+              : m
             )
           );
         } else {
           setChatMessages(prev => [...prev, msg]);
         }
       };
+      console.log('🛰️ WS raw data:', chatMessages);
+
       socket.addEventListener('message', handler);
       return () => socket.removeEventListener('message', handler);
     }, [socket]);
@@ -252,6 +256,8 @@ const UserChatLayout = () => {
       setChatMessages([]);
       setRno(rno);
       setCno(company);
+      setInitCheck(false);
+      setInputText('');
 
       try {
         const resOffer = await axios.get('http://localhost:9090/sm/selectOfferAndSubmission', {
@@ -300,11 +306,19 @@ const UserChatLayout = () => {
     };
 
     // 채팅 메시지 렌더 헬퍼
-    const renderChatMessages = () => chatMessages.map((msg, i) => {
+    const renderChatMessages = () =>
+  chatMessages
+    // chat_notification 타입은 아예 걸러내기
+    .filter(msg => msg.type !== 'chat_notification')
+    .map((msg, i) => {
       const isMine = msg.sender !== myUno;
       return (
         <ChatMessageWrapper key={i} isMine={isMine}>
-          {isMine && msg.hit !== 1 && <div style={{ fontSize:'10px', color:'#888', marginRight:6 }}>1</div>}
+          {isMine && msg.hit !== 1 && (
+            <div style={{ fontSize: '10px', color: '#888', marginRight: 6 }}>
+              1
+            </div>
+          )}
           <ChatBubble isMine={isMine}>
             <div style={{ fontSize: '13px' }}>{msg.content}</div>
           </ChatBubble>
@@ -348,6 +362,7 @@ const UserChatLayout = () => {
               value={inputText}
               onChange={e => setInputText(e.target.value)}
               onKeyDown={e => e.key==='Enter' && sendMessage()}
+              readOnly = {initCheck}
             />
             <Button onClick={sendMessage}>▶️</Button>
           </InputContainer>
@@ -363,7 +378,7 @@ const UserChatLayout = () => {
                 <QAWrapper>{renderQnA()}</QAWrapper>
               </>
             ) : (
-              <div style={{ color:'#aaa', fontSize:'13px' }}>공고를 선택하세요</div>
+              <div style={{ color:'#aaa', fontSize:'13px' }}>채팅방을 선택하세요</div>
             )}
           </AnnouncementContent>
         </AnnouncementPanel>

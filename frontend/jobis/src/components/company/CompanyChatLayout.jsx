@@ -196,7 +196,7 @@ const CompanyChatLayout = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const socket = useContext(SocketContext);
   const [myUno, setMyUno] = useState('');
-  const [connectedUsers, setConnectedUsers] = useState([]);
+  const [initCheck, setInitCheck] = useState(true);
   const navigate = useNavigate();
   
   const initChatLayout = async (uno) => {
@@ -297,6 +297,7 @@ const CompanyChatLayout = () => {
 
   const handleChatCardClick = async (ono, emp) => {
     const newChatKey = `${ono}_${emp}`;
+    setInitCheck(false);
 
     if (activeChatKey === newChatKey) return;
 
@@ -382,18 +383,20 @@ const CompanyChatLayout = () => {
 
       <ChatPanel>
         <ChatContent>
-          {chatMessages.map((msg, idx) => {
-            const isMine = msg.sender !== selectedChat?.company;
-            
-            return (
-              <ChatMessageWrapper key={idx} isMine={isMine}>
-                {isMine && msg.hit !== 1 && <ReadCount>1</ReadCount>}
-                <ChatBubble isMine={isMine}>
-                  <div style={{ fontSize: '13px' }}>{msg.content}</div>
-                </ChatBubble>
-              </ChatMessageWrapper>
-            );
-          })}
+          {chatMessages
+            .filter(msg => msg.type !== 'chat_notification')
+            .map((msg, idx) => {
+              const isMine = msg.sender !== selectedChat?.company;
+
+              return (
+                <ChatMessageWrapper key={idx} isMine={isMine}>
+                  {isMine && msg.hit !== 1 && <ReadCount>1</ReadCount>}
+                  <ChatBubble isMine={isMine}>
+                    <div style={{ fontSize: '13px' }}>{msg.content}</div>
+                  </ChatBubble>
+                </ChatMessageWrapper>
+              );
+            })}
           <div ref={chatEndRef} />
         </ChatContent>
         <InputContainer>
@@ -403,6 +406,7 @@ const CompanyChatLayout = () => {
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') sendMessage(); }}
+            readOnly = {initCheck}
           />
           <Button onClick={sendMessage}>▶️</Button>
           <Button>🎤</Button>
@@ -431,7 +435,7 @@ const CompanyChatLayout = () => {
             </QAWrapper>
           </AnnouncementContent>
         ) : (
-          <div style={{ color: '#aaa', fontSize: '13px' }}>공고를 선택하세요</div>
+          <div style={{ color: '#aaa', fontSize: '13px' }}>채팅방을 선택하세요</div>
         )}
       </AnnouncementPanel>
     </Wrapper>

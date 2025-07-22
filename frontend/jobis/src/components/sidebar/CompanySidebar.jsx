@@ -252,9 +252,16 @@ function CompanySidebar({ children }) {
 
   useEffect(() => {
     const reload = () => {
+      console.log(uno);
       axios.get(`sm/selectCinofoByUno?uno=${uno}`)
         .then(data => {
-          if (data.data) setDbCount(data.data.count);
+          if (data.data) {
+            if (data.data.count === dbCount) {
+              return;
+            }else{
+              setDbCount(data.data.count);
+            }
+          }
         })
         .catch(err => {console.error('🔔 알림 카운트 재로딩 실패', err);});
         };
