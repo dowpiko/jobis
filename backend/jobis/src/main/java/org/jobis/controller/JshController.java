@@ -111,22 +111,30 @@ public class JshController {
 	// 프로필 계정 확인
 	@GetMapping("/checkProfile")
 	public Map<String, Object> checkProfile(HttpSession session) {
-	    UserVO User = (UserVO) session.getAttribute("User");
-
+	    UserVO user = (UserVO) session.getAttribute("User");
 	    Map<String, Object> result = new HashMap<>();
-	    if (User == null) {
+
+	    if (user == null) {
 	        result.put("exists", false);
 	        return result;
 	    }
 
-	    ProfileVO profile = jshservice.getProfileByUno(User.getUno());
+	    ProfileVO profile = jshservice.getProfileByUno(user.getUno());
 	    if (profile != null) {
 	        result.put("exists", true);
 	        result.put("nickname", profile.getNickname());
+
+	        // 숫자 -> 파일명/URL 변환
+	        Integer num = profile.getProfileimage(); // DB 숫자 (1부터 시작 가정)
+	        if (num != null) {
+	            String filename = "basic" + (num) + "__.png"; // 규칙에 맞게
+	            String url = "/profile/" + filename;              // 정적 매핑된 URL
+	            result.put("profileImageUrl", url);
+	            result.put("profileImageFilename", filename);
+	        }
 	    } else {
 	        result.put("exists", false);
 	    }
-
 	    return result;
 	}
 	

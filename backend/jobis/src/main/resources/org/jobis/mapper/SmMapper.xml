@@ -218,4 +218,15 @@
 		WHERE SENDER = #{uno} AND HIT = 0
 	</select>
 	
+	<update id="updateProfile" parameterType="org.jobis.domain.ProfileVO">
+	    UPDATE tbl_uprofile
+	       SET nickname = #{nickname}, profileimage = #{profileimage}
+	     WHERE uno = #{uno}
+	</update>
+	
+	<select id="countNicknameExceptMe" parameterType="org.jobis.domain.ProfileVO" resultType="int">
+	    SELECT COUNT(*)
+	      FROM tbl_uprofile
+	     WHERE nickname = #{nickname} AND uno != #{uno}
+	</select>
 </mapper>

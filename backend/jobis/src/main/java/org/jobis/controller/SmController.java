@@ -1,11 +1,20 @@
 package org.jobis.controller;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpSession;
 
 import org.jobis.domain.CUserVO;
 import org.jobis.domain.ChatMessageVO;
 import org.jobis.domain.InterViewBCVO;
 import org.jobis.domain.OfferSubmissionDTO;
+import org.jobis.domain.ProfileVO;
 import org.jobis.domain.UserRoomDTO;
 import org.jobis.domain.CompanyRoomDTO;
 import org.jobis.domain.UserVO;
@@ -140,5 +149,66 @@ public class SmController {
 	@GetMapping("/selectCinofoByUno")
 	public CUserVO selectCinofoByUno(@RequestParam("uno") int uno) {
 		return service.selectCinofoByUno(uno);
+	}
+	
+	// 이미지 파일 가져오기
+	@GetMapping("/files/profile-list")
+	public ResponseEntity<?> listProfileImages() {
+	    Path base = Paths.get("Z:/profile/basic");
+	    if (!Files.exists(base)) {
+	        return ResponseEntity.ok(Map.of("files", List.of()));
+	    }
+	    try (var paths = Files.list(base)) {
+	        List<Map<String, String>> files = paths
+	            .filter(Files::isRegularFile)
+	            .filter(p -> {                       // ✅ 확장자/숨김 파일 필터
+	                String name = p.getFileName().toString().toLowerCase();
+	                return (name.endsWith(".png") || name.endsWith(".jpg")
+	                        || name.endsWith(".jpeg") || name.endsWith(".gif"))
+	                       && !name.equals("thumbs.db");
+	            })
+	            .map(p -> {
+	                String name = p.getFileName().toString();
+	                return Map.of(
+	                    "filename", name,
+	                    "url", "/profile/" + name
+	                );
+	            })
+	            .collect(Collectors.toList());
+
+	        return ResponseEntity.ok(Map.of("files", files));
+	    } catch (IOException e) {
+	        return ResponseEntity.status(500).body("목록 조회 중 오류");
+	    }
+	}
+	
+	// 디스코드 프로필 업데이트
+	@PostMapping("/updateNickname")
+	public ResponseEntity<?> updateNickname(@RequestBody ProfileVO vo, HttpSession session) {
+	    UserVO user = (UserVO) session.getAttribute("User");
+	    
+	    if (user == null) {
+	        return ResponseEntity.status(401).body(Map.of("success", false));
+	    }
+
+	    String nickname = vo.getNickname();
+	    nickname = nickname.trim();
+	    vo.setUno(user.getUno());
+	    vo.setNickname(nickname);
+	    
+	    int count = service.countNicknameExceptMe(vo);
+	    if (count > 0) {
+	        return ResponseEntity.status(409).body(Map.of(
+	                "success", false,
+	                "duplicated", true,
+	                "msg", "중복된 닉네임입니다."
+	        ));
+	    }
+
+	    boolean ok = service.updateProfile(vo) > 0;
+	    return ResponseEntity.ok(Map.of(
+	            "success", ok,
+	            "duplicated", false
+	    ));
 	}
 }

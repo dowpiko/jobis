@@ -6,7 +6,6 @@ import categories from '../../data/categories';
 import logo from '../../img/SIMPLELOGO.png';
 import toggleIcon from '../../img/ChangeIcon.png';
 import { AuthContext } from '../../contexts/AuthContext';
-import { profileImageList  } from '../../utils/profileImages';
 import cogwheel from '../../img/cogwheel.png';
 
 const CategoryList = styled.div`
@@ -268,6 +267,47 @@ const LeftCol = styled.div`
   gap: 12px;
 `;
 
+const ImagePickerGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
+  gap: 12px;
+  max-height: 240px;
+  padding: 8px 0;
+`;
+
+const PickerImg = styled.img`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  object-fit: cover;
+  &:hover {
+    border-color: #2563EB;
+  }
+`;
+
+const PickerSection = styled.div`
+  margin-top: 16px;
+  width: 100%;
+`;
+
+const PickerTitle = styled.h3`
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1F2A37;
+  text-align: center;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #E2E8F0;
+`;
+
+const ErrorText = styled.p`
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #e11d48; /* 빨간색 */
+`;
+
 function ProfileSidebar({ children }) {
   const navigate = useNavigate();
   const [nickname, setNickname] = useState(null);
@@ -275,25 +315,33 @@ function ProfileSidebar({ children }) {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const { logout } = useContext(AuthContext);
   const [nicknameTemp, setNicknameTemp] = useState('');
-
+  const [profileUrl, setProfileUrl] = useState('');
+  const [images, setImages] = useState([]);
+  const [selectImg, setSelectImg] = useState('');
+  const [nickError, setNickError] = useState('');
   // 모달 오픈 상태
+  const [showImgPicker, setShowImgPicker] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalImgSrc, setModalImgSrc] = useState('');
 
   useEffect(() => {
-    axios.get('/jsh/checkProfile')
-      .then(res => {
-        if (res.data.exists) {
-          setHasProfile(true);
-          setNickname(res.data.nickname);
-        } else {
-          setHasProfile(false);
-          alert("로그인이 필요합니다.");
-          navigate('/');
-        }
-      })
-      .catch(() => alert('프로필 정보를 불러오지 못했습니다.'));
+    fetchProfile();
   }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const res = await axios.get('/jsh/checkProfile');
+      if (res.data.exists) {
+        setHasProfile(true);
+        setNickname(res.data.nickname);
+        setProfileUrl(res.data.profileImageUrl);
+      } else {
+        setHasProfile(false);
+      }
+    } catch {
+      alert('프로필 정보를 불러오지 못했습니다.');
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -306,6 +354,7 @@ function ProfileSidebar({ children }) {
   };
 
   const handleImgClick = src => {
+    setNickError('');
     setModalImgSrc(src);
     setNicknameTemp(nickname || '');
     setIsModalOpen(true);
@@ -317,14 +366,56 @@ function ProfileSidebar({ children }) {
   };
 
   const handleSaveNickname = async () => {
+    if (nicknameTemp === '') {
+      setNickError('닉네임이 비어있습니다.');
+      return;
+    };
     try {
-      await axios.post('/sm/updateNickname', { nickname: nicknameTemp });
-      setNickname(nicknameTemp);
-      alert('닉네임이 변경되었습니다.');
+      const res = await axios.post('/sm/updateNickname', { nickname: nicknameTemp, profileimage: selectImg });
+      
+      if (res.data.duplicated) {
+        setNickError('중복된 닉네임입니다.');
+        return;
+      }
+      if (res.data.success) {
+        setNickError('');
+        await fetchProfile();
+        alert('변경되었습니다.');
+        closeModal();
+      }
+    } catch (e) {
+      if (e.response?.status === 409 && e.response.data?.duplicated) {
+        setNickError('중복된 닉네임입니다.');
+        return;
+      }
+      if (e.response?.status === 401){
+        alert('로그인이 필요합니다.');
+        navigate('/');
+        return;
+      } else {
+        console.error(e);
+      }
+    }
+  };
+
+  const handleOpenImgPicker = async () => {
+    if (showImgPicker === true) {
+      setShowImgPicker(false);
+      return;
+    }
+    try {
+      const res = await axios.get('/sm/files/profile-list');
+      setImages(res.data.files);
     } catch (e) {
       console.error(e);
-      alert('변경 실패');
     }
+    setShowImgPicker(true);
+  };
+
+  const handleSelectImg = (url, idx) => {
+    setModalImgSrc(url);
+    setSelectImg(idx);
+    setShowImgPicker(false);
   };
 
   return (
@@ -342,9 +433,9 @@ function ProfileSidebar({ children }) {
             <>
               <ProfileInfo>
                 <ProfileImg
-                  src={profileImageList[0].src}
-                  alt={profileImageList[0].src}
-                  onClick={() => handleImgClick(profileImageList[0].src)}
+                  src={profileUrl}
+                  alt={profileUrl}
+                  onClick={() => handleImgClick(profileUrl)}
                 />
                 <ProfileName>{nickname || '이름 없음'}</ProfileName>
               </ProfileInfo>
@@ -390,20 +481,38 @@ function ProfileSidebar({ children }) {
                 <LeftCol>
                   <ModalImgWrap>
                     <ModalImg src={modalImgSrc} alt="profile large" />
-                    <GearIcon src={cogwheel} alt="settings" onClick={() => console.log('이미지 변경 아이콘 클릭')} />
+                    <GearIcon src={cogwheel} alt="settings" onClick={handleOpenImgPicker}/>
                   </ModalImgWrap>
 
-                  {/* ↓↓↓ 이미지 아래로 이동 ↓↓↓ */}
                   <NickInput
                     value={nicknameTemp}
-                    onChange={e => setNicknameTemp(e.target.value)}
+                    onChange={e => {
+                      setNicknameTemp(e.target.value);
+                      if (nickError) setNickError(''); // 수정 시 에러 초기화
+                    }}
                     placeholder="닉네임 변경"
                   />
+                  {nickError && <ErrorText>{nickError}</ErrorText>}
                   <ButtonRow>
                     <SmallBtn $bg="#ff8b7eff" $color="#ffffffff" $hoverBg="#ff5050ff" onClick={closeModal}>취소</SmallBtn>
                     <SmallBtn $bg="#2563EB" $hoverBg="#1E4DB7" onClick={handleSaveNickname}>저장</SmallBtn>
                   </ButtonRow>
                 </LeftCol>
+                {showImgPicker && (
+                  <PickerSection>
+                    <PickerTitle>이미지 선택</PickerTitle>
+                    <ImagePickerGrid>
+                      {images.map((img, i) => (
+                        <PickerImg
+                          key={i}
+                          src={img.url}
+                          alt={img.filename}
+                          onClick={() => handleSelectImg(img.url, i)}
+                        />
+                      ))}
+                    </ImagePickerGrid>
+                  </PickerSection>
+                )}
               </ModalBody>
             </ImgModalContent>
           </ImgModalOverlay>

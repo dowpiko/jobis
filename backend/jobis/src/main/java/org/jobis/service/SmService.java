@@ -6,6 +6,7 @@ import org.jobis.domain.CUserVO;
 import org.jobis.domain.ChatMessageVO;
 import org.jobis.domain.InterViewBCVO;
 import org.jobis.domain.OfferSubmissionDTO;
+import org.jobis.domain.ProfileVO;
 import org.jobis.domain.UserRoomDTO;
 import org.jobis.domain.CompanyRoomDTO;
 import org.jobis.domain.UserVO;
@@ -66,4 +67,10 @@ public interface SmService {
 	
 	// 채팅 기록 가져오기
 	public int chatLogCount(int uno);
+	
+	// 디스코드 프로필 업데이트
+	public int updateProfile(ProfileVO vo);
+	
+	// 닉네임 중복확인
+	public int countNicknameExceptMe(ProfileVO vo);
 }

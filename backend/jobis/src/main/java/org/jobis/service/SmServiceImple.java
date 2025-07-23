@@ -13,6 +13,7 @@ import org.jobis.domain.CUserVO;
 import org.jobis.domain.ChatMessageVO;
 import org.jobis.domain.InterViewBCVO;
 import org.jobis.domain.OfferSubmissionDTO;
+import org.jobis.domain.ProfileVO;
 import org.jobis.domain.UserRoomDTO;
 import org.jobis.domain.CompanyRoomDTO;
 import org.jobis.domain.UserVO;
@@ -213,5 +214,17 @@ public class SmServiceImple implements SmService {
     @Override
     public int chatLogCount(int uno) {
     	return mapper.chatLogCount(uno);
+    }
+    
+    // 디스코드 프로필 업데이트
+    @Override
+    public int updateProfile(ProfileVO vo) {
+        return mapper.updateProfile(vo);
+    }
+    
+    // 닉네임 중복확인
+    @Override
+    public int countNicknameExceptMe(ProfileVO vo) {
+    	return mapper.countNicknameExceptMe(vo);
     }
 }

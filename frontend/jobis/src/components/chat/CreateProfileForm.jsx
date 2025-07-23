@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -29,10 +29,10 @@ const Input = styled.input`
 `;
 
 const ImageGrid = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(5, 80px);
   justify-content: center;
-  gap: 20px;
-  margin-bottom: 24px;
+  gap: 20px 20px;
 `;
 
 const ImageOption = styled.img`
@@ -62,15 +62,10 @@ const SubmitButton = styled.button`
   }
 `;
 
-const defaultImages = [
-  'https://via.placeholder.com/80?text=👩',
-  'https://via.placeholder.com/80?text=👨',
-  'https://via.placeholder.com/80?text=🧑',
-];
-
 const CreateProfileForm = () => {
   const [nickname, setNickname] = useState('');
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [images, setImages] = useState([]);
   const navigate = useNavigate();
 
   const handleSubmit = async () => {
@@ -79,7 +74,7 @@ const CreateProfileForm = () => {
     try {
       const payload = {
         nickname,
-        profileimage: selectedImageIndex + 1, // 서버에 숫자 전송 (1부터 시작)
+        profileimage: selectedImageIndex,
       };
       const res = await axios.post('/jsh/createProfile', payload);
 
@@ -88,12 +83,22 @@ const CreateProfileForm = () => {
         navigate('/scheduleManager');
       } else {
         alert(res.data.message || '프로필 생성 실패');
+        navigate('/');
       }
     } catch (err) {
       console.error(err);
       alert('서버 오류 발생');
     }
   };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await axios.get('/sm/files/profile-list');
+        setImages(res.data.files);
+      } catch (e) { console.error(e); }
+    })();
+  }, []);
 
   return (
     <Container>
@@ -104,13 +109,13 @@ const CreateProfileForm = () => {
         onChange={(e) => setNickname(e.target.value)}
       />
       <ImageGrid>
-        {defaultImages.map((img, index) => (
+        {images.map((img, idx) => (
           <ImageOption
-            key={index}
-            src={img}
-            alt={`기본 이미지 ${index + 1}`}
-            onClick={() => setSelectedImageIndex(index)}
-            selected={selectedImageIndex === index}
+            key={idx}
+            src={img.url}
+            alt={img.filename}
+            onClick={() => setSelectedImageIndex(idx)}
+            selected={selectedImageIndex === idx}
           />
         ))}
       </ImageGrid>
