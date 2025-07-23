@@ -505,6 +505,7 @@ export default function RadarSection() {
   const [subscribe, setSubscribe] = useState(0);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [subscribeUpdated, setSubscribeUpdated] = useState(false);
+  const navigate = useNavigate();
   const uno = useRef(null);
   const perPage = 10;
   const totalPage = Math.ceil(interviews.length / perPage);
@@ -566,6 +567,11 @@ export default function RadarSection() {
     };
 
     getDatas();
+  }, []);
+  useEffect(() => {
+    if (subscribeUpdated) {
+      navigate(0);  // 구독 상태 최신화 위해 전체 리렌더
+    }
   }, [subscribeUpdated]);
   const filtered = useMemo(
     () => interviews.slice((page - 1) * perPage, page * perPage),

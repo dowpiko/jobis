@@ -18,7 +18,8 @@
 			email,
 			subscribe,
 			auth,
-			last_try_date AS lastTryDate
+			last_try_date AS lastTryDate,
+			subscribe_date AS subscribeDate
 		FROM TBL_USER
 		WHERE UNO = #{uno}
 	</select>

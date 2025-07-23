@@ -85,18 +85,27 @@ public class PaymentServiceImpl implements PaymentService{
 
 			String status = payment.path("status").asText();
 			if ("PAID".equals(status)) {
-				LocalDate expireDate = LocalDate.now().plusMonths(months);
+			    UserVO user = userMapper.getUserByUno(uno); // 기존 구독정보 조회
+			    LocalDate baseDate;
+
+			    if (user.getSubscribe() == 1 && user.getSubscribeDate() != null &&
+			        !user.getSubscribeDate().toLocalDate().isBefore(LocalDate.now())) {
+			        // 유효한 구독 상태일 경우: 기존 구독 만료일 기준으로 갱신
+			        baseDate = user.getSubscribeDate().toLocalDate();
+			        System.out.println("📅 기존 구독 만료일 기준으로 연장: " + baseDate);
+			    } else {
+			        // 구독이 없거나 만료된 경우: 오늘 날짜 기준
+			        baseDate = LocalDate.now();
+			        System.out.println("📅 현재 날짜 기준으로 구독 시작: " + baseDate);
+			    }
+				LocalDate expireDate = baseDate.plusMonths(months);
 				Date subscribeDate = Date.valueOf(expireDate);
 
 				int temp = userMapper.completeSubscriptionPayment(uno, 1, subscribeDate); // ✅ DB 반영
 				if(temp>0) {
-					System.out.println("유저 정보 갱신!!");
 					UserVO updatedUser = userMapper.getUserByUno(uno); // 최신값으로 다시 불러오기
-					System.out.println("새로운 구독 정보 : "+updatedUser.getSubscribe());
 					session.setAttribute("User", updatedUser);	
-					System.out.println("현재 세션 : "+ session.getAttribute("User"));
 				}
-				System.out.println("✅ 구독 정보 갱신 완료: 상태 1, 만료일 " + subscribeDate);
 			}
 
 			return status;

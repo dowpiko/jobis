@@ -161,8 +161,13 @@ const AiInterview = () => {
 		};
 
 		getUserInfo();
+	}, []);
+	
+	useEffect(() => {
+		if (subscribeUpdated) {
+			navigate(0);  // 🔁 새로고침 → 최신 user 반영됨
+		}
 	}, [subscribeUpdated]);
-
 
 
 

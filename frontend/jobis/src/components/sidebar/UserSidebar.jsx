@@ -6,6 +6,7 @@ import logo from '../../img/SIMPLELOGO.png';      // 🔹 로고 이미지
 import toggleIcon from '../../img/ChangeIcon.png'; // 🔹 토글 이미지
 import { AuthContext } from '../../contexts/AuthContext';
 import { SocketContext } from '../../contexts/SocketContext';
+import SubscribeModal from '../subscribe/SubscribeModal';
 
 const AppLayout = styled.div`
   display: flex;
@@ -60,7 +61,7 @@ const ModeToggle = styled.button`
 `;
 
 const Profile = styled.div`
-  position: relative;
+  position: relative;  // ✅ 여기!
   background-color: #FFFFFF;
   border-radius: 12px;
   padding: 16px;
@@ -69,6 +70,7 @@ const Profile = styled.div`
   gap: 14px;
   border: 1px solid #E2E8F0;
 `;
+
 
 const ProfileInfo = styled.div`
   display: flex;
@@ -204,12 +206,133 @@ const NotificationBadge = styled.div`
   line-height: 1.4;
   white-space: nowrap;
 `;
+const CrownIcon = styled.img`
+  position: absolute;
+  top: -35px;
+  left: 16px;
+  width: 60px;
+  height: 60px;
+  z-index: 5;
+`;
+
+const MenuGroup = styled.div`
+  position: relative;
+`;
+
+const SubMenuContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;       // ✅ 아이템 중앙 정렬
+  gap: 8px;
+  overflow: hidden;
+  margin-top: 6px;
+  transition: all 0.3s ease;
+
+  max-height: 200px;
+  opacity: 1;
+  transform: translateY(0);
+
+  &.hidden {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+  }
+`;
+
+
+const SubMenuItem = styled(MenuItem)`
+  width: 85%;
+  font-size: 13px;
+  padding: 12px 10px;
+  background-color: #f9fafb;
+  margin: 0 auto;
+
+  &:hover {
+    background-color: #2563EB;  // ✅ 상위 메뉴와 동일한 색상
+    color: #FFFFFF;             // ✅ 상위 메뉴와 동일한 글자색
+  }
+`;
+
+const PremiumMiniTag = styled.div`
+  font-size: 12px;
+  font-weight: 600;
+  color: #f59e0b;
+  text-align: left;
+  margin-top: -12px;        // ✅ 공백 제거
+  margin-left: 4px;
+  padding: 0;           // ✅ 패딩도 없음
+  line-height: 1;       // ✅ 라인 간격 최소화
+`;
+const SubscriptionInfoPanel = styled.div`
+  margin-top: 10px;
+  background: #f1f5f9;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  animation: slideDown 0.3s ease forwards;
+`;
+
+const InfoRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+`;
+
+const Label = styled.span`
+  color: #6b7280;
+  font-size: 13px;
+`;
+
+const DateText = styled.span`
+  color: #1e293b;
+  font-weight: 500;
+  font-size: 14px;
+`;
+
+const PayButton = styled.button`
+  background-color: #2563eb;
+  color: white;
+  padding: 6px 10px;
+  font-size: 13px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  align-self: flex-end; // ❗️ 요 한 줄 추가
+  margin-left: auto;    // 🔥 핵심: 오른쪽으로 밀기
+
+  &:hover {
+    background-color: #1d4ed8;
+  }
+`;
+
+const PayButtonWrapper = styled.div`
+  display: flex;
+  justify-content: flex-end;
+`;
+
+
+
+const formatDate = (timestamp) => {
+  const date = new Date(timestamp);
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}.${mm}.${dd}`;
+};
 
 function UserSidebar({ children }) {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
   const { uno, logout } = useContext(AuthContext);
   const [dbCount, setDbCount] = useState(0);
+  const [subscribeUntil, setSubscribeUntil] = useState(null);
+  const [isPremium, setIsPremium] = useState(false);
+  const [showSubMenu, setShowSubMenu] = useState(false);
+  const [subscribeUpdated, setSubscribeUpdated] = useState(false);
+  const [showSubInfoPanel, setShowSubInfoPanel] = useState(false);
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const location = useLocation();
   const socket = useContext(SocketContext);
   const display = dbCount > 99 ? '99+' : dbCount.toString();
@@ -239,7 +362,14 @@ function UserSidebar({ children }) {
           console.log('✅ 로그인된 사용자 정보:', res.data);
           setUserName(res.data.name);
           setDbCount(res.data.count);
-
+          if (res.data.subscribe === 1 && res.data.subscribeDate) {
+            const now = Date.now();
+            const subscribeDate = Number(res.data.subscribeDate);
+            if (subscribeDate >= now) {
+              setIsPremium(true);
+              setSubscribeUntil(subscribeDate);
+            }
+          }
           if (socket && socket.readyState === WebSocket.OPEN && uno) {
             socket.send(JSON.stringify({
               type: 'ENTER_ROOM',
@@ -271,7 +401,15 @@ function UserSidebar({ children }) {
         window.addEventListener('reloadSidebarCount', reload);
         return () => window.removeEventListener('reloadSidebarCount', reload);
   }, []);
-
+  useEffect(() => {
+    if (subscribeUpdated) {
+      navigate(0);  // 🔄 새로고침
+    }
+  }, [subscribeUpdated]);
+  const handleSubscribed = () => {
+    setShowSubInfoPanel(false);
+    setSubscribeUpdated(true);  // ✅ 상태 변경만
+  };
   useEffect(() => {
     if (!socket) return;
       const handler = (evt) => {
@@ -307,8 +445,9 @@ function UserSidebar({ children }) {
           </Logo>
           <ModeToggle onClick={handleProfile} />
         </TopBar>
-
         <Profile>
+          {isPremium && <CrownIcon src="/img/crown.png" alt="프리미엄 왕관" />}
+
           <ProfileInfo>
             <ProfileImg src="/img/user.svg" alt="profile" />
             <ProfileName>{userName}</ProfileName>
@@ -321,15 +460,41 @@ function UserSidebar({ children }) {
               </NotificationBadge>
             )}
           </NotificationWrapper>
+          {isPremium && <PremiumMiniTag>Premium</PremiumMiniTag>}
           <ProfileActions>
-            <ProfileButton onClick={() => navigate('/graphPage')}>마이페이지</ProfileButton>
+            {isPremium ? (
+              <ProfileButton onClick={() => setShowSubInfoPanel(prev => !prev)}>구독 정보</ProfileButton>
+            ) : (
+              <ProfileButton onClick={() => setShowSubscribeModal(true)}>구독</ProfileButton>
+            )}
             <ProfileButton onClick={handleLogout}>로그아웃</ProfileButton>
           </ProfileActions>
+          {showSubInfoPanel && (
+            <SubscriptionInfoPanel>
+              <InfoRow>
+                <Label>구독 만료일</Label>
+                <DateText>{subscribeUntil ? formatDate(subscribeUntil) : '없음'}</DateText>
+              </InfoRow>
+              <PayButtonWrapper>
+                <PayButton onClick={() => setShowSubscribeModal(true)}>결제</PayButton>
+              </PayButtonWrapper>
+            </SubscriptionInfoPanel>
+          )}
         </Profile>
+
         <ScrollContainer>
           <MenuScroll>
             <Menu>
-              <MenuItem onClick={() => navigate('/aiInterview')}>🏠 AI모의 면접</MenuItem>
+              <MenuGroup
+                onMouseEnter={() => setShowSubMenu(true)}
+                onMouseLeave={() => setShowSubMenu(false)}
+              >
+                <MenuItem>🏠 AI 모의 면접</MenuItem>
+                <SubMenuContainer className={showSubMenu ? '' : 'hidden'}>
+                  <SubMenuItem onClick={() => navigate('/aiInterview')}>AI 면접하기</SubMenuItem>
+                  <SubMenuItem onClick={() => navigate('/graphPage')}>면접 결과 분석</SubMenuItem>
+                </SubMenuContainer>
+              </MenuGroup>
               <MenuItem onClick={() => navigate('/companyInfo')}>💬 기업 공고 정보</MenuItem>
               <MenuItem onClick={() => navigate('/scrapPage')}>⚙️ 스크랩/지원공고</MenuItem>
               <MenuItem onClick={() => navigate('/userChatLayout')}>💬 채팅</MenuItem>
@@ -343,8 +508,14 @@ function UserSidebar({ children }) {
           </Footer>
         </ScrollContainer>
       </Sidebar>
-
       <Main>{children}</Main>
+      {showSubscribeModal && (
+        <SubscribeModal
+          uno={uno}
+          onClose={() => setShowSubscribeModal(false)}
+          onSubscribed={handleSubscribed}
+        />
+      )}
     </AppLayout>
   );
 }
