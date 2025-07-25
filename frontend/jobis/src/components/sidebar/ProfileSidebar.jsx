@@ -325,6 +325,20 @@ function ProfileSidebar({ children }) {
   const [modalImgSrc, setModalImgSrc] = useState('');
 
   useEffect(() => {
+    const checkLogin = async () => {
+      try {
+        const res = await axios.get('/jsh/getUser');
+        if (!res.data?.uno) {
+          alert('로그인이 필요합니다.');
+          navigate('/');
+        }
+      } catch {
+        alert('세션 오류');
+        navigate('/');
+      }
+    };
+
+    checkLogin();
     fetchProfile();
   }, []);
 
