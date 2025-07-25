@@ -3,6 +3,7 @@ import styled, { createGlobalStyle } from 'styled-components';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import axios from 'axios';
 
 const GlobalStyles = createGlobalStyle`
   .fc-event-hover {
@@ -182,7 +183,7 @@ function ScheduleManager() {
 
     const calendarFormatted = mySchedule.map(chat => ({
       title: chat.r_title,
-      date: chat.sch_date.toISOString().split('T')[0],
+      date: chat.sch_date.toISOString(), 
       extendedProps: {
         leaderUno: chat.leader,
         leaderName: chat.leader_name,
@@ -210,46 +211,148 @@ function ScheduleManager() {
   const handleMouseEnter = (info) => {
     info.el.classList.add('fc-event-hover');
   };
-
   const handleMouseLeave = (info) => {
     info.el.classList.remove('fc-event-hover');
   };
+  // 일정 삭제
+const handleDelete = async (event) => {
+  // 1) 진입 로그
+  console.log('▶ handleDelete 시작', {
+    cno: event.extendedProps?.cno,
+    date: event.date,
+  });
 
-  const handleDelete = (event) => {
-    if (!window.confirm('모의 채팅 일정을 삭제하시겠습니까?')) return;
+  // 2) 24시간 이내여부 & 참여자 유무 계산
+  const dateObj = new Date(event.date);
+  const now = new Date();
+  const diffMs = dateObj.getTime() - now.getTime();
+  const isWithin24 = diffMs > 0 && diffMs < 24 * 60 * 60 * 1000;
+  const hasMember  = Boolean(event.extendedProps?.memberName);
 
-    const cno = event.extendedProps?.cno;
+  // 3) confirm 메시지
+  const message = (isWithin24 && hasMember)
+    ? '⚠️ 24시간 이내에 참여자가 있는 일정입니다.\n패널티가 부과될 수 있어요.\n정말 취소하시겠습니까?'
+    : '모의 채팅 일정을 삭제하시겠습니까?';
+  console.log('▶ confirm 메시지:', message);
 
-    if (!cno) {
-      alert('❌ 면접방 번호(cno)를 찾을 수 없습니다.');
-      return;
-    }
+  // 4) 확인/취소
+  if (!window.confirm(message)) {
+    console.log('▶ confirm: 취소 눌림, 처리 중단');
+    return;
+  }
+  console.log('▶ confirm: 확인 눌림, 삭제 요청 시작');
 
-    fetch(`/deleteUserChat?cno=${cno}`, {
-      method: 'GET',
-      credentials: 'include',
-    })
-      .then(res => {
-        if (res.status === 200) return res.text();
-        throw new Error('삭제 실패');
-      })
-      .then(() => {
-        alert('✅ 일정이 삭제되었습니다.');
-        fetch('/getUserChat', { credentials: 'include' })
-          .then(res => res.json())
-          .then(data => {
-            const parsed = data.map(chat => ({
-              ...chat,
-              sch_date: new Date(chat.sch_date),
-            }));
-            setChatList(parsed);
-          });
-      })
-      .catch(err => {
-        console.error(err);
-        alert('⚠ 삭제 중 오류가 발생했습니다.');
-      });
-  };
+  // 5) cno 체크
+  const cno = event.extendedProps?.cno;
+  if (!cno) {
+    console.error('▶ 삭제 대상 cno가 없습니다!');
+    alert('❌ 면접방 번호를 찾을 수 없습니다.');
+    return;
+  }
+  console.log('▶ 삭제 대상 cno=', cno);
+
+  // 6) 절대경로로 fetch (proxy 없이 바로 9090으로)
+  try {
+      const response = await axios.delete(
+            'http://localhost:9090/deleteUserChat',
+            {
+              // DELETE 바디에 JSON 으로 보내기
+              data: { cno},
+              withCredentials: true,  
+            }
+          );
+          console.log('▶ DELETE status=', response.status);
+          console.log('▶ DELETE data=', response.data);
+          alert(`✅ ${response.data}`);
+
+          // 7) 삭제 후 목록 갱신
+          const chatRes = await fetch(
+            'http://localhost:9090/getUserChat',
+            { credentials: 'include' }
+          );
+    const chatData = await chatRes.json();
+    console.log('▶ 갱신된 chat 목록:', chatData);
+    setChatList(
+      chatData.map(chat => ({
+        ...chat,
+        sch_date: new Date(chat.sch_date),
+      }))
+    );
+  } catch (err) {
+    console.error('▶ DELETE 중 에러:', err);
+    alert('⚠ 삭제 중 오류가 발생했습니다.');
+  }
+};
+
+
+
+  // const handleDelete = (event) => {
+  //   const dateObj = new Date(event.date);
+  //   const now = new Date();
+  //   const diff = dateObj.getTime() - now.getTime();
+
+  //   const isWithin24Hours = diff > 0 && diff < 24 * 60 * 60 * 1000;
+  //   const hasMember = !!event.extendedProps?.memberName;
+
+  //   if (isWithin24Hours && hasMember) {
+  //     const ok = window.confirm('이 일정은 참여자가 있는 24시간 이내의 일정입니다.\n취소 시 패널티가 부과될 수 있습니다.\n정말 취소하시겠습니까?');
+  //     if (!ok) return;
+  //   } else {
+  //     const ok = window.confirm('모의 채팅 일정을 삭제하시겠습니까?');
+  //     if (!ok) return;
+  //   }
+
+  //   const cno = event.extendedProps?.cno;
+  //     if (!cno) {
+  //       alert('❌ 면접방 번호(cno)를 찾을 수 없습니다.');
+  //       return;
+  //     }
+
+  //     fetch(`/deleteUserChat?cno=${cno}`, {
+  //       method: 'DELETE',
+  //       credentials: 'include',
+  //     })
+  //       .then(res => {
+  //       if (!res.ok) {
+  //         return res.text().then(msg => { throw new Error(msg); });
+  //       }
+  //       return res.text();
+  //       })
+  //       .then(msg => {
+  //         alert(`✅ ${msg}`); // 🔧 서버 메시지를 그대로 사용자에게 표시
+  //         // 🔧 삭제 성공 시 채팅 목록 다시 불러오기
+  //         fetch('/getUserChat', { credentials: 'include' })
+  //           .then(res => res.json())
+  //           .then(data => {
+  //             const parsed = data.map(chat => ({
+  //               ...chat,
+  //               sch_date: new Date(chat.sch_date),
+  //             }));
+  //             setChatList(parsed); 
+  //           });
+  //       })
+  //       //   if (res.status === 200) return res.text();
+  //       //   throw new Error('삭제 실패');
+  //       // })
+  //       // .then(() => {
+  //       //   alert('✅ 일정이 삭제되었습니다.');
+  //       //   fetch('/getUserChat', { credentials: 'include' })
+  //       //     .then(res => res.json())
+  //       //     .then(data => {
+  //       //       const parsed = data.map(chat => ({
+  //       //         ...chat,
+  //       //         sch_date: new Date(chat.sch_date),
+  //       //       }));
+  //       //       setChatList(parsed);
+  //       //     });
+  //       // })
+  //       .catch(err => {
+  //         console.error(err);
+  //         alert('⚠ 삭제 중 오류가 발생했습니다.');
+  //       });
+  //   };
+
+  const days = ['일', '월', '화', '수', '목', '금', '토'];
 
   return (
     <>
@@ -295,12 +398,12 @@ function ScheduleManager() {
                 .filter(event => {
                   const eventDate = new Date(event.date);
                   return eventDate.getMonth() === currentMonth;
-                  // const today = new Date();
-                  // today.setHours(0, 0, 0, 0);
-                  // return eventDate >= today;
                 })
                 .map((event, idx) => {
-                  const dateStr = new Date(event.date).toISOString().split('T')[0];
+                  const dateObj = new Date(event.date);
+                  const dayOfWeek = days[dateObj.getDay()];
+                  const dateStr = `${dateObj.getFullYear()}.${String(dateObj.getMonth() + 1).padStart(2, '0')}.${String(dateObj.getDate()).padStart(2, '0')} (${dayOfWeek})`;
+                  const timeStr = `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
                   const isLeader = event.extendedProps.leaderUno === myUno;
 
                   return (
@@ -308,7 +411,7 @@ function ScheduleManager() {
                       key={idx}
                       onClick={() =>
                         setModalData({
-                          date: dateStr,
+                          date: `${dateStr} ${timeStr}`,
                           title: event.title,
                           leaderName: event.extendedProps.leaderName,
                           memberName: event.extendedProps.memberName,
@@ -323,16 +426,18 @@ function ScheduleManager() {
                       }}>
                         <div>
                           <div>
-                            {new Date(event.date).getFullYear()}년{' '}
-                            {new Date(event.date).getMonth() + 1}월{' '}
-                            {new Date(event.date).getDate()}일 | {event.title}
+                            <span style={{ fontWeight: '500', color: '#4376B6' }}>
+                              [{dateStr} {timeStr}]
+                            </span>
+                            <span style={{ margin: '0 10px', color: '#999' }}>|</span>
+                            <span>[{event.title}]</span>
                           </div>
                         </div>
                         <ScheduleItemContent>
                           <StatusText isLeader={isLeader}>
                             {isLeader ? '👑 내가 만든 일정' : '🤝 참여한 일정'}
                           </StatusText>
-                          <CancelButton onClick={(e) => { e.stopPropagation(); handleDelete(event); }}>
+                          <CancelButton onClick={(e) => {e.preventDefault(); e.stopPropagation(); handleDelete(event); }}>
                             취소
                           </CancelButton>
                         </ScheduleItemContent>

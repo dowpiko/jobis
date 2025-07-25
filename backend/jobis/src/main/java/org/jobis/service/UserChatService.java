@@ -6,6 +6,7 @@ import java.util.List;
 import org.jobis.domain.CJSVO;
 import org.jobis.domain.CompanyOfferDTO;
 import org.jobis.domain.FavDTO;
+import org.jobis.domain.PenaltyVO;
 import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
 import org.springframework.stereotype.Service;
@@ -68,4 +69,13 @@ public interface UserChatService {
 	// 공고 지원 취소하기
 	public int deleteSubmission(int uno, int ono);
 	
+	// ---------------------패널티 관련----------------------------
+	// 패널티 정보 가져오기
+	public PenaltyVO getPenaltyByUno(int uno);
+	
+	// 패널티 부여하기
+	public int insertPenalty(PenaltyVO pvo);
+	
+	// 패널티 업데이트하기
+	public int updatePenalty(PenaltyVO pvo);
 }

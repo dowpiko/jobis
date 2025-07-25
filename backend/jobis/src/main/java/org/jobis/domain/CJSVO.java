@@ -1,6 +1,8 @@
 package org.jobis.domain;
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,11 +19,13 @@ public class CJSVO {
 	// tbl_userchat
 	private int cno;
 	private int leader;
-	private int member;
+	private Integer member;
 	private String r_title;
 	private String r_tag;
 	private Date r_regdate;
-	private String sch_date;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC")
+	private Date sch_date;
+
 	private int enabled;
 	
 	// tbl_user에서 name가져오기

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
 import DatePicker from 'react-datepicker'; // 날짜 선택
 import { ko } from 'date-fns/locale';    // 달력 한글로 만들기
@@ -162,6 +162,7 @@ const StyledDatePicker = styled(DatePicker).withConfig({
   shouldForwardProp: (prop) =>
     !['blur'].includes(prop),
 })`
+  flex: 1;
   width: 100%;
   height: 34px;
   padding: 8px 10px;
@@ -222,6 +223,13 @@ export const NotificationButton = styled.button`
     background-color: #f0f0f0;
   }
 `;
+const PenaltyNotice = styled.div`
+  color: red;
+  font-size: 13px;
+  white-space: nowrap;
+  margin-left: 10px;
+
+`;
 
 // utc 시간 한국시간으로 바꾸기
 const formatLocalDateTime = (date) => {
@@ -233,6 +241,8 @@ const formatLocalDateTime = (date) => {
   const mm   = pad(date.getMinutes());
   return `${yyyy}-${MM}-${dd} ${hh}:${mm}:00`;
 };
+
+
 
 const DiscordPage = () => {
 
@@ -255,6 +265,7 @@ const DiscordPage = () => {
   const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
   const [alertedCnos, setAlertedCnos] = useState(new Set());
   const [bannerChat, setBannerChat] = useState(null);
+  const [penalty, setPenalty] = useState(null);
 
 
   const scrollRef = useRef(null);
@@ -319,6 +330,35 @@ const DiscordPage = () => {
       .catch(err => console.error('전체 내 일정 불러오기 실패:', err));
   }, [myUno]);
 
+  // 패널티 일정 가져오기
+  useEffect(() => {
+    if (myUno === null) return;
+    fetch('/getPenaltyStatus', { credentials: 'include' })
+      .then(res => {
+        if (!res.ok) throw new Error('패널티 조회 실패');
+        return res.json();
+      })
+      .then(data =>{
+         console.log("🚨 패널티 정보:", data);
+         setPenalty(data);
+      })
+      .catch(err => console.error(err));
+  }, [myUno]);
+
+  const isBlocked = penalty?.count >= 3 && new Date(penalty.until) > new Date();
+
+  //  패널티 until 시간으로 바꾸기
+  const formattedUntil = useMemo(() => {
+    if (!penalty?.until) return '';
+    return new Date(penalty.until).toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  }, [penalty]);
 
 
   // 처음 로드시 스크롤 맨 아래로
@@ -410,11 +450,13 @@ const DiscordPage = () => {
     const payload = {
       r_title: `[${selectedSub}] ${titleSuffix}`,
       r_tag: category,
-      sch_date: formatLocalDateTime(selectedDate),
+      sch_date: selectedDate.toISOString(),
+      // sch_date: formatLocalDateTime(selectedDate),
       leader : myUno,
       r_regdate : ''
     };
     
+     console.log('✅ 모집하기 payload:', payload);
     //   세션 만료되면 alert
       fetch('/insertUserChat', {
       method: 'POST',
@@ -452,7 +494,7 @@ const DiscordPage = () => {
 const handleOnConfirm = () => {
   if (!selectedChat) return;
 
-  fetch('/joinChat', {
+  fetch('http://localhost:9090/joinChat', {
     method: 'POST',
     credentials: 'include', // 세션 유지
     headers: {
@@ -599,6 +641,8 @@ useEffect(() => {
   const handleJoin = () => {
       navigate('/video');
   };
+
+
   
   return (
     
@@ -644,12 +688,14 @@ useEffect(() => {
 
                     {/* 참가 버튼 조건 분기 */}
                     {!isMine && (
-                      chat.sch_date < new Date() ? ( <span style={{ marginLeft: '10px', color: 'gray' }}>지난 일정입니다</span>)
-                      : 
-                      chat.member ? (<span style={{ marginLeft: '10px', color: 'red' }}>인원이 꽉 찼습니다</span> ) 
-                      :
-                      (
-                         <ActionButton
+                      chat.sch_date < new Date() ? (
+                        <span style={{ marginLeft: '10px', color: 'gray' }}>지난 일정입니다</span>
+                      ) : isBlocked ? (
+                        <span style={{ marginLeft: '10px', color: 'red' }}>패널티로 인해 참여가 불가능합니다</span>
+                      ) : chat.member ? (
+                        <span style={{ marginLeft: '10px', color: 'red' }}>인원이 꽉 찼습니다</span>
+                      ) : (
+                        <ActionButton
                           onClick={() => {
                             if (chat.sch_date < new Date()) {
                               alert('이미 지난 일정입니다. 참여할 수 없습니다.');
@@ -725,7 +771,13 @@ useEffect(() => {
               locale={ko}
               timeCaption="시간"
             />
-            <SendButton onClick={handleCreateChat}>모집하기</SendButton>
+              {isBlocked ? (
+                <PenaltyNotice>
+                  '{formattedUntil}'까지 모의면접 생성, 참여가 불가능합니다.
+                </PenaltyNotice>
+              ) : (
+                <SendButton onClick={handleCreateChat}>모집하기</SendButton>
+              )}
             
           </DateRow>
         </InputSection>

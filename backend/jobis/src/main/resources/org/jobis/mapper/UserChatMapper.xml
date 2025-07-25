@@ -4,6 +4,7 @@
 
 <mapper namespace="org.jobis.mapper.UserChatMapper">
 
+
 	<!-- 유저 채팅 input-->
 	<insert id="register" parameterType="org.jobis.domain.CJSVO">
 		INSERT INTO tbl_userchat (
@@ -21,8 +22,8 @@
 			#{r_tag},
 			#{leader},
 			SYSDATE,
-<!-- 			#{sch_date}, -->
-			TO_DATE(#{sch_date}, 'YYYY-MM-DD HH24:MI:SS'),
+			#{sch_date, jdbcType=TIMESTAMP},
+			<!-- #{sch_date}, -->
 			1
 		)
 	</insert>
@@ -34,7 +35,7 @@
 	    FROM tbl_userchat
 	    WHERE leader = #{leader}
 	      AND r_title = #{r_title}
-	      AND sch_date = TO_DATE(#{sch_date}, 'YYYY-MM-DD HH24:MI:SS')
+	      AND sch_date = #{sch_date}
 	    ORDER BY cno DESC
 	)
 	WHERE ROWNUM = 1
@@ -91,6 +92,7 @@
 		DELETE FROM tbl_userchat
 		WHERE cno = #{cno}
 	</delete>
+
 	
 	<!--  단일 데이터 가져오기 -->
 	<select id="getChatByCno" resultType="org.jobis.domain.CJSVO">
@@ -191,4 +193,24 @@
 	<delete id="deleteSubmission">
 		DELETE FROM tbl_submissions WHERE uno = #{uno} AND ono = #{ono}
 	</delete>
+	
+	<!-- ================패널티 관련================== -->
+	<!-- 패널티 정보 가져오기 -->
+	<select id="getPenaltyByUno" parameterType="int" resultType="org.jobis.domain.PenaltyVO">
+	    SELECT * FROM tbl_penalty WHERE uno = #{uno}
+	</select>
+	
+	<!-- 패널티 부여하기(최초) -->
+	<insert id="insertPenalty" parameterType="org.jobis.domain.PenaltyVO">
+	    INSERT INTO tbl_penalty (uno, count, until)
+	    VALUES (#{uno}, #{count}, #{until, jdbcType=TIMESTAMP})
+	</insert>
+	
+	<!-- 패널티 부여하기(2회차부터) -->
+	<update id="updatePenalty" parameterType="org.jobis.domain.PenaltyVO">
+	    UPDATE tbl_penalty
+	    SET count = #{count},
+	        until = #{until, jdbcType=TIMESTAMP}
+	    WHERE uno = #{uno}
+	</update>
 </mapper>

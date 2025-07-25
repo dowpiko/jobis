@@ -1,5 +1,6 @@
 package org.jobis.controller;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +10,7 @@ import javax.servlet.http.HttpSession;
 import org.jobis.domain.CJSVO;
 import org.jobis.domain.CompanyOfferDTO;
 import org.jobis.domain.FavDTO;
+import org.jobis.domain.PenaltyVO;
 import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.UserChatService;
@@ -21,6 +23,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,41 +34,41 @@ import lombok.extern.log4j.Log4j;
 
 @Log4j
 
-@Controller  //테스트용으로 
-//@RestController
-@CrossOrigin(origins = "*")
+//@Controller
+@RestController
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:9090"}, allowCredentials = "true")
+
 
 public class CjsController {
 	
 	@Autowired
 	private UserChatService ucservice;
 	
-	
+
 	// userchat insert
 	@ResponseBody
 	@PostMapping("/insertUserChat")
 	public ResponseEntity<String> register(@RequestBody CJSVO cjsvo, HttpSession session) {
 	    UserVO user = (UserVO) session.getAttribute("User");
-	    System.out.println("세션 유저: " + user);
 
 	    if (user == null) {
 	        return new ResponseEntity<>("세션 만료", HttpStatus.UNAUTHORIZED);
 	    }
 
 	    cjsvo.setLeader(user.getUno());
-
 	    int result = ucservice.register(cjsvo);
 	   
 	    Date regdate = ucservice.getRegdate(cjsvo);
 	    cjsvo.setR_regdate(regdate);
-	  
+	    
+	    
 	    if (result > 0) {
 	        ChatSocket2.getInstance().broadcastChatRoom(cjsvo);
 	        return new ResponseEntity<>("success", HttpStatus.OK);
 	    } else {
 	        return new ResponseEntity<>("fail", HttpStatus.OK);
 	    }
-//	    return new ResponseEntity<>(result > 0 ? "success" : "fail", HttpStatus.OK);
+
 	}
 
 	
@@ -92,7 +96,6 @@ public class CjsController {
 	@PostMapping("/joinChat")
 	public ResponseEntity<String>joinChat(@RequestBody CJSVO cjsvo, HttpSession session) {
 		UserVO user = (UserVO) session.getAttribute("User");
-		System.out.println("세션 유저: " + user);
 
 		if (user == null) {
 	        return new ResponseEntity<>("세션 만료", HttpStatus.UNAUTHORIZED);
@@ -128,52 +131,188 @@ public class CjsController {
 
 	    return new ResponseEntity<>(user.getUno(), HttpStatus.OK);
 	}
+	
 	// userChat 일정 조정하기
 	@ResponseBody
-	@GetMapping("/deleteUserChat")
-	public ResponseEntity<String> deleteUserChat(@RequestParam("cno") int cno, HttpSession session) {
-	    UserVO user = (UserVO) session.getAttribute("User");
-	    
+	@DeleteMapping(value = "/deleteUserChat", produces = "text/plain;charset=UTF-8")
+	public ResponseEntity<String> deleteUserChat(@RequestBody Map<String, Integer> payload, HttpSession session) {
+		System.out.println("delete 맵핑");
+		int cno = payload.get("cno");
+		System.out.println("cno : "+cno);
+		UserVO user = (UserVO)session.getAttribute("User");
+		int uno = user.getUno();
+		System.out.println("uno : "+uno);
+	    try {
+	        // 1) 로그인(세션) 체크
+	        System.out.println("UserVO = " + uno);
+//	        if (user == null) {
+//	            return ResponseEntity
+//	                .status(HttpStatus.UNAUTHORIZED)
+//	                .body("세션 만료: 로그인 후 이용해주세요.");
+//	        }
 
+	        // 2) 일정 조회
+	        CJSVO chat = ucservice.getChatByCno(cno);
+	        if (chat == null) {
+	            return ResponseEntity
+	                .status(HttpStatus.NOT_FOUND)
+	                .body("삭제할 일정이 존재하지 않습니다.");
+	        }
 
-	    if (user == null) {
-	        return new ResponseEntity<>("세션 만료", HttpStatus.UNAUTHORIZED);
-	    }
-
-	    CJSVO chat = ucservice.getChatByCno(cno);
-	    if (chat == null) {
-	        return new ResponseEntity<>("일정이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
-	    }
-
-	    int uno = user.getUno();
-
-	    if (chat.getLeader() == uno) {
-	        if (chat.getMember() != 0 && chat.getMember() != -1) {
-	            // 멤버  > 리더로 교체
-	            ucservice.promoteMemberToLeader(cno);
-	
-	            CJSVO updatedChat = ucservice.getChatByCno(cno);
-	            if (updatedChat != null) {
-	                ChatSocket2.getInstance().broadcastChatRoom(updatedChat);
+	        Integer member = chat.getMember();    // wrapper → null 가능
+	        Integer leader = chat.getLeader();    // wrapper → null 가능
+	        Date    schDate = chat.getSch_date(); // null 가능
+	        Date    now     = new Date();
+	        System.out.println("멤버 : " + member+"\n리더 : "+leader+"\n스케줄 날짜 : "+schDate+"\n현재 날짜 : "+now);
+	        // 3) 패널티 로직: member 있을 때 + schDate 있을 때만
+	        if (member != null && member != 0 && schDate != null) {
+	            long diffMs = schDate.getTime() - now.getTime();
+	            if (diffMs > 0 && diffMs < 24L * 60 * 60 * 1000) {
+	                PenaltyVO penalty = ucservice.getPenaltyByUno(uno);
+	                log.warn("잉? : "+penalty);
+	                if (penalty == null) {
+	                    penalty = new PenaltyVO();
+	                    penalty.setUno(uno);
+	                    penalty.setCount(1);
+	                    System.out.println("페널티 됐나 : "+ucservice.insertPenalty(penalty));
+	                } else {
+	                    int count = penalty.getCount() + 1;
+	                    penalty.setCount(count);
+	                    if (count >= 3) {
+	                        Calendar cal = Calendar.getInstance();
+	                        if      (count == 3) cal.add(Calendar.DATE, 3);
+	                        else if (count == 4) cal.add(Calendar.DATE, 7);
+	                        else if (count == 5) cal.add(Calendar.MONTH, 1);
+	                        else if (count == 6) cal.add(Calendar.MONTH, 3);
+	                        else                 cal.add(Calendar.MONTH, 6);
+	                        penalty.setUntil(cal.getTime());
+	                    }
+	                    ucservice.updatePenalty(penalty);
+	                }
 	            }
-	            return new ResponseEntity<>("리더 승계 완료", HttpStatus.OK);
+	        }
+
+	        // 4) 리더 ⇄ 멤버 분기
+	        if (leader != null && leader == uno) {
+	            // 리더가 취소
+	            if (member != null && member != 0 && member != -1) {
+	                ucservice.promoteMemberToLeader(cno);
+	                CJSVO updated = ucservice.getChatByCno(cno);
+	                if (updated != null) {
+	                    ChatSocket2.getInstance().broadcastChatRoom(updated);
+	                }
+	                return ResponseEntity.ok("리더 승계 완료");
+	            } else {
+	                ucservice.deleteUserChat(cno);
+	                return ResponseEntity.ok("일정 삭제 완료");
+	            }
+
+	        } else if (member != null && member == uno) {
+	            // 멤버가 스스로 나감
+	            ucservice.leaveChatAsMember(cno);
+	            CJSVO updated = ucservice.getChatByCno(cno);
+//	            if (updated != null) {
+//	                ChatSocket2.getInstance().broadcastChatRoom(updated);
+//	            }
+	            return ResponseEntity.ok("참여 취소 완료");
+
 	        } else {
-	            // 멤버 없음 > 삭제
-	            ucservice.deleteUserChat(cno);
-	            return new ResponseEntity<>("일정 삭제 완료", HttpStatus.OK);
+	            // 권한 없음
+	            return ResponseEntity
+	                .status(HttpStatus.FORBIDDEN)
+	                .body("삭제 권한이 없습니다.");
 	        }
-	    } else if (chat.getMember() == uno) {
-	        //  멤버 나가기
-	        ucservice.leaveChatAsMember(cno);
-	        CJSVO updatedChat = ucservice.getChatByCno(cno);
-	        if (updatedChat != null) {
-	            ChatSocket2.getInstance().broadcastChatRoom(updatedChat);
-	        }
-	        return new ResponseEntity<>("참여 취소 완료", HttpStatus.OK);
-	    } else {
-	        return new ResponseEntity<>("삭제 권한이 없습니다.", HttpStatus.FORBIDDEN);
+
+	    } catch (Exception e) {
+	        log.error("deleteUserChat 처리 중 예외 발생 (cno=" + cno + ")", e);
+	        return ResponseEntity
+	            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+	            .body("서버 오류: " + e.getClass().getSimpleName() + " - " + e.getMessage());
 	    }
 	}
+
+//	public ResponseEntity<String> deleteUserChat(@RequestBody Map<String, Integer> payload, HttpSession session) {
+//	    UserVO user = (UserVO) session.getAttribute("User");
+//	    int cno = payload.get("cno");
+//	    if (user == null) {
+//	        return new ResponseEntity<>("세션 만료", HttpStatus.UNAUTHORIZED);
+//	    }
+//
+//	    CJSVO chat = ucservice.getChatByCno(cno);
+//	    if (chat == null) {
+//	        return new ResponseEntity<>("일정이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+//	    }
+//
+//	    int uno = user.getUno();
+//	    Date now = new Date();
+//
+//	    // member가 0이 아닌 경우 (상대 있음)
+//	    if (chat.getMember() != 0 &&
+//	        chat.getSch_date().getTime() - now.getTime() < (24 * 60 * 60 * 1000)) {
+//	        
+//	        PenaltyVO penalty = ucservice.getPenaltyByUno(uno);
+//	        if (penalty == null) {
+//	            PenaltyVO vo = new PenaltyVO();
+//	            vo.setUno(uno);
+//	            vo.setCount(1);
+//	            ucservice.insertPenalty(vo);
+//	        } else {
+//	            int count = penalty.getCount() + 1;
+//	            Date until = null;
+//	            Calendar cal = Calendar.getInstance();
+//
+//	            if (count >= 3) {
+//	                if (count == 3) cal.add(Calendar.DATE, 3);
+//	                else if (count == 4) cal.add(Calendar.DATE, 7);
+//	                else if (count == 5) cal.add(Calendar.MONTH, 1);
+//	                else if (count == 6) cal.add(Calendar.MONTH, 3);
+//	                else cal.add(Calendar.MONTH, 6);
+//	                until = cal.getTime();
+//	            }
+//
+//	            penalty.setCount(count);
+//	            penalty.setUntil(until);
+//	            ucservice.updatePenalty(penalty);
+//	        }
+//	    }
+//	    
+//	    
+//	    if (chat.getLeader() == uno) {
+//	        if (chat.getMember() != 0 && chat.getMember() != -1) {
+//	            ucservice.promoteMemberToLeader(cno);
+//	            CJSVO updatedChat = ucservice.getChatByCno(cno);
+//	            if (updatedChat != null) {
+//	                ChatSocket2.getInstance().broadcastChatRoom(updatedChat);
+//	            }
+//	            return new ResponseEntity<>("리더 승계 완료", HttpStatus.OK);
+//	        } else {
+//	            ucservice.deleteUserChat(cno);
+//	            return new ResponseEntity<>("일정 삭제 완료", HttpStatus.OK);
+//	        }
+//	    } else if (chat.getMember() == uno) {
+//	        ucservice.leaveChatAsMember(cno);
+//	        CJSVO updatedChat = ucservice.getChatByCno(cno);
+//	        if (updatedChat != null) {
+//	            ChatSocket2.getInstance().broadcastChatRoom(updatedChat);
+//	        }
+//	        return new ResponseEntity<>("참여 취소 완료", HttpStatus.OK);
+//	    } else {
+//	        return new ResponseEntity<>("삭제 권한이 없습니다.", HttpStatus.FORBIDDEN);
+//	    }
+//	}
+
+	// 패널티 정보 가져오기
+	@GetMapping("/getPenaltyStatus")
+	@ResponseBody
+	public PenaltyVO getPenaltyStatus(HttpSession session) {
+		UserVO user = (UserVO) session.getAttribute("User");
+		if (user == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+		
+		Integer uno = user.getUno();
+	    return ucservice.getPenaltyByUno(uno);  // null이면 패널티 없음
+	}
+
+
 
 	
 	// 직종목록 집어 넣기
@@ -268,7 +407,7 @@ public class CjsController {
 
         return ResponseEntity.ok(result);
     }
-
+    
 	
  
 

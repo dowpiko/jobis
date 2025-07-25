@@ -1,16 +1,20 @@
 package org.jobis.service;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import org.jobis.domain.CJSVO;
 import org.jobis.domain.CompanyOfferDTO;
 import org.jobis.domain.FavDTO;
+import org.jobis.domain.PenaltyVO;
 import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.mapper.UserChatMapper;
+import org.jobis.websocket.ChatSocket2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 
@@ -132,5 +136,25 @@ public class UserChatServiceImpl implements UserChatService {
 		
 		return ucMapper.deleteSubmission(uno, ono);
 	}
+	// ---------------------패널티 관련----------------------------
+	// 패널티 정보 가져오기
+	@Override
+	public PenaltyVO getPenaltyByUno(int uno) {
+		
+		return ucMapper.getPenaltyByUno(uno);
+	}
+	// 패널티 부여하기
+	@Override
+	public int insertPenalty(PenaltyVO pvo) {
+		
+		return ucMapper.insertPenalty(pvo);
+	}
+	// 패널티 업데이트하기
+	@Override
+	public int updatePenalty(PenaltyVO pvo) {
+		
+		return ucMapper.updatePenalty(pvo);
+	}
+
 	
 }
