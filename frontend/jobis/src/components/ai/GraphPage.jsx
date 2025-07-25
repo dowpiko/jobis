@@ -522,7 +522,7 @@ export default function RadarSection() {
         uno.current = user.uno;
         setSubscribe(user.subscribe); // ✅ 구독 상태 반영
 
-        const response = await axios.get(`http://${host}:9090/ymj/getAllResults`, {
+        const response = await axios.get(`http://${host}:9090/interview/getAllResults`, {
           params: { uno: uno.current },
           withCredentials: true
         });
@@ -655,7 +655,7 @@ const barData = useMemo(() => {
 
     setIsLoading(true);
     try {
-      const res = await axios.post(`http://${host}:9090/ymj/getFeedback`, {
+      const res = await axios.post(`http://${host}:9090/interview/getFeedback`, {
         ano: selInterviewId
       }, { withCredentials: true });
 

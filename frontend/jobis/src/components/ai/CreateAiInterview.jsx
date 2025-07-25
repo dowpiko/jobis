@@ -219,7 +219,7 @@ const CreateAiInterview = () => {
 
     async function submitSurvey() {
     try {
-        const res = await axios.post(`http://${host}:9090/ymj/saveSurveyResult`, surveyData, {
+        const res = await axios.post(`http://${host}:9090/interview/saveSurveyResult`, surveyData, {
           withCredentials: true,  // 세션 쿠키 전달을 위한 옵션
           headers: {
             "Content-Type": "application/json"

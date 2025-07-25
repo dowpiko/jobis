@@ -30,8 +30,8 @@ import lombok.extern.log4j.Log4j;
 	    "http://localhost:3000",
 	    "http://192.168.0.101:3000"
 	  }, allowCredentials = "true")
-@RequestMapping("/ymj")
-public class YmjController {
+@RequestMapping("/interview")
+public class AiInterviewController {
 	
 	@Autowired
 	InterviewService iService;
@@ -61,6 +61,7 @@ public class YmjController {
 		System.out.println("!!!"+ano+"!!!");
 		return iService.getFeedbackFromAI(ano, session);
 	}
+	
 	@PutMapping("/updateDate")
 	public String updateDate(HttpSession session) {
 		UserVO user = (UserVO)session.getAttribute("User");

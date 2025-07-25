@@ -382,7 +382,7 @@ const AiChat = () => {
   const earlyTermination = async () => {
     if (window.confirm('면접을 조기에 종료하시겠습니까?\n(일일 횟수 소진)')) {
       try {
-        const response = await axios.put('http://localhost:9090/ymj/updateDate', {}, { withCredentials: true });
+        const response = await axios.put('http://localhost:9090/interview/updateDate', {}, { withCredentials: true });
 
         if (response.data === 'success') {
           navigate('/aiInterview');
@@ -442,7 +442,7 @@ const AiChat = () => {
       const resultArray = JSON.parse(currentStreamRef.current);
 
       // 서버에 결과 전송
-      const response = await axios.post(`http://${host}:9090/ymj/saveInterviewResult`, resultArray, {
+      const response = await axios.post(`http://${host}:9090/interview/saveInterviewResult`, resultArray, {
                             withCredentials: true,
                             headers: {
                               "Content-Type": "application/json"
