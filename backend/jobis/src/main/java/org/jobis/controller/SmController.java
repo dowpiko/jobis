@@ -211,4 +211,36 @@ public class SmController {
 	            "duplicated", false
 	    ));
 	}
+	
+	// 이미지 파일 가져오기
+	@GetMapping("/files/profile-list/UserCustom")
+	public ResponseEntity<?> listUserCustomProfileImages() {
+	    Path base = Paths.get("Z:/profile/usercustom");
+	    if (!Files.exists(base)) {
+	        return ResponseEntity.ok(Map.of("files", List.of()));
+	    }
+	    try (var paths = Files.list(base)) {
+	        List<Map<String, String>> files = paths
+	            .filter(Files::isRegularFile)
+	            .filter(p -> {                       // ✅ 확장자/숨김 파일 필터
+	                String name = p.getFileName().toString().toLowerCase();
+	                return (name.endsWith(".png") || name.endsWith(".jpg")
+	                        || name.endsWith(".jpeg") || name.endsWith(".gif"))
+	                       && !name.equals("thumbs.db");
+	            })
+	            .map(p -> {
+	                String name = p.getFileName().toString();
+	                return Map.of(
+	                    "filename", name,
+	                    "url", "/profile/" + name
+	                );
+	            })
+	            .collect(Collectors.toList());
+
+	        return ResponseEntity.ok(Map.of("files", files));
+	    } catch (IOException e) {
+	        return ResponseEntity.status(500).body("목록 조회 중 오류");
+	    }
+	}
+	
 }

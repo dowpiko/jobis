@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -7,6 +7,7 @@ import toggleIcon from '../../img/ChangeIcon.png'; // 🔹 토글 이미지
 import { AuthContext } from '../../contexts/AuthContext';
 import { SocketContext } from '../../contexts/SocketContext';
 import SubscribeModal from '../subscribe/SubscribeModal';
+import cogwheel from '../../img/cogwheel.png';
 
 const AppLayout = styled.div`
   display: flex;
@@ -14,6 +15,11 @@ const AppLayout = styled.div`
   background-color: #F8F9FA;
   color: #1E1E1E;
   font-family: 'Pretendard', 'Inter', sans-serif;
+`;
+
+const ModalImgWrap = styled.div`
+  position: relative;
+  display: inline-block;
 `;
 
 const Sidebar = styled.aside`
@@ -83,6 +89,7 @@ const ProfileImg = styled.img`
   height: 60px;
   border-radius: 50%;
   border: 2px solid #2563EB;
+  cursor: pointer;
 `;
 
 const ProfileName = styled.span`
@@ -166,6 +173,7 @@ const Main = styled.main`
   background-color: #FFFFFF;
   overflow-y: auto;
 `;
+
 const ScrollContainer = styled.div`
   flex: 1;
   display: flex;
@@ -206,6 +214,7 @@ const NotificationBadge = styled.div`
   line-height: 1.4;
   white-space: nowrap;
 `;
+
 const CrownIcon = styled.img`
   position: absolute;
   top: -35px;
@@ -239,7 +248,6 @@ const SubMenuContainer = styled.div`
     pointer-events: none;
   }
 `;
-
 
 const SubMenuItem = styled(MenuItem)`
   width: 85%;
@@ -312,7 +320,77 @@ const PayButtonWrapper = styled.div`
   justify-content: flex-end;
 `;
 
+const ImgModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
 
+const ImgModalContent = styled.div`
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  max-width: 40vw;
+  max-height: 40vh;
+`;
+
+const ModalImg = styled.img`
+  width: 220px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+`;
+
+const GearIcon = styled.img`
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
+  background: #fff;
+  border-radius: 50%;
+  padding: 3px;
+  box-shadow: 0 0 3px rgba(22, 20, 20, 0.25);
+  border: 2px solid rgba(22, 20, 20, 0.25);
+`;
+
+const ButtonRow = styled.div`
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  margin-top: 8px;
+`;
+
+const SmallBtn = styled.button`
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+
+  background: ${({ $bg = '#2563EB' }) => $bg};
+  color: ${({ $color = '#fff' }) => $color};
+
+  &:hover {
+    background: ${({ $hoverBg = '#1E4DB7' }) => $hoverBg};
+  }
+`;
+
+const StyledProfileImg = styled.img`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid #2563EB;
+  cursor: pointer;
+`;
 
 const formatDate = (timestamp) => {
   const date = new Date(timestamp);
@@ -333,10 +411,14 @@ function UserSidebar({ children }) {
   const [subscribeUpdated, setSubscribeUpdated] = useState(false);
   const [showSubInfoPanel, setShowSubInfoPanel] = useState(false);
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [profileUrl, setProfileUrl] = useState('/img/user.svg');
+  const [originalUrl, setOriginalUrl] = useState('/img/user.svg');
+  const fileInputRef = useRef(null);
   const location = useLocation();
   const socket = useContext(SocketContext);
   const display = dbCount > 99 ? '99+' : dbCount.toString();
-  const len = display.length;  
+  const len = display.length;
 
   const BellIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="#1F2A37" viewBox="0 0 24 24">
@@ -359,7 +441,6 @@ function UserSidebar({ children }) {
     axios.get('/jsh/getUser')
       .then(res => {
         if (res.data?.name) {
-          console.log('✅ 로그인된 사용자 정보:', res.data);
           setUserName(res.data.name);
           setDbCount(res.data.count);
           if (res.data.subscribe === 1 && res.data.subscribeDate) {
@@ -401,6 +482,7 @@ function UserSidebar({ children }) {
         window.addEventListener('reloadSidebarCount', reload);
         return () => window.removeEventListener('reloadSidebarCount', reload);
   }, []);
+
   useEffect(() => {
     if (subscribeUpdated) {
       navigate(0);  // 🔄 새로고침
@@ -410,6 +492,33 @@ function UserSidebar({ children }) {
     setShowSubInfoPanel(false);
     setSubscribeUpdated(true);  // ✅ 상태 변경만
   };
+
+  useEffect(() => {
+    if (!uno) return;
+
+    const fileName = `${uno}.png`;
+    const checkUrl = `/sm/files/profile-list/UserCustom`;
+    
+    axios.get(checkUrl)
+    .then(res => {
+      const files = res.data?.files || [];
+      const match = files.find(f => f.filename === fileName);
+      console.log(match);
+        if (match) {
+          const urlWithCacheBypass = `${match.url}?t=${Date.now()}`;
+          setProfileUrl(urlWithCacheBypass);
+          setOriginalUrl(urlWithCacheBypass);
+        } else {
+          setProfileUrl('/img/user.svg');
+          setOriginalUrl('/img/user.svg');
+        }
+      })
+      .catch(() => {
+        setProfileUrl('/img/user.svg');
+        setOriginalUrl('/img/user.svg');
+      });
+    }, [uno]);
+
   useEffect(() => {
     if (!socket) return;
       const handler = (evt) => {
@@ -436,6 +545,59 @@ function UserSidebar({ children }) {
     navigate('/');
   };
 
+  const handleClick = () => setIsModalOpen(true);
+  const handleClose = () => {
+    setProfileUrl(originalUrl);
+    setIsModalOpen(false);
+    fileInputRef.current.value = ""
+  };
+
+  const handleSaveNickname = async () => {
+    const file = fileInputRef.current?.files[0];
+    if (!file || !uno) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('uno', uno);
+
+    try {
+      await axios.post('http://localhost:9090/files/upload/profileImage', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const updatedUrl = `/profile/${uno}.png?t=${Date.now()}`;
+      setOriginalUrl(updatedUrl);
+      setProfileUrl(updatedUrl);
+      setIsModalOpen(false);
+      alert('변경되었습니다.');
+    } catch (e) {
+      console.error('업로드 실패', e);
+      alert('이미지 저장 실패');
+    }
+  };
+  
+  const handleOpenImg = async () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.png')) {
+      alert('PNG 확장자 파일만 등록할 수 있습니다.');
+      fileInputRef.current.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setProfileUrl(event.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <AppLayout>
       <Sidebar>
@@ -449,7 +611,7 @@ function UserSidebar({ children }) {
           {isPremium && <CrownIcon src="/img/crown.png" alt="프리미엄 왕관" />}
 
           <ProfileInfo>
-            <ProfileImg src="/img/user.svg" alt="profile" />
+            <ProfileImg src={profileUrl} alt={profileUrl} onClick={() => handleClick(profileUrl)}/>
             <ProfileName>{userName}</ProfileName>
           </ProfileInfo>
           <NotificationWrapper onClick={() => alert('알림 클릭!')}>
@@ -516,6 +678,22 @@ function UserSidebar({ children }) {
           onSubscribed={handleSubscribed}
         />
       )}
+
+      {isModalOpen && (
+        <ImgModalOverlay>
+          <input type="file" accept="image/png, image/jpeg" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }}/>
+            <ImgModalContent onClick={e => e.stopPropagation()}>
+              <ModalImgWrap>
+                <ModalImg src={profileUrl} alt="profile large" />
+                <GearIcon src={cogwheel} alt="settings" onClick={handleOpenImg} />
+              </ModalImgWrap>
+              <ButtonRow>
+                <SmallBtn $bg="#ff8b7eff" $color="#ffffffff" $hoverBg="#ff5050ff" onClick={handleClose}>취소</SmallBtn>
+                <SmallBtn $bg="#2563EB" $hoverBg="#777779ff" onClick={handleSaveNickname}>저장</SmallBtn>
+              </ButtonRow>
+            </ImgModalContent>
+          </ImgModalOverlay>
+        )}
     </AppLayout>
   );
 }
