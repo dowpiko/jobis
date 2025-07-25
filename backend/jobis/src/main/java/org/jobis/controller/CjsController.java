@@ -203,6 +203,10 @@ public class CjsController {
 	                }
 	                return ResponseEntity.ok("리더 승계 완료");
 	            } else {
+	            	CJSVO updated = ucservice.getChatByCno(cno);
+	                if (updated != null) {
+	                    ChatSocket2.getInstance().broadcastChatRoom(updated);
+	                }
 	                ucservice.deleteUserChat(cno);
 	                return ResponseEntity.ok("일정 삭제 완료");
 	            }
@@ -211,9 +215,11 @@ public class CjsController {
 	            // 멤버가 스스로 나감
 	            ucservice.leaveChatAsMember(cno);
 	            CJSVO updated = ucservice.getChatByCno(cno);
-//	            if (updated != null) {
-//	                ChatSocket2.getInstance().broadcastChatRoom(updated);
-//	            }
+	            //  여ㅓ기서 왜 오류가?
+	            if (updated != null) {
+	                ChatSocket2.getInstance().broadcastChatRoom(updated);
+	            }
+	            //
 	            return ResponseEntity.ok("참여 취소 완료");
 
 	        } else {

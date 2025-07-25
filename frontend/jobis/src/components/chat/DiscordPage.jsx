@@ -231,20 +231,45 @@ const PenaltyNotice = styled.div`
 
 `;
 
-// utc 시간 한국시간으로 바꾸기
-const formatLocalDateTime = (date) => {
-  const pad = n => n.toString().padStart(2, '0');
-  const yyyy = date.getFullYear();
-  const MM   = pad(date.getMonth() + 1);
-  const dd   = pad(date.getDate());
-  const hh   = pad(date.getHours());
-  const mm   = pad(date.getMinutes());
-  return `${yyyy}-${MM}-${dd} ${hh}:${mm}:00`;
+//// utc 시간 한국시간으로 바꾸기
+// const formatLocalDateTime = (date) => {
+//   const pad = n => n.toString().padStart(2, '0');
+//   const yyyy = date.getFullYear();
+//   const MM   = pad(date.getMonth() + 1);
+//   const dd   = pad(date.getDate());
+//   const hh   = pad(date.getHours());
+//   const mm   = pad(date.getMinutes());
+//   return `${yyyy}-${MM}-${dd} ${hh}:${mm}:00`;
+// };
+const parseKoreanDate = (str) => {
+  try {
+    const parts = str.split(' '); // ['Thu', 'Jul', '31', '16:00:00', 'KST', '2025']
+    const [weekday, monthStr, day, time, tz, year] = parts;
+    const months = {
+      Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+      Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
+    };
+    const [hour, minute, second] = time.split(':').map(Number);
+    const month = months[monthStr];
+
+    return new Date(Number(year), month, Number(day), hour, minute, second);
+  } catch {
+    return new Date(NaN); // fallback
+  }
 };
 
 
 
 const DiscordPage = () => {
+  const safeDate = (input) => {
+    if (!input) return null;
+    const parsed = new Date(input);
+    if (!isNaN(parsed)) return parsed;
+
+    // fallback: replace ' ' with 'T' (for legacy format)
+    const fallback = new Date(input.replace(' ', 'T'));
+    return isNaN(fallback) ? null : fallback;
+  };
 
   const location = useLocation();
   const category = location.state?.category || '전체';   
@@ -275,7 +300,7 @@ const DiscordPage = () => {
 
   // 세션 uno랑 leader랑 비교
   useEffect(() => {
-    fetch('/getMyUno', { credentials: 'include' })
+    fetch('http://localhost:9090/getMyUno', { credentials: 'include' })
       .then(res => {
         if (res.status === 401) {
           alert('로그인 상태가 아닙니다.');
@@ -318,7 +343,7 @@ const DiscordPage = () => {
 
   // 전체 일정 불러오기
    useEffect(() => {
-    fetch('/getUserChat', { credentials: 'include' })
+    fetch('http://localhost:9090/getUserChat', { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         const parsed = data.map(c => ({
@@ -414,7 +439,7 @@ const DiscordPage = () => {
       return (
         chat.sch_date > now &&
         chat.sch_date <= oneHourLater &&
-        // chat.member &&                       // 같이 할 사람 있을때만
+        chat.member &&                       // 같이 할 사람 있을때만
         !alertedCnos.has(chat.cno)   
       );
     });
@@ -450,7 +475,7 @@ const DiscordPage = () => {
     const payload = {
       r_title: `[${selectedSub}] ${titleSuffix}`,
       r_tag: category,
-      sch_date: selectedDate.toISOString(),
+       sch_date: selectedDate.toISOString(),
       // sch_date: formatLocalDateTime(selectedDate),
       leader : myUno,
       r_regdate : ''
@@ -458,7 +483,7 @@ const DiscordPage = () => {
     
      console.log('✅ 모집하기 payload:', payload);
     //   세션 만료되면 alert
-      fetch('/insertUserChat', {
+      fetch('http://localhost:9090/insertUserChat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -477,9 +502,10 @@ const DiscordPage = () => {
           fetchChatList();
           setVisibleCount(9); // 다시 9개부터 시작
           setShouldScrollToBottom(true); // 스크롤 맨 아래로
-        //   if (socketRef.current?.readyState === WebSocket.OPEN) {
-        //   socketRef.current.send(JSON.stringify(payload));
-        // }
+          //이미 백에서 broadcast하고 있기 때문에 여기서 한번더 부를필요가 없음(2번 올라간것처럼 보이게됨)
+          // if (socketRef.current?.readyState === WebSocket.OPEN) {
+          //   socketRef.current.send(JSON.stringify(payload));
+          // }  
         }
       })
       .catch(err => console.error('Insert 요청 에러:', err));
@@ -563,47 +589,39 @@ useEffect(() => {
   socket.onmessage = (event) => {
     try {
       const message = JSON.parse(event.data);
-      console.log('📩 실시간 메시지 수신:', message);
+      
+      console.log('📩 [WS 수신 원본 메시지]', message);
+      console.log('🧾 message.sch_date 타입:', typeof message.sch_date);
+      console.log('🕓 sch_date 값:', message.sch_date);
 
-      if (message.type === 'schedule') {
-        if (message.leader !== myUno && message.member !== myUno) return;
+      let schDate = parseKoreanDate(message.sch_date);
+      if (isNaN(schDate)) {
+        schDate = new Date(message.sch_date.replace(' ', 'T'));
+      }
+      if (isNaN(schDate)) {
+        console.error('❌ 여전히 Invalid Date 발생:', message.sch_date);
+        return;
+      }
 
-        const schDate = new Date(message.sch_date.replace(' ', 'T'));
-        const regDate = message.r_regdate
-          ? new Date(message.r_regdate.replace(' ', 'T'))
-          : new Date();
+      const regDate = message.r_regdate
+        ? new Date(message.r_regdate.replace(' ', 'T'))
+        : new Date();
 
-        setAllMyChats(prev => [...prev, {
+      setChatList(prev => {
+        const withoutOld = prev.filter(chat => chat.cno !== message.cno);
+        const updatedChatList = [...withoutOld, {
           ...message,
           sch_date: schDate,
-          r_regdate: regDate
-        }]);
+          r_regdate: regDate,
+        }];
+        return updatedChatList.sort((a, b) => a.r_regdate - b.r_regdate);
+      });
 
-        if (message.r_tag === category || category === '전체') {
-          setChatList(prev => {
-            const withoutOld = prev.filter(chat => chat.cno !== message.cno);
-            const updated = [...withoutOld, {
-              ...message,
-              sch_date: schDate,
-              r_regdate: regDate
-            }];
-            return updated.sort((a, b) => a.r_regdate - b.r_regdate);
-          });
-        }
-        const now = new Date();
-        const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
-        if (schDate > now && schDate <= oneHourLater) {
-          setBannerChat({
-            ...message,
-            sch_date: schDate,
-            r_regdate: regDate
-          });
-        }
-      }
     } catch (e) {
       console.error('⚠️ 메시지 파싱 실패:', e);
     }
   };
+
   // socket.onmessage = (event) => {
   // try {
   //   const message = JSON.parse(event.data);
