@@ -385,7 +385,7 @@ function ProfileSidebar({ children }) {
       return;
     };
     try {
-      const res = await axios.post('/sm/updateNickname', { nickname: nicknameTemp, profileimage: selectImg });
+      const res = await axios.post('/updateNickname', { nickname: nicknameTemp, profileimage: selectImg });
       
       if (res.data.duplicated) {
         setNickError('중복된 닉네임입니다.');
@@ -418,7 +418,7 @@ function ProfileSidebar({ children }) {
       return;
     }
     try {
-      const res = await axios.get('/sm/files/profile-list');
+      const res = await axios.get('/files/profile-list');
       setImages(res.data.files);
     } catch (e) {
       console.error(e);

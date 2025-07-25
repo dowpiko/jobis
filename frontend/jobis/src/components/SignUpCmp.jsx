@@ -162,7 +162,7 @@ const SignUpCmp = () => {
     }
 
     try {
-      const res = await axios.get('http://localhost:9090/sm/findUserId', {
+      const res = await axios.get('http://localhost:9090/findUserId', {
         params: { id: id },
       });
       console.log(res.status);
@@ -195,7 +195,7 @@ const SignUpCmp = () => {
       return;
     }
     try {
-      const res = await axios.get('http://localhost:9090/sm/checkComp', {
+      const res = await axios.get('http://localhost:9090/checkComp', {
         params: { crno: crno },
       });
       
@@ -302,7 +302,7 @@ const SignUpCmp = () => {
     }
 
     try {
-      const res = await axios.post('http://localhost:9090/sm/insertCUser', {
+      const res = await axios.post('http://localhost:9090/insertCUser', {
         id: id,
         pw: pw,
         email: email,

@@ -497,7 +497,7 @@ function UserSidebar({ children }) {
     if (!uno) return;
 
     const fileName = `${uno}.png`;
-    const checkUrl = `/sm/files/profile-list/UserCustom`;
+    const checkUrl = `/files/profile-list/UserCustom`;
     
     axios.get(checkUrl)
     .then(res => {
