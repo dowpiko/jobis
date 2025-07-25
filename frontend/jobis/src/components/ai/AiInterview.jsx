@@ -199,7 +199,10 @@ const AiInterview = () => {
 					onClick={handleStartClick}
 					$dimmed={subscribe !== 1 && !canStartToday}
 				>
-					AI 면접 시작하기 ({subscribe === 1 ? '∞' : canStartToday ? '1' : '0'})
+						AI 면접 시작하기
+						{subscribe !== 1 && (
+							<> ({canStartToday ? '1' : '0'})</>
+						)}
 				</StartButton>
 			</ButtonWrapper>
 

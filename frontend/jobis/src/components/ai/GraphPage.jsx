@@ -809,7 +809,10 @@ const barData = useMemo(() => {
                             onClick={handleSubmitInterview}
                             $dimmed={subscribe === 2}
                           >
-                            전체 결과 보기 ({subscribe === 1 ? '∞' : subscribe === 0 ? '1' : '0'})
+                            전체 결과 보기
+                            {subscribe !== 1 && (
+                              <> ({subscribe === 0 ? '1' : '0'})</>
+                            )}
                           </UnifiedButton>
                         </AIContentWrapper>
                       </RightPanel>
