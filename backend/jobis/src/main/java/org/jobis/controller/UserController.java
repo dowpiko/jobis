@@ -78,4 +78,9 @@ public class UserController {
 	    ));
 	}
 	
+	// 기업 데이터 가져오기
+	@GetMapping("/selectCinofoByUno")
+	public CUserVO selectCinofoByUno(@RequestParam("uno") int uno) {
+		return service.selectCinofoByUno(uno);
+	}
 }

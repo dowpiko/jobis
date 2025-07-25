@@ -209,7 +209,7 @@ const NoticeProgress = () => {
     setIsLoading(true);
 
     try {
-      const res = await axios.post('http://localhost:9090/sm/insertInterView', payload);
+      const res = await axios.post('http://localhost:9090/offers/insertInterView', payload);
 
       if (res.status === 200) {
         alert("면접 등록 성공");

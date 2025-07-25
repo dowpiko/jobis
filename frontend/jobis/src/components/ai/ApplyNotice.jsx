@@ -125,7 +125,7 @@ const ApplyNotice = () => {
       try {
         // — 면접/공고 정보
         const { data: interview } = await axios.get(
-          `/sm/oneInterViewByOno?ono=${ono}`,
+          `/offers/oneInterViewByOno?ono=${ono}`,
           { withCredentials: true }
         );
         setOffer(interview);
@@ -135,7 +135,7 @@ const ApplyNotice = () => {
 
         // — 회사 정보
         const { data: corp } = await axios.get(
-          `/sm/selectCinofoByUno?uno=${companyUno}`,
+          `/user/selectCinofoByUno?uno=${companyUno}`,
           { withCredentials: true }
         );
         setCorpInfo(corp);

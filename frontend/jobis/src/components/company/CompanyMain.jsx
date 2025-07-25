@@ -195,7 +195,7 @@ const CompanyMain = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:9090/sm/progress?check=${check}&uno=${myUno}`);
+      const res = await axios.get(`http://localhost:9090/offers/progress?check=${check}&uno=${myUno}`);
       const sortedData = res.data.slice().sort((a, b) => a.o_activedays - b.o_activedays);
       setPost(sortedData);
       setExpanded(new Array(sortedData.length).fill(false));
@@ -212,7 +212,7 @@ const CompanyMain = () => {
     setExpanded(prev => prev.map((val, i) => (i === index ? !val : val)));
     if (!expanded[index]) {
       try {
-        const res = await axios.get(`http://localhost:9090/sm/selectByOno?ono=${ono}`);
+        const res = await axios.get(`http://localhost:9090/offers/selectByOno?ono=${ono}`);
         const newApplicants = [...applicants];
         newApplicants[index] = res.data;
         setApplicants(newApplicants);
@@ -243,7 +243,7 @@ const CompanyMain = () => {
     }
 
     const query = selectedOnos.map(id => `onos=${id}`).join('&');
-    const url = `http://localhost:9090/sm/deleteByOno?${query}`;
+    const url = `http://localhost:9090/offers/deleteByOno?${query}`;
 
     try {
       const confirmDelete = window.confirm('※지원자의 정보가 사라집니다. 삭제 하시겠습니까?※');

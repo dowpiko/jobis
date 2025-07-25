@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletContext;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
@@ -43,13 +41,10 @@ public class FileUploadController {
         Path filePath = Paths.get(baseDir, fileName);
 
         try {
-            // 폴더 없으면 생성
             Files.createDirectories(Paths.get(baseDir));
 
-            // 기존 파일 삭제
             Files.deleteIfExists(filePath);
 
-            // 파일 저장 (무조건 png만 허용)
             if (!image.getOriginalFilename().toLowerCase().endsWith(".png")) {
                 return ResponseEntity.badRequest().body("PNG 형식만 허용됩니다.");
             }
@@ -73,7 +68,7 @@ public class FileUploadController {
  	    try (var paths = Files.list(base)) {
  	        List<Map<String, String>> files = paths
  	            .filter(Files::isRegularFile)
- 	            .filter(p -> {                       // ✅ 확장자/숨김 파일 필터
+ 	            .filter(p -> {
  	                String name = p.getFileName().toString().toLowerCase();
  	                return (name.endsWith(".png") || name.endsWith(".jpg")
  	                        || name.endsWith(".jpeg") || name.endsWith(".gif"))
@@ -104,7 +99,7 @@ public class FileUploadController {
  	    try (var paths = Files.list(base)) {
  	        List<Map<String, String>> files = paths
  	            .filter(Files::isRegularFile)
- 	            .filter(p -> {                       // ✅ 확장자/숨김 파일 필터
+ 	            .filter(p -> {
  	                String name = p.getFileName().toString().toLowerCase();
  	                return (name.endsWith(".png") || name.endsWith(".jpg")
  	                        || name.endsWith(".jpeg") || name.endsWith(".gif"))

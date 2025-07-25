@@ -184,6 +184,22 @@ const ReadCount = styled.div`
   white-space: nowrap;
 `;
 
+const JobFilterSelect = styled.select`
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 13px;
+  border-radius: 4px;
+  border: 1px solid #b0bccb;
+  outline: none;
+  background-color: #fff;
+  margin-bottom: 10px;
+
+  option {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+`;
 const CompanyChatLayout = () => {
   const [chatList, setChatList] = useState([]);
   const [showAnnouncement, setShowAnnouncement] = useState(false);
@@ -191,17 +207,21 @@ const CompanyChatLayout = () => {
   const [chatMessages, setChatMessages] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [inputText, setInputText] = useState('');
+  const [jobList, setJobList] = useState([]); 
+  const [selectedOno, setSelectedOno] = useState(null);
   const chatEndRef = useRef(null);
   const [activeChatKey, setActiveChatKey] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const socket = useContext(SocketContext);
   const [myUno, setMyUno] = useState('');
   const [initCheck, setInitCheck] = useState(true);
+  const [interviewList, setInterviewList] = useState([]);
+  const [selectedJobFilter, setSelectedJobFilter] = useState('');
   const navigate = useNavigate();
-  
+
   const initChatLayout = async (uno) => {
     try {
-      const res = await axios.get(`http://localhost:9090/sm/initCompanyChatLayout?cno=${uno}`);
+      const res = await axios.get(`http://localhost:9090/chat/initCompanyChatLayout?cno=${uno}`);
 
       const processedData = res.data.map(item => ({
         ...item,
@@ -209,15 +229,32 @@ const CompanyChatLayout = () => {
       }));
 
       processedData.sort((a, b) => a.name.localeCompare(b.name, 'ko-KR'));
-
       setChatList(processedData);
+
+      const uniqueJobs = Array.from(
+        new Map(processedData.map(item => [item.ono, item])).values()
+      );
+      setJobList(uniqueJobs);
+
+      const onoList = uniqueJobs.map(job => job.ono);
+
+      const responses = await Promise.all(
+        onoList.map(ono =>
+          axios.get('http://localhost:9090/offers/oneInterViewByOno', {
+            params: { ono }
+          })
+        )
+      );
+
+      setInterviewList(responses.map(res => res.data));
     } catch (err) {
       console.error(err);
     }
   };
   
   const filteredChatList = chatList.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    (selectedJobFilter === '' || item.ono === parseInt(selectedJobFilter))
   );
 
   useEffect(() => {
@@ -239,6 +276,7 @@ const CompanyChatLayout = () => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'auto' });
     }
+    console.log(chatMessages);
   }, [chatMessages]);
 
   useEffect(() => {
@@ -305,7 +343,7 @@ const CompanyChatLayout = () => {
     setActiveChatKey(newChatKey);
 
     try {
-      const res = await axios.get(`http://localhost:9090/sm/selectOfferAndSubmission`, {
+      const res = await axios.get(`http://localhost:9090/offers/selectOfferAndSubmission`, {
         params: { ono, emp, company: myUno },
       });
       setOfferSubmission(res.data);
@@ -323,7 +361,7 @@ const CompanyChatLayout = () => {
 
   const fetchByRnoChatMessages = async (rno, uno) => {
     try {
-      const res = await axios.get(`http://localhost:9090/sm/selectByRnoChatMessages`, {
+      const res = await axios.get(`http://localhost:9090/chat/selectByRnoChatMessages`, {
         params: { rno ,
           uno : uno
         }
@@ -337,7 +375,7 @@ const CompanyChatLayout = () => {
   const sendMessage = () => {
     if (!socket || socket.readyState !== WebSocket.OPEN || !inputText.trim()) return;
     const hit = chatMessages.at(-1).hit;
-    
+
     const payload = {
       rno:      selectedChat?.rno,
       sender:   selectedChat?.emp,
@@ -346,11 +384,24 @@ const CompanyChatLayout = () => {
       hit: hit,
     };
     socket.send(JSON.stringify(payload));
-    axios.post('http://localhost:9090/sm/insertChatMessage', payload);
+    axios.post('http://localhost:9090/chat/insertChatMessage', payload);
 
     setInputText('');
   };
 
+  const truncate = (text, length = 16) => {
+    return text.length > length ? text.slice(0, length) + '...' : text;
+  };
+
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? '오후' : '오전';
+    hours = hours % 12 || 12;
+    return `${ampm} ${hours}:${String(minutes).padStart(2, '0')}`;
+  };
+  
   return (
     <Wrapper>
       <ChatListPanel>
@@ -363,6 +414,19 @@ const CompanyChatLayout = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </PanelHeader>
+
+         <JobFilterSelect value={selectedJobFilter} onChange={(e) => setSelectedJobFilter(e.target.value)}>
+          <option value="">전체 공고 보기</option>
+          {interviewList.map((job) => (
+            <option
+              key={job.ono}
+              value={job.ono}
+              title={job.o_title}  // 마우스 오버 시 전체 제목
+            >
+              {truncate(job.o_title)} ({formatDate(job.o_activedays)})
+            </option>
+          ))}
+        </JobFilterSelect>
 
         {filteredChatList.map((item, index) => {
           const chatKey = `${item.ono}_${item.emp}`;

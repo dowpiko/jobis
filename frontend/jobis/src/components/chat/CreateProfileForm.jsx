@@ -94,7 +94,7 @@ const CreateProfileForm = () => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get('/sm/files/profile-list');
+        const res = await axios.get('/files/profile-list');
         setImages(res.data.files);
       } catch (e) { console.error(e); }
     })();

@@ -98,7 +98,7 @@ const ApplicantDetailView = ({ applicant, onBack }) => {
   useEffect(() => {
     const fetchInterviewData = async () => {
       try {
-        const res = await axios.get(`http://localhost:9090/sm/oneInterViewByOno?ono=${applicant.ono}`);
+        const res = await axios.get(`http://localhost:9090/offers/oneInterViewByOno?ono=${applicant.ono}`);
         setInterviewData(res.data);
       } catch (err) {
         console.error(err);
@@ -127,7 +127,7 @@ const ApplicantDetailView = ({ applicant, onBack }) => {
       const confirmCreate = window.confirm('채팅방을 생성하시겠습니까?');
       if (!confirmCreate) return;
 
-      const res = await axios.get(`http://localhost:9090/sm/insertChatRoom?cno=${myUno}&uno=${applicant.uno}&ono=${interviewData.ono}`);
+      const res = await axios.get(`http://localhost:9090/chat/insertChatRoom?cno=${myUno}&uno=${applicant.uno}&ono=${interviewData.ono}`);
 
       if (res.data === 1) {
         alert('채팅방이 생성되었습니다.');

@@ -204,7 +204,7 @@ function CompanySidebar({ children }) {
     axios.get('/jsh/getUser')
       .then(res => {
         if (res.data) {
-          axios.get(`sm/selectCinofoByUno?uno=${res.data.uno}`)
+          axios.get(`/user/selectCinofoByUno?uno=${res.data.uno}`)
           .then(data => {
               if (data.data) {
                 setCName(data.data.corpNm);
@@ -253,7 +253,7 @@ function CompanySidebar({ children }) {
   useEffect(() => {
     const reload = () => {
       console.log(uno);
-      axios.get(`sm/selectCinofoByUno?uno=${uno}`)
+      axios.get(`/user/selectCinofoByUno?uno=${uno}`)
         .then(data => {
           if (data.data) {
             if (data.data.count === dbCount) {

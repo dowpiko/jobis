@@ -205,7 +205,7 @@ const UserChatLayout = () => {
         navigate('/');
         return;
       }
-      axios.get(`http://localhost:9090/sm/initUserChatLayout?uno=${myUno}`)
+      axios.get(`http://localhost:9090/chat/initUserChatLayout?uno=${myUno}`)
         .then(res => setChatList(res.data))
         .catch(err => {
           console.error('채팅방 목록 조회 실패', err);
@@ -260,12 +260,12 @@ const UserChatLayout = () => {
       setInputText('');
 
       try {
-        const resOffer = await axios.get('http://localhost:9090/sm/selectOfferAndSubmission', {
+        const resOffer = await axios.get('http://localhost:9090/offers/selectOfferAndSubmission', {
           params: { ono, emp: myUno, company }
         });
         setOfferSubmission(resOffer.data);
 
-        const resMsgs = await axios.get('http://localhost:9090/sm/selectByRnoChatMessages', {
+        const resMsgs = await axios.get('http://localhost:9090/chat/selectByRnoChatMessages', {
           params: { rno, uno: myUno }
         });
         setChatMessages(resMsgs.data);
@@ -283,7 +283,7 @@ const UserChatLayout = () => {
       const hit = chatMessages.at(-1).hit;
       const payload = { rno, sender: cno, content: inputText.trim(), leader: myUno, hit : hit};
       socket.send(JSON.stringify(payload));
-      axios.post('http://localhost:9090/sm/insertChatMessage', payload).catch(console.error);
+      axios.post('http://localhost:9090/chat/insertChatMessage', payload).catch(console.error);
       setInputText('');
     };
 
