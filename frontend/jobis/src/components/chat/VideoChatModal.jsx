@@ -180,8 +180,8 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 
 			if (data.type === 'offer') {
 				if (!peerConnection.current) {
-					console.warn('⚠️ peerConnection이 아직 초기화되지 않음. offer 처리 스킵');
-					return;
+					console.warn('⚠️ offer 수신 시 peerConnection이 없어 startWebRTC() 호출');
+					await startWebRTC();
 				}
 
 				try {
@@ -199,22 +199,32 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 					console.error('📡 offer 처리 중 오류:', err);
 				}
 			}
-
-
 			if (data.type === 'answer') {
-				await peerConnection.current.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: data.sdp }));
+				if (!peerConnection.current) {
+					console.warn('⚠️ answer 수신 시 peerConnection이 없음 → 무시');
+					return;
+				}
+				await peerConnection.current.setRemoteDescription(
+					new RTCSessionDescription({ type: 'answer', sdp: data.sdp })
+				);
 			}
+
 
 			if (data.type === 'candidate' && data.candidate) {
 				const candidate = new RTCIceCandidate(data.candidate);
 
 				if (peerConnection.current) {
-					await peerConnection.current.addIceCandidate(candidate);
+					try {
+						await peerConnection.current.addIceCandidate(candidate);
+					} catch (err) {
+						console.warn('ICE 추가 실패:', err);
+					}
 				} else {
 					console.warn('🕳 ICE 후보를 큐에 저장 (peerConnection 아직 없음)');
 					pendingCandidates.current.push(candidate);
 				}
 			}
+
 
 			if (data.type === 'reminder') {
 				setShowReminder(true);
