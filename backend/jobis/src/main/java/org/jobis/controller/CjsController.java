@@ -106,6 +106,10 @@ public class CjsController {
 	            int result = ucservice.joinChat(cjsvo.getCno() ,user.getUno());
 
 	            if (result > 0) {
+	            	CJSVO updated = ucservice.getChatByCno(cjsvo.getCno());
+	            	if (updated != null) {
+	                    ChatSocket2.getInstance().broadcastChatRoom(updated); 
+	                }
 	                return ResponseEntity.ok("참여 완료");
 	            } else {
 	                return ResponseEntity.status(HttpStatus.BAD_REQUEST)

@@ -231,16 +231,6 @@ const PenaltyNotice = styled.div`
 
 `;
 
-//// utc 시간 한국시간으로 바꾸기
-// const formatLocalDateTime = (date) => {
-//   const pad = n => n.toString().padStart(2, '0');
-//   const yyyy = date.getFullYear();
-//   const MM   = pad(date.getMonth() + 1);
-//   const dd   = pad(date.getDate());
-//   const hh   = pad(date.getHours());
-//   const mm   = pad(date.getMinutes());
-//   return `${yyyy}-${MM}-${dd} ${hh}:${mm}:00`;
-// };
 const parseKoreanDate = (str) => {
   try {
     const parts = str.split(' '); // ['Thu', 'Jul', '31', '16:00:00', 'KST', '2025']
@@ -261,15 +251,6 @@ const parseKoreanDate = (str) => {
 
 
 const DiscordPage = () => {
-  const safeDate = (input) => {
-    if (!input) return null;
-    const parsed = new Date(input);
-    if (!isNaN(parsed)) return parsed;
-
-    // fallback: replace ' ' with 'T' (for legacy format)
-    const fallback = new Date(input.replace(' ', 'T'));
-    return isNaN(fallback) ? null : fallback;
-  };
 
   const location = useLocation();
   const category = location.state?.category || '전체';   
@@ -291,12 +272,34 @@ const DiscordPage = () => {
   const [alertedCnos, setAlertedCnos] = useState(new Set());
   const [bannerChat, setBannerChat] = useState(null);
   const [penalty, setPenalty] = useState(null);
+  const [now,setNow] = useState(new Date());
 
 
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
   const socketRef = useRef(null);
   const navigate = useNavigate();
+
+  const refreshMySchedules = () => {
+    fetch('http://localhost:9090/getUserChat', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        const parsed = data.map(c => ({
+          ...c,
+          sch_date: new Date(c.sch_date),
+        }));
+        setAllMyChats(parsed.filter(c => c.leader === myUno || c.member));
+      });
+  };
+
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 30000); // 30초마다 현재 시간 갱신
+
+    return () => clearInterval(timer);
+  }, []);
 
   // 세션 uno랑 leader랑 비교
   useEffect(() => {
@@ -423,7 +426,7 @@ const DiscordPage = () => {
       if (shouldScrollToBottom) setShouldScrollToBottom(false);
     }
      prevChatListLength.current = chatList.length;
-  }, [chatList, isAtBottom]);
+  }, [chatList, isAtBottom,shouldScrollToBottom]);
   const visibleChats = chatList.slice(-visibleCount);
 
 
@@ -513,12 +516,19 @@ const DiscordPage = () => {
 
       setTitleSuffix('');
       setSelectedDate(null);
+
+  refreshMySchedules();
+
 };
 
 
 
 const handleOnConfirm = () => {
   if (!selectedChat) return;
+  if (!selectedChat || !selectedChat.cno) {
+    console.error('❌ 참여하려는 chat이 잘못됨:', selectedChat);
+    return;
+  }
 
   fetch('http://localhost:9090/joinChat', {
     method: 'POST',
@@ -528,6 +538,7 @@ const handleOnConfirm = () => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ cno: selectedChat.cno })
+    
   })
     .then((res) => {
       if (res.status === 401) {
@@ -551,7 +562,10 @@ const handleOnConfirm = () => {
       console.error('참여 요청 실패:', err);
       alert('서버 오류가 발생했습니다.');
     });
+
+    refreshMySchedules();
 };
+
 // 스케줄 조정
   const blockedIntervals = allMyChats.map(chat => ({
     start: new Date(chat.sch_date.getTime() - 60 * 60 * 1000),
@@ -629,43 +643,6 @@ useEffect(() => {
   }
 };
 
-  // socket.onmessage = (event) => {
-  //   try {
-  //     const message = JSON.parse(event.data);
-  //     console.log('📩 [WS 수신 원본 메시지]', message);
-  //     console.log('🧾 message.sch_date 타입:', typeof message.sch_date);
-  //     console.log('🕓 sch_date 값:', message.sch_date);
-
-  //     let schDate = parseKoreanDate(message.sch_date);
-  //     if (isNaN(schDate)) {
-  //       schDate = new Date(message.sch_date.replace(' ', 'T'));
-  //     }
-  //     if (isNaN(schDate)) {
-  //       console.error('❌ 여전히 Invalid Date 발생:', message.sch_date);
-  //       return;
-  //     }
-
-  //     const regDate = message.r_regdate
-  //       ? new Date(message.r_regdate.replace(' ', 'T'))
-  //       : new Date();
-
-  //     setChatList(prev => {
-  //       const withoutOld = prev.filter(chat => chat.cno !== message.cno);
-  //       const updatedChatList = [...withoutOld, {
-  //         ...message,
-  //         sch_date: schDate,
-  //         r_regdate: regDate,
-  //       }];
-  //       return updatedChatList.sort((a, b) => a.r_regdate - b.r_regdate);
-  //     });
-
-  //   } catch (e) {
-  //     console.error('⚠️ 메시지 파싱 실패:', e);
-  //   }
-  // };
-
-  
-
   socket.onerror = (err) => {
     console.error('⚠️ WebSocket 오류:', err);
   };
@@ -728,32 +705,48 @@ useEffect(() => {
                     <PeopleCount>{chat.member ? '1/1' : '0/1'} 👥</PeopleCount>
 
                     {/* 참가 버튼 조건 분기 */}
-                    {!isMine && (
-                      chat.sch_date < new Date() ? (
-                        <span style={{ marginLeft: '10px', color: 'gray' }}>지난 일정입니다</span>
-                      ) : isBlocked ? (
-                        <span style={{ marginLeft: '10px', color: 'red' }}>패널티로 인해 참여가 불가능합니다</span>
-                      ) : chat.member ? (
-                        <span style={{ marginLeft: '10px', color: 'red' }}>인원이 꽉 찼습니다</span>
-                      ) : (
-                        <ActionButton
-                          onClick={() => {
-                            if (chat.sch_date < new Date()) {
-                              alert('이미 지난 일정입니다. 참여할 수 없습니다.');
-                              return;
-                            }
-                            if (isConflict(chat.sch_date)) {
-                              alert('⚠ 이미 일정에 겹치는 시간대가 있습니다.\n해당 방에 참여할 수 없습니다.');
-                              return;
-                            }
-                            setSelectedChat(chat);
-                            setShowModal(true);
-                          }}
-                        >
-                          참가
-                        </ActionButton>
-                      )
-                    )}
+                    {!isMine && (() => {
+                      const timeDiff = chat.sch_date.getTime() - now.getTime();
+                      const isPast = chat.sch_date < now;
+                      const isWithinOneDay = timeDiff <= 24 * 60 * 60 * 1000;
+
+                      if (isPast) {
+                        return <span style={{ marginLeft: '10px', color: 'gray' }}>지난 일정입니다</span>;
+                      } else if (isBlocked) {
+                        return <span style={{ marginLeft: '10px', color: 'red' }}>패널티로 인해 참여가 불가능합니다</span>;
+                      } else if (chat.member) {
+                        return <span style={{ marginLeft: '10px', color: 'red' }}>인원이 꽉 찼습니다</span>;
+                      } else if (isWithinOneDay) {
+                        return <span style={{ marginLeft: '10px', color: 'gray' }}>모의면접 하루 전부터는 참여가 불가합니다</span>;
+                      } else {
+                        return (
+                          <ActionButton
+                            onClick={() => {
+                              const nowReal = new Date(); // 💥 클릭 시점 기준으로 다시 검증
+                              const diff = chat.sch_date.getTime() - nowReal.getTime();
+                              
+                              if (chat.sch_date < nowReal) {
+                                alert('이미 지난 일정입니다. 참여할 수 없습니다.');
+                                return;
+                              }
+                              if (diff <= 24 * 60 * 60 * 1000) {
+                                alert('모의면접 하루 전부터는 참여가 불가능합니다.');
+                                return;
+                              }
+                              if (isConflict(chat.sch_date)) {
+                                alert('⚠ 이미 일정에 겹치는 시간대가 있습니다.\n해당 방에 참여할 수 없습니다.');
+                                return;
+                              }
+
+                              setSelectedChat(chat);
+                              setShowModal(true);
+                            }}
+                          >
+                            참가
+                          </ActionButton>
+                        );
+                      }
+                    })()}
                   </MeetingInfo>
                 </BubbleContainer>
               </ChatBubble>

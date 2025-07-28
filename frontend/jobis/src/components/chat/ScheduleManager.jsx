@@ -231,7 +231,7 @@ const handleDelete = async (event) => {
 
   // 3) confirm 메시지
   const message = (isWithin24 && hasMember)
-    ? '⚠️ 24시간 이내에 참여자가 있는 일정입니다.\n패널티가 부과될 수 있어요.\n정말 취소하시겠습니까?'
+    ? '⚠️  참여자가 있는 24시간 이내의 일정입니다.\n패널티가 부여됩니다.\n정말 취소하시겠습니까?'
     : '모의 채팅 일정을 삭제하시겠습니까?';
   console.log('▶ confirm 메시지:', message);
 
