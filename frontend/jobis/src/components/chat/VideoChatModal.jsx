@@ -149,6 +149,8 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
   const [showEnded, setShowEnded] = useState(false);
 	const [peerNickname, setPeerNickname] = useState('');
 	const [localStream, setLocalStream] = useState(null);
+	const pendingCandidates = useRef([]);
+
 	useEffect(() => {
 		if (!cno) return;
 
@@ -204,7 +206,14 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 			}
 
 			if (data.type === 'candidate' && data.candidate) {
-				await peerConnection.current.addIceCandidate(new RTCIceCandidate(data.candidate));
+				const candidate = new RTCIceCandidate(data.candidate);
+
+				if (peerConnection.current) {
+					await peerConnection.current.addIceCandidate(candidate);
+				} else {
+					console.warn('🕳 ICE 후보를 큐에 저장 (peerConnection 아직 없음)');
+					pendingCandidates.current.push(candidate);
+				}
 			}
 
 			if (data.type === 'reminder') {
@@ -279,7 +288,12 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 			stream.getTracks().forEach((track) => {
 				peerConnection.current.addTrack(track, stream);
 			});
-
+			if (pendingCandidates.current.length > 0) {
+				for (const candidate of pendingCandidates.current) {
+					await peerConnection.current.addIceCandidate(candidate);
+				}
+				pendingCandidates.current = []; // 처리 완료 후 초기화
+			}
 			setLocalStreamReady(true);
 		} catch (err) {
 			console.error('장치 접근 실패:', err);
