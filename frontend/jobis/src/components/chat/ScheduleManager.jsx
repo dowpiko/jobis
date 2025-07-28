@@ -363,6 +363,7 @@ const handleDelete = async (event) => {
             <SectionTitle>날짜 관리</SectionTitle>
             <CalendarContainer>
               <FullCalendar
+                dayMaxEvents={1}
                 plugins={[dayGridPlugin, interactionPlugin]}
                 initialView="dayGridMonth"
                 locale="ko"

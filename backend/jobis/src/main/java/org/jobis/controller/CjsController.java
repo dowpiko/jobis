@@ -36,7 +36,7 @@ import lombok.extern.log4j.Log4j;
 
 //@Controller
 @RestController
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:9090"}, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:9090", "http://192.168.0.101:3000"}, allowCredentials = "true")
 
 
 public class CjsController {

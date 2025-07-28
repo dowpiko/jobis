@@ -249,7 +249,7 @@ const BlurOverlay = styled.div`
   color: #1F2A37;
 `;
 
-
+const host = process.env.REACT_APP_HOST;
 const parseKoreanDate = (str) => {
   try {
     const parts = str.split(' '); // ['Thu', 'Jul', '31', '16:00:00', 'KST', '2025']
@@ -302,7 +302,7 @@ const DiscordPage = () => {
   const navigate = useNavigate();
 
   const refreshMySchedules = () => {
-    fetch('http://localhost:9090/getUserChat', { credentials: 'include' })
+    fetch(`http://${host}:9090/getUserChat`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         const parsed = data.map(c => ({
@@ -324,7 +324,7 @@ const DiscordPage = () => {
 
   // 세션 uno랑 leader랑 비교
   useEffect(() => {
-    fetch('http://localhost:9090/getMyUno', { credentials: 'include' })
+    fetch(`http://${host}:9090/getMyUno`, { credentials: 'include' })
       .then(res => {
         if (res.status === 401) {
           alert('로그인 상태가 아닙니다.');
@@ -367,7 +367,7 @@ const DiscordPage = () => {
 
   // 전체 일정 불러오기
    useEffect(() => {
-    fetch('http://localhost:9090/getUserChat', { credentials: 'include' })
+    fetch(`http://${host}:9090/getUserChat`, { credentials: 'include' })
       .then(res => res.json())
       .then(data => {
         const parsed = data.map(c => ({
@@ -514,7 +514,7 @@ const DiscordPage = () => {
     
      console.log('✅ 모집하기 payload:', payload);
     //   세션 만료되면 alert
-      fetch('http://localhost:9090/insertUserChat', {
+      fetch(`http://${host}:9090/insertUserChat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -558,7 +558,7 @@ const handleOnConfirm = () => {
     return;
   }
 
-  fetch('http://localhost:9090/joinChat', {
+  fetch(`http://${host}:9090/joinChat`, {
     method: 'POST',
     credentials: 'include', // 세션 유지
     headers: {
@@ -618,7 +618,7 @@ useEffect(() => {
 
   if (myUno === null) return;
 
-  const host = process.env.REACT_APP_HOST;
+  
   const wsUrl = `ws://${host}:9090/ws/userChat2`;
   console.log('▶️ 웹소켓 연결 시도:', wsUrl);
   const socket = new WebSocket(wsUrl);
