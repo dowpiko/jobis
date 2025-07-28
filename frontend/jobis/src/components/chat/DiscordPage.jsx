@@ -6,6 +6,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import JoinInterviewModal from '../modal/JoinInterviewModal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import categories from '../../data/categories';  
+import VideoChatModal from '../modal/VideoChatModal'; // 위치 확인해서 맞게 수정
 
 
 const Wrapper = styled.div`
@@ -273,7 +274,7 @@ const DiscordPage = () => {
   const [bannerChat, setBannerChat] = useState(null);
   const [penalty, setPenalty] = useState(null);
   const [now,setNow] = useState(new Date());
-
+  const [showVideoModal, setShowVideoModal] = useState(false);
 
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
@@ -657,7 +658,9 @@ useEffect(() => {
 
   // 화상채팅 참여
   const handleJoin = () => {
-      navigate('/video');
+      const handleJoin = () => {
+        setShowVideoModal(true);
+      };
   };
 
 
@@ -671,7 +674,7 @@ useEffect(() => {
             {bannerChat.r_title} |{' '}
             {bannerChat.sch_date.toLocaleDateString('ko-KR')} {bannerChat.sch_date.toLocaleTimeString('ko-KR')}
           </NotificationTitle>
-          <NotificationButton onClick={() => navigate('/video')}>참여</NotificationButton>
+          <NotificationButton onClick={() => setShowVideoModal(true)}>참여</NotificationButton>
           <NotificationButton onClick={() => setBannerChat(null)}>닫기</NotificationButton>
         </NotificationBanner>
       )}
@@ -821,6 +824,15 @@ useEffect(() => {
             onClose={() => setShowModal(false)}
             chat={selectedChat}
             onConfirm={handleOnConfirm}
+          />
+        )}
+        {showVideoModal && (
+          <VideoChatModal
+            cno={bannerChat?.cno}
+            scheduleTime={bannerChat?.sch_date}           // 종료 시점 기준 시간
+            myUno={myUno}             // 나의 닉네임 (context or props 등에서 가져와야 함)
+            peerUno={bannerChat?.targetNickname}     // 상대방 닉네임
+            onExit={() => setShowVideoModal(false)}
           />
         )}
       </Container>

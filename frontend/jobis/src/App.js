@@ -24,13 +24,11 @@
   import NaverCallback from './components/NaverCallback';
   import KakaoCallback from './components/KakaoCallback';
   import GoogleCallback from './components/GoolgleCallback';
-  import VideoChat from './components/chat/VideoChat';
   import CompanyChatLayout from './components/company/CompanyChatLayout';
   import UserChatLayout from './components/UserChatLayout';
   import UserSidebarLayout from './components/layout/UserSidebarLayout';
   import ProfileSidebarLayout from './components/layout/ProfileSidebarLayout';
   import CompanySidebarLayout from './components/layout/CompanySidebarLayout';
-  import Subscribe from './components/subscribe/SubscribeModal';
 
   function App() {
     const [socket, setSocket] = useState(null);
@@ -83,7 +81,6 @@
             <Route path="/profile" element={<Profile/>}/>
 
             {/* 화상 채팅 */}
-            <Route path="/video" element={<VideoChat />} />
             <Route element={<UserSidebarLayout />}>
               <Route path="/userChatLayout" element={<UserChatLayout />} />           {/* 유저 채팅 */}
               <Route path="/scrapPage" element={<ScrapPage />} />                     {/* 스크랩 & 지원 */}
