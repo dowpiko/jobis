@@ -6,7 +6,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import JoinInterviewModal from '../modal/JoinInterviewModal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import categories from '../../data/categories';  
-import VideoChatModal from '../modal/VideoChatModal'; // 위치 확인해서 맞게 수정
+import VideoChatModal from './VideoChatModal';
 
 
 const Wrapper = styled.div`
