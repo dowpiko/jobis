@@ -181,18 +181,25 @@ const LoadMoreButton = styled.button`
   }
 `;
 
+const DateLabel = styled.div`
+  font-size: 11px;
+  color: #666;
+  align-self: flex-end;   /* 우측 정렬 */
+  margin-top: 4px;
+`;
+
 const CompanyInfo = () => {
   const navigate = useNavigate();
-  // const applyNotice = () => navigate('/applyNotice');
   const [offers, setOffers]             = useState([]);        
   const [searchTerm, setSearchTerm]     = useState('');        
   const [selectedCategory, setCategory] = useState('');        
   const [visibleCount, setVisibleCount] = useState(10);
   const [uno,setUno] =useState(null);
   const [favorite,setFavorite] = useState([]);
+  const host = process.env.REACT_APP_HOST;
 
   useEffect(() => {
-    fetch('/getMyUno', { credentials: 'include' }) 
+    fetch(`http://${host}:9090/getMyUno`, { credentials: 'include' }) 
       .then(res => {
         if (res.status === 401) {
           alert('로그인이 필요합니다.');
@@ -207,14 +214,15 @@ const CompanyInfo = () => {
   }, []);
 
   useEffect(() => {
-    axios.get('/getCompanyOffer')
+    axios.get(`http://${host}:9090/getCompanyOffer`)
       .then(res => setOffers(res.data))
+      
       .catch(err => console.error('공고 조회 실패', err));
   }, []);
 
   useEffect(() => {
     if (uno) {
-      axios.post('/getFavorites', { uno }, { withCredentials: true })  // 🔄 수정됨
+      axios.post(`http://${host}:9090/getFavorites`, { uno }, { withCredentials: true })  // 🔄 수정됨
         .then(res => setFavorite(res.data.map(f => f.ono)))
         .catch(err => console.error('스크랩 목록 실패', err));
     }
@@ -225,10 +233,10 @@ const CompanyInfo = () => {
     const isFav = favorite.includes(ono);
     try {
       if (isFav) {
-        await axios.delete('/removeFavorite', { data: { ono, uno } });
+        await axios.delete(`http://${host}:9090/removeFavorite`, { data: { ono, uno } });
         setFavorite(favorite.filter(id => id !== ono));
       } else {
-        await axios.post('/addFavorite', { ono, uno });
+        await axios.post(`http://${host}:9090/addFavorite`, { ono, uno });
         setFavorite([...favorite, ono]);
       }
     } catch (err) {
@@ -250,6 +258,8 @@ const CompanyInfo = () => {
   }, [offers, selectedCategory, searchTerm]);
 
   const visible = filtered.slice(0, visibleCount);
+  
+  console.log(visible);
 
   const onSearchChange = e => {
     setSearchTerm(e.target.value);
@@ -266,6 +276,11 @@ const CompanyInfo = () => {
     navigate('/applyNotice', { state: { ono } });
   };
 
+  const formatDate = (timestamp) => {
+    if (!timestamp) return '-';
+    const date = new Date(timestamp);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
 
 
   return (
@@ -306,6 +321,7 @@ const CompanyInfo = () => {
                   <CorpName>{o.corpName}</CorpName>
                   <CategoryBadge>{o.category}</CategoryBadge>
                   <PostingName>{o.title}</PostingName>
+                  <DateLabel>마감 : {formatDate(o.o_activedays)}</DateLabel>
                 </CardContent>
               </CompanyCard>
             ))}

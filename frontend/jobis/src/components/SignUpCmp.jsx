@@ -162,7 +162,7 @@ const SignUpCmp = () => {
     }
 
     try {
-      const res = await axios.get('http://localhost:9090/findUserId', {
+      const res = await axios.get('http://localhost:9090/user/findUserId', {
         params: { id: id },
       });
       console.log(res.status);
@@ -302,7 +302,7 @@ const SignUpCmp = () => {
     }
 
     try {
-      const res = await axios.post('http://localhost:9090/insertCUser', {
+      const res = await axios.post('http://localhost:9090/user/insertCUser', {
         id: id,
         pw: pw,
         email: email,

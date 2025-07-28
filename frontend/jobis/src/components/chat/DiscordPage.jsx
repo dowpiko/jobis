@@ -8,6 +8,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import categories from '../../data/categories';  
 import VideoChatModal from './VideoChatModal';
 import { AuthContext } from '../../contexts/AuthContext';
+import axios from 'axios';
 
 
 const Wrapper = styled.div`
@@ -324,20 +325,21 @@ const DiscordPage = () => {
 
   // 세션 uno랑 leader랑 비교
   useEffect(() => {
-    fetch(`http://${host}:9090/getMyUno`, { credentials: 'include' })
+    axios.get('http://localhost:9090/getMyUno', { withCredentials: true })
       .then(res => {
-        if (res.status === 401) {
+        if (res.status === 200 && res.data !== undefined) {
+          setMyUno(res.data);
+        }
+      })
+      .catch(err => {
+        if (err.response?.status === 401) {
           alert('로그인 상태가 아닙니다.');
           window.location.href = '/';
-          return;
+        } else {
+          console.error('세션 uno 가져오기 실패:', err);
         }
-        return res.json();
-      })
-      .then(uno => {
-        if (uno !== undefined) setMyUno(uno);
-      })
-      .catch(err => console.error('세션 uno 가져오기 실패:', err));
-  }, []);
+      });
+    }, []);
 
    useEffect(() => {
     if (subList.length > 0) setSelectedSub(subList[0].name);
