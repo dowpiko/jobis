@@ -197,6 +197,9 @@ const ApplyNotice = () => {
     }
   };
 
+  const goToCompanyInfo =()=>{
+    navigate('/companyInfo')
+  }
   return (
     <MainContent>
       {corpInfo && (
@@ -223,6 +226,7 @@ const ApplyNotice = () => {
         <SubmitButton onClick={handleSubmit}>제출</SubmitButton>
         <ActionButton onClick={handleResumeUpload}>이력서 제출</ActionButton>
         <ActionButton onClick={handleVideoUpload}>동영상 제출</ActionButton>
+        <ActionButton onClick={goToCompanyInfo}>목록으로</ActionButton>
       </ButtonGroup>
     </MainContent>
   );

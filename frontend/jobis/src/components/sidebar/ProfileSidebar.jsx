@@ -313,7 +313,7 @@ function ProfileSidebar({ children }) {
   const [nickname, setNickname] = useState(null);
   const [hasProfile, setHasProfile] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-  const { logout } = useContext(AuthContext);
+  const { logout, setNickname: setGlobalNickname } = useContext(AuthContext);
   const [nicknameTemp, setNicknameTemp] = useState('');
   const [profileUrl, setProfileUrl] = useState('');
   const [images, setImages] = useState([]);
@@ -349,6 +349,7 @@ function ProfileSidebar({ children }) {
         setHasProfile(true);
         setNickname(res.data.nickname);
         setProfileUrl(res.data.profileImageUrl);
+        setGlobalNickname(res.data.nickname);
       } else {
         setHasProfile(false);
       }

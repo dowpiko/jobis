@@ -149,11 +149,7 @@ public class CjsController {
 	    try {
 	        // 1) 로그인(세션) 체크
 	        System.out.println("UserVO = " + uno);
-//	        if (user == null) {
-//	            return ResponseEntity
-//	                .status(HttpStatus.UNAUTHORIZED)
-//	                .body("세션 만료: 로그인 후 이용해주세요.");
-//	        }
+
 
 	        // 2) 일정 조회
 	        CJSVO chat = ucservice.getChatByCno(cno);
@@ -242,75 +238,7 @@ public class CjsController {
 	    }
 	}
 
-//	public ResponseEntity<String> deleteUserChat(@RequestBody Map<String, Integer> payload, HttpSession session) {
-//	    UserVO user = (UserVO) session.getAttribute("User");
-//	    int cno = payload.get("cno");
-//	    if (user == null) {
-//	        return new ResponseEntity<>("세션 만료", HttpStatus.UNAUTHORIZED);
-//	    }
-//
-//	    CJSVO chat = ucservice.getChatByCno(cno);
-//	    if (chat == null) {
-//	        return new ResponseEntity<>("일정이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
-//	    }
-//
-//	    int uno = user.getUno();
-//	    Date now = new Date();
-//
-//	    // member가 0이 아닌 경우 (상대 있음)
-//	    if (chat.getMember() != 0 &&
-//	        chat.getSch_date().getTime() - now.getTime() < (24 * 60 * 60 * 1000)) {
-//	        
-//	        PenaltyVO penalty = ucservice.getPenaltyByUno(uno);
-//	        if (penalty == null) {
-//	            PenaltyVO vo = new PenaltyVO();
-//	            vo.setUno(uno);
-//	            vo.setCount(1);
-//	            ucservice.insertPenalty(vo);
-//	        } else {
-//	            int count = penalty.getCount() + 1;
-//	            Date until = null;
-//	            Calendar cal = Calendar.getInstance();
-//
-//	            if (count >= 3) {
-//	                if (count == 3) cal.add(Calendar.DATE, 3);
-//	                else if (count == 4) cal.add(Calendar.DATE, 7);
-//	                else if (count == 5) cal.add(Calendar.MONTH, 1);
-//	                else if (count == 6) cal.add(Calendar.MONTH, 3);
-//	                else cal.add(Calendar.MONTH, 6);
-//	                until = cal.getTime();
-//	            }
-//
-//	            penalty.setCount(count);
-//	            penalty.setUntil(until);
-//	            ucservice.updatePenalty(penalty);
-//	        }
-//	    }
-//	    
-//	    
-//	    if (chat.getLeader() == uno) {
-//	        if (chat.getMember() != 0 && chat.getMember() != -1) {
-//	            ucservice.promoteMemberToLeader(cno);
-//	            CJSVO updatedChat = ucservice.getChatByCno(cno);
-//	            if (updatedChat != null) {
-//	                ChatSocket2.getInstance().broadcastChatRoom(updatedChat);
-//	            }
-//	            return new ResponseEntity<>("리더 승계 완료", HttpStatus.OK);
-//	        } else {
-//	            ucservice.deleteUserChat(cno);
-//	            return new ResponseEntity<>("일정 삭제 완료", HttpStatus.OK);
-//	        }
-//	    } else if (chat.getMember() == uno) {
-//	        ucservice.leaveChatAsMember(cno);
-//	        CJSVO updatedChat = ucservice.getChatByCno(cno);
-//	        if (updatedChat != null) {
-//	            ChatSocket2.getInstance().broadcastChatRoom(updatedChat);
-//	        }
-//	        return new ResponseEntity<>("참여 취소 완료", HttpStatus.OK);
-//	    } else {
-//	        return new ResponseEntity<>("삭제 권한이 없습니다.", HttpStatus.FORBIDDEN);
-//	    }
-//	}
+
 
 	// 패널티 정보 가져오기
 	@GetMapping("/getPenaltyStatus")

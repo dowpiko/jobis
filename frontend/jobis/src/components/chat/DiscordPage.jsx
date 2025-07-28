@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useContext } from 'react';
 import styled, { keyframes } from 'styled-components';
 import DatePicker from 'react-datepicker'; // 날짜 선택
 import { ko } from 'date-fns/locale';    // 달력 한글로 만들기
@@ -7,6 +7,7 @@ import JoinInterviewModal from '../modal/JoinInterviewModal';
 import { useLocation, useNavigate } from 'react-router-dom';
 import categories from '../../data/categories';  
 import VideoChatModal from './VideoChatModal';
+import { AuthContext } from '../../contexts/AuthContext';
 
 
 const Wrapper = styled.div`
@@ -275,6 +276,7 @@ const DiscordPage = () => {
   const [penalty, setPenalty] = useState(null);
   const [now,setNow] = useState(new Date());
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const {nickname} = useContext(AuthContext);
 
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
@@ -362,16 +364,26 @@ const DiscordPage = () => {
   // 패널티 일정 가져오기
   useEffect(() => {
     if (myUno === null) return;
+
     fetch('/getPenaltyStatus', { credentials: 'include' })
       .then(res => {
         if (!res.ok) throw new Error('패널티 조회 실패');
+
+        const contentType = res.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) {
+          // console.warn("⚠️ 응답에 JSON이 없습니다.");
+          return null; // 또는 적절한 fallback 객체
+        }
+
         return res.json();
       })
-      .then(data =>{
-         console.log("🚨 패널티 정보:", data);
-         setPenalty(data);
+      .then(data => {
+        if (data) {
+          console.log("🚨 패널티 정보:", data);
+          setPenalty(data);
+        }
       })
-      .catch(err => console.error(err));
+      .catch(err => console.error('패널티 fetch 에러:', err));
   }, [myUno]);
 
   const isBlocked = penalty?.count >= 3 && new Date(penalty.until) > new Date();
@@ -689,7 +701,8 @@ useEffect(() => {
             return (
               <ChatBubble key={chat.cno} $isMine={isMine}>
                 {!isMine && <Avatar src="https://placehold.co/40x40" alt="avatar" />}
-                {!isMine && <div>{chat.leader_name}</div>}
+                {/* {!isMine && <div>{chat.leader_name}</div>} */}
+                {!isMine && <div>{nickname}</div>}
                 <BubbleContainer $isMine={isMine}>
                   <Bubble $isMine={isMine}>{chat.r_title}</Bubble>
                   <MeetingInfo>
