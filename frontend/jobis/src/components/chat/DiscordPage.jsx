@@ -232,6 +232,23 @@ const PenaltyNotice = styled.div`
   margin-left: 10px;
 
 `;
+const BlurOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(4px);
+  background-color: rgba(255, 255, 255, 0.5);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #1F2A37;
+`;
+
 
 const parseKoreanDate = (str) => {
   try {
@@ -277,6 +294,7 @@ const DiscordPage = () => {
   const [now,setNow] = useState(new Date());
   const [showVideoModal, setShowVideoModal] = useState(false);
   const {nickname} = useContext(AuthContext);
+  const hasProfile = localStorage.getItem('hasProfile') === 'true';
 
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
@@ -478,9 +496,6 @@ const DiscordPage = () => {
 
   return () => clearInterval(interval);
 }, [allMyChats, alertedCnos]);
-
-
-
 
 
   const handleCreateChat = () => {
@@ -690,6 +705,12 @@ useEffect(() => {
           <NotificationButton onClick={() => setBannerChat(null)}>닫기</NotificationButton>
         </NotificationBanner>
       )}
+      {!hasProfile && (
+        <BlurOverlay>
+          ⚠️ 먼저 프로필을 생성해야 면접 일정에 참여할 수 있습니다.
+        </BlurOverlay>
+      )}
+
       <Container>
         <Header>
           <Title>태그 : {category}</Title>

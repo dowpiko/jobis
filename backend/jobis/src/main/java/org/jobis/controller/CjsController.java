@@ -181,10 +181,11 @@ public class CjsController {
 	                    if (count >= 3) {
 	                        Calendar cal = Calendar.getInstance();
 	                        if      (count == 3) cal.add(Calendar.DATE, 3);
-	                        else if (count == 4) cal.add(Calendar.DATE, 7);
-	                        else if (count == 5) cal.add(Calendar.MONTH, 1);
-	                        else if (count == 6) cal.add(Calendar.MONTH, 3);
-	                        else                 cal.add(Calendar.MONTH, 6);
+	                        else if (count == 6) cal.add(Calendar.DATE, 7);
+	                        else if (count == 9) cal.add(Calendar.DATE, 14);
+	                        else if (count == 12) cal.add(Calendar.MONTH, 1);
+	                        else if (count == 15) cal.add(Calendar.MONTH, 3);
+	                        else if (count >= 18) cal.add(Calendar.MONTH, 6);
 	                        penalty.setUntil(cal.getTime());
 	                    }
 	                    ucservice.updatePenalty(penalty);

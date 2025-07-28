@@ -350,8 +350,10 @@ function ProfileSidebar({ children }) {
         setNickname(res.data.nickname);
         setProfileUrl(res.data.profileImageUrl);
         setGlobalNickname(res.data.nickname);
+        localStorage.setItem('hasProfile', 'true');
       } else {
         setHasProfile(false);
+        localStorage.setItem('hasProfile', 'false');
       }
     } catch {
       alert('프로필 정보를 불러오지 못했습니다.');
