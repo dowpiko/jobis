@@ -120,13 +120,15 @@
 	<select id="getCompanyOffers" resultType="org.jobis.domain.CompanyOfferDTO">
 		SELECT
 	      o.ono           AS ono,
+	      o.uno           AS uno,
 	      c.corpnm        AS corpName,
-	      u.profileimage  AS profileImage,
 	      o.o_tag         AS category,
-	      o.o_title       AS title
+	      o.o_title       AS title,
+	      o.o_activedays  AS o_activedays
 	    FROM tbl_offers o
 	    JOIN tbl_cinfo c      ON o.uno = c.uno
 	    LEFT JOIN tbl_uprofile u ON o.uno = u.uno
+	    WHERE o.o_activedays >= TRUNC(SYSDATE)
 	    ORDER BY o.ono DESC
 	</select>
 	

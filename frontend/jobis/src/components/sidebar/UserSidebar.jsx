@@ -611,6 +611,7 @@ function UserSidebar({ children }) {
   };
 
   const handleClick = () => setIsModalOpen(true);
+  
   const handleClose = () => {
     setProfileUrl(originalUrl);
     setIsModalOpen(false);

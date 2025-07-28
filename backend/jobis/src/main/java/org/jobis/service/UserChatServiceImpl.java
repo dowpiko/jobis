@@ -96,7 +96,6 @@ public class UserChatServiceImpl implements UserChatService {
 	//----------------여기부터는 기업공고정보 페이지-----------------------------
 	@Override
 	public List<CompanyOfferDTO> getCompanyOffers() {
-	
 		return ucMapper.getCompanyOffers();
 	}
 	// 기업공고 작성완료 (유저가 답변작성한것)
