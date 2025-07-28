@@ -392,6 +392,42 @@ const StyledProfileImg = styled.img`
   cursor: pointer;
 `;
 
+const NotificationModal = styled.div`
+  position: absolute;
+  top: -10px;
+  left: 40px;
+  width: 240px;
+  background-color: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 100;
+  padding: 12px;
+  font-size: 13px;
+  color: #333;
+  animation: fadeIn 0.2s ease-in-out;
+
+  max-height: 240px;  // ⭐ 최대 높이 설정 (5개 정도 기준)
+  overflow-y: auto;   // ⭐ 스크롤 생기게
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+const NotificationItem = styled.div`
+  padding: 8px 6px;
+  border-bottom: 1px solid #F1F5F9;
+  &:last-child {
+    border-bottom: none;
+  }
+  cursor: pointer;
+  &:hover {
+    background-color: #F7F9FC;
+  }
+`;
+
 const formatDate = (timestamp) => {
   const date = new Date(timestamp);
   const yyyy = date.getFullYear();
@@ -414,6 +450,9 @@ function UserSidebar({ children }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [profileUrl, setProfileUrl] = useState('/img/user.svg');
   const [originalUrl, setOriginalUrl] = useState('/img/user.svg');
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState({});
+  const notificationRef = useRef(null);
   const fileInputRef = useRef(null);
   const location = useLocation();
   const socket = useContext(SocketContext);
@@ -436,6 +475,16 @@ function UserSidebar({ children }) {
       navigate('/');
     }
   };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target)) {
+        setIsNotificationOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     axios.get('/jsh/getUser')
@@ -521,14 +570,20 @@ function UserSidebar({ children }) {
 
   useEffect(() => {
     if (!socket) return;
-      const handler = (evt) => {
-      
+
+    const handler = (evt) => {
       let msg;
       try { msg = JSON.parse(evt.data); } catch { return; }
- 
-      if (msg.type === 'chat_notification' && msg.message.sender === uno || !msg) {
-        setDbCount(c => c + 1);
-        return;
+
+      if (msg?.type === 'chat_notification' && msg?.message?.sender === uno) {
+        const rno = msg.rno;
+        setNotifications((prev) => {
+          const updated = { ...prev };
+          if (!updated[rno]) updated[rno] = [];
+          updated[rno].push(msg.message);
+          return updated;
+        });
+        setDbCount((c) => c + 1);
       }
     };
     socket.addEventListener('message', handler);
@@ -543,6 +598,16 @@ function UserSidebar({ children }) {
     }
     logout();
     navigate('/');
+  };
+
+  const handleNotificationClick = (rno) => {
+    setNotifications((prev) => {
+      const updated = { ...prev };
+      delete updated[rno];
+      return updated;
+    });
+    setDbCount((c) => (c > 0 ? c - 1 : 0));
+    navigate(`/userChatLayout?rno=${rno}`);
   };
 
   const handleClick = () => setIsModalOpen(true);
@@ -614,12 +679,26 @@ function UserSidebar({ children }) {
             <ProfileImg src={profileUrl} alt={profileUrl} onClick={() => handleClick(profileUrl)}/>
             <ProfileName>{userName}</ProfileName>
           </ProfileInfo>
-          <NotificationWrapper onClick={() => alert('알림 클릭!')}>
+          <NotificationWrapper ref={notificationRef} onClick={() => setIsNotificationOpen(prev => !prev)}>
             <BellIcon />
-            {dbCount > 0 && (
-              <NotificationBadge countLength={len}>
-                {display}
-              </NotificationBadge>
+            {dbCount > 0 && <NotificationBadge countLength={len}>{display}</NotificationBadge>}
+
+            {isNotificationOpen && (
+              <NotificationModal>
+                {Object.entries(notifications).map(([rno, messages]) => {
+                  const lastMsg = messages[messages.length - 1];
+                  return (
+                    <NotificationItem key={rno} onClick={() => handleNotificationClick(rno)}>
+                      <div style={{ fontSize: '12px'}}>
+                        {lastMsg.leader_name}: {lastMsg.content}
+                      </div>
+                    </NotificationItem>
+                  );
+                })}
+                {Object.keys(notifications).length === 0 && (
+                  <NotificationItem>알림이 없습니다.</NotificationItem>
+                )}
+              </NotificationModal>
             )}
           </NotificationWrapper>
           {isPremium && <PremiumMiniTag>Premium</PremiumMiniTag>}

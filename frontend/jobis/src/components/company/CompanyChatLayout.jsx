@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useEffect, useState, useRef, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SocketContext } from '../../contexts/SocketContext';
 import styled from 'styled-components';
 
@@ -243,6 +243,7 @@ const CompanyChatLayout = () => {
   const [initCheck, setInitCheck] = useState(true);
   const [interviewList, setInterviewList] = useState([]);
   const [selectedJobFilter, setSelectedJobFilter] = useState('');
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const initChatLayout = async (uno) => {
@@ -301,6 +302,16 @@ const CompanyChatLayout = () => {
       chatEndRef.current.scrollIntoView({ behavior: 'auto' });
     }
   }, [chatMessages]);
+
+  useEffect(() => {
+    const urlRno = searchParams.get('rno');
+    if (!urlRno || !myUno || chatList.length === 0) return;
+
+    const matched = chatList.find(chat => chat.rno === parseInt(urlRno));
+    if (matched) {
+      handleChatCardClick(matched.ono, matched.emp);
+    }
+  }, [chatList, myUno, searchParams]);
 
   useEffect(() => {
     if (
@@ -438,7 +449,7 @@ const CompanyChatLayout = () => {
     const weekday = dayNames[date.getDay()];
     return `${month}월 ${day}일 ${weekday}`;
   };
-
+  
   return (
     <Wrapper>
       <ChatListPanel>

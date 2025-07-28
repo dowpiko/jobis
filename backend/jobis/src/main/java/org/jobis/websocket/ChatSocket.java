@@ -9,6 +9,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.jobis.config.CustomSpringConfigurator;
 import org.jobis.domain.CJSVO;
+import org.jobis.service.SmService;
 import org.jobis.service.UserChatService;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -30,6 +31,8 @@ public class ChatSocket {
 	    }
 	
 	@Autowired UserChatService ucService;
+	
+	@Autowired SmService smService;
 	
     private static final Set<Session> sessions = new CopyOnWriteArraySet<>();
 
@@ -101,9 +104,14 @@ public class ChatSocket {
 
             int leaderUno = json.getInt("leader");
             int rno = json.getInt("rno");
-
-            String leaderName = ucService.getOtherNameByUno(leaderUno).getName();
-            json.put("leader_name", leaderName);
+            
+            if (ucService.getOtherNameByUno(leaderUno).getName() == null) {
+            	String leaderName = smService.selectCinofoByUno(leaderUno).getCorpNm();
+            	json.put("leader_name", leaderName);
+			}else {
+				String leaderName = ucService.getOtherNameByUno(leaderUno).getName();
+				json.put("leader_name", leaderName);
+			}
 
             boolean isOpponentInRoom = sessions.stream().anyMatch(s -> {
                 if (!s.isOpen()) return false;

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -172,6 +172,41 @@ const NotificationWrapper = styled.div`
   cursor: pointer;
 `;
 
+const NotificationModal = styled.div`
+  position: absolute;
+  top: -10px;
+  left: 40px;
+  width: 240px;
+  background-color: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 100;
+  padding: 12px;
+  font-size: 13px;
+  color: #333;
+  animation: fadeIn 0.2s ease-in-out;
+
+  max-height: 240px;  // ⭐ 최대 높이 설정 (5개 정도 기준)
+  overflow-y: auto;   // ⭐ 스크롤 생기게
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+const NotificationItem = styled.div`
+  padding: 8px 6px;
+  border-bottom: 1px solid #F1F5F9;
+  &:last-child {
+    border-bottom: none;
+  }
+  cursor: pointer;
+  &:hover {
+    background-color: #F7F9FC;
+  }
+`;
 
 function CompanySidebar({ children }) {
   const navigate = useNavigate();
@@ -181,6 +216,10 @@ function CompanySidebar({ children }) {
   const [dbCount, setDbCount] = useState(0);
   const location = useLocation(); 
   const socket = useContext(SocketContext);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const notificationRef = useRef(null);
+  const [notifications, setNotifications] = useState({});
+  
   const display  = dbCount > 99 ? '99+' : dbCount.toString();
   const len = display.length; 
 
@@ -199,6 +238,27 @@ function CompanySidebar({ children }) {
     logout();
     navigate('/');
   };
+
+  const handleNotification = (msg) => {
+    const rno = msg.rno;
+    setNotifications((prev) => {
+      const updated = { ...prev };
+      if (!updated[rno]) updated[rno] = [];
+      updated[rno].push(msg.message);
+      return updated;
+    });
+    setDbCount((c) => c + 1);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target)) {
+        setIsNotificationOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     axios.get('/jsh/getUser')
@@ -242,7 +302,7 @@ function CompanySidebar({ children }) {
       try { msg = JSON.parse(evt.data); } catch { return; }
   
       if (msg.type === 'chat_notification' && msg.message.sender === uno || !msg) {
-        setDbCount(c => c + 1);
+        handleNotification(msg);
         return;
       }
     };
@@ -252,6 +312,13 @@ function CompanySidebar({ children }) {
 
   useEffect(() => {
     const reload = () => {
+      if (uno === null) {
+        axios.post('/jsh/logout')
+        alert('로그인이 필요합니다.')
+        logout();
+        navigate('/');
+        return;
+      }
       axios.get(`/user/selectCinofoByUno?uno=${uno}`)
         .then(data => {
           if (data.data) {
@@ -269,6 +336,15 @@ function CompanySidebar({ children }) {
         return () => window.removeEventListener('reloadSidebarCount', reload);
   }, []);
 
+  const handleNotificationClick = (rno) => {
+    setNotifications((prev) => {
+      const updated = { ...prev };
+      delete updated[rno];
+      return updated;
+    });
+    navigate(`/companyChatLayout?rno=${rno}`);
+  };
+
   return (
     <AppLayout>
       <Sidebar>
@@ -279,12 +355,26 @@ function CompanySidebar({ children }) {
         </TopBar>
 
         <Profile>
-          <NotificationWrapper onClick={() => alert('알림 클릭!')}>
+          <NotificationWrapper ref={notificationRef} onClick={() => setIsNotificationOpen(prev => !prev)}>
             <BellIcon />
-            {dbCount > 0 && (
-              <NotificationBadge countLength={len}>
-                {display}
-              </NotificationBadge>
+            {dbCount > 0 && (<NotificationBadge countLength={len}>{display}</NotificationBadge>)}
+
+            {isNotificationOpen && (
+              <NotificationModal>
+                {Object.entries(notifications).map(([rno, messages]) => {
+                  const lastMsg = messages[messages.length - 1];
+                  return (
+                    <NotificationItem key={rno} onClick={() => handleNotificationClick(rno)}>
+                      <div style={{ fontSize: '12px'}}>
+                        {lastMsg.leader_name}: {lastMsg.content}
+                      </div>
+                    </NotificationItem>
+                  );
+                })}
+                {Object.keys(notifications).length === 0 && (
+                  <NotificationItem>알림이 없습니다.</NotificationItem>
+                )}
+              </NotificationModal>
             )}
           </NotificationWrapper>
 

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { SocketContext } from '../contexts/SocketContext';
 import { AuthContext }   from '../contexts/AuthContext';
@@ -42,13 +42,6 @@ const ChatCard = styled.div`
   &:hover {
     background-color: #d4eaf4;
   }
-`;
-
-const Avatar = styled.img`
-  margin-right: 8px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
 `;
 
 const ChatPanel = styled.div`
@@ -211,15 +204,16 @@ const DateDivider = styled.div`
 
 const UserChatLayout = () => {
     const [searchTerm, setSearchTerm] = useState('');
-    const chatEndRef = useRef(null);
     const [chatList, setChatList] = useState([]);
     const [offerSubmission, setOfferSubmission] = useState(null);
     const [chatMessages, setChatMessages] = useState([]);
     const [rno, setRno] = useState(null);
     const [cno, setCno] = useState(null);
     const [inputText, setInputText] = useState('');
-    const navigate = useNavigate();
     const [initCheck, setInitCheck] = useState(true);
+    const location = useLocation();
+    const navigate = useNavigate();
+    const chatEndRef = useRef(null);
 
     const socket = useContext(SocketContext);
     const { hasManuallyLoggedIn, uno: myUno } = useContext(AuthContext);
@@ -238,6 +232,17 @@ const UserChatLayout = () => {
         });
     }, [hasManuallyLoggedIn, myUno]);
 
+    useEffect(() => {
+      const params = new URLSearchParams(location.search);
+      const initialRno = parseInt(params.get('rno'));
+      if (initialRno && chatList.length > 0) {
+        const room = chatList.find(c => c.rno === initialRno);
+        if (room) {
+          handleChatCardClick(room.rno, room.ono, room.company);
+        }
+      }
+    }, [location.search, chatList]);
+    
     // 2) 선택된 방(rno) 변경 시 한 번만 ENTER_ROOM 보내기
     useEffect(() => {
       if (!socket || !myUno || !rno) return;
@@ -415,7 +420,6 @@ const UserChatLayout = () => {
               selected={item.rno === rno}
               onClick={() => handleChatCardClick(item.rno, item.ono, item.company)}
             >
-              <Avatar src="https://via.placeholder.com/32" alt="avatar" />
               <CorpName>{item.corpNm}</CorpName>
             </ChatCard>
           ))}
