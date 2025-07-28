@@ -105,4 +105,22 @@ public class ChatSocket2 {
             e.printStackTrace();
         }
     }
+    // 삭제 broadcast
+    public void broadcastDelete(int cno) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("type", "delete"); // 프론트가 이걸로 구분
+            json.put("cno", cno);
+
+            System.out.println("🗑️ 삭제 broadcast: " + json.toString());
+            for (Session s : sessions) {
+                if (s.isOpen()) {
+                    s.getBasicRemote().sendText(json.toString());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

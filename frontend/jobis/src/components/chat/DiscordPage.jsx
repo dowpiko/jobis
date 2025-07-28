@@ -585,15 +585,21 @@ useEffect(() => {
   socket.onopen = () => {
     console.log('✅ WebSocket 연결됨:', wsUrl);
   };
-
+  
   socket.onmessage = (event) => {
-    try {
-      const message = JSON.parse(event.data);
-      
-      console.log('📩 [WS 수신 원본 메시지]', message);
-      console.log('🧾 message.sch_date 타입:', typeof message.sch_date);
-      console.log('🕓 sch_date 값:', message.sch_date);
+  try {
+    const message = JSON.parse(event.data);
+    console.log('📩 [WS 수신 원본 메시지]', message);
 
+    // 삭제 메시지 처리
+    if (message.type === 'delete') {
+      console.log('🗑️ 삭제된 cno:', message.cno);
+      setChatList(prev => prev.filter(chat => chat.cno !== message.cno));
+      return;
+    }
+
+    // 일정 업데이트 메시지 처리
+    if (message.type === 'schedule') {
       let schDate = parseKoreanDate(message.sch_date);
       if (isNaN(schDate)) {
         schDate = new Date(message.sch_date.replace(' ', 'T'));
@@ -616,32 +622,49 @@ useEffect(() => {
         }];
         return updatedChatList.sort((a, b) => a.r_regdate - b.r_regdate);
       });
-
-    } catch (e) {
-      console.error('⚠️ 메시지 파싱 실패:', e);
     }
-  };
+
+  } catch (e) {
+    console.error('⚠️ 메시지 파싱 실패:', e);
+  }
+};
 
   // socket.onmessage = (event) => {
-  // try {
-  //   const message = JSON.parse(event.data);
-  //   console.log('📩 실시간 메시지 수신:', message);
-    
-  //   setChatList(prev => {
-  //     const withoutOld = prev.filter(chat => chat.cno !== message.cno);
-  //     const updatedChatList = [...withoutOld, {
-  //       ...message,
-  //       sch_date: new Date(message.sch_date.replace(' ', 'T')),
-  //       r_regdate: message.r_regdate 
-  //       ? new Date(message.r_regdate.replace(' ', 'T')) 
-  //       : new Date()
-  //     }];
-  //     return updatedChatList.sort((a, b) => a.r_regdate - b.r_regdate);
-  //   });
+  //   try {
+  //     const message = JSON.parse(event.data);
+  //     console.log('📩 [WS 수신 원본 메시지]', message);
+  //     console.log('🧾 message.sch_date 타입:', typeof message.sch_date);
+  //     console.log('🕓 sch_date 값:', message.sch_date);
+
+  //     let schDate = parseKoreanDate(message.sch_date);
+  //     if (isNaN(schDate)) {
+  //       schDate = new Date(message.sch_date.replace(' ', 'T'));
+  //     }
+  //     if (isNaN(schDate)) {
+  //       console.error('❌ 여전히 Invalid Date 발생:', message.sch_date);
+  //       return;
+  //     }
+
+  //     const regDate = message.r_regdate
+  //       ? new Date(message.r_regdate.replace(' ', 'T'))
+  //       : new Date();
+
+  //     setChatList(prev => {
+  //       const withoutOld = prev.filter(chat => chat.cno !== message.cno);
+  //       const updatedChatList = [...withoutOld, {
+  //         ...message,
+  //         sch_date: schDate,
+  //         r_regdate: regDate,
+  //       }];
+  //       return updatedChatList.sort((a, b) => a.r_regdate - b.r_regdate);
+  //     });
+
   //   } catch (e) {
   //     console.error('⚠️ 메시지 파싱 실패:', e);
   //   }
   // };
+
+  
 
   socket.onerror = (err) => {
     console.error('⚠️ WebSocket 오류:', err);

@@ -208,6 +208,7 @@ public class CjsController {
 	                    ChatSocket2.getInstance().broadcastChatRoom(updated);
 	                }
 	                ucservice.deleteUserChat(cno);
+	                ChatSocket2.getInstance().broadcastDelete(cno);
 	                return ResponseEntity.ok("일정 삭제 완료");
 	            }
 
