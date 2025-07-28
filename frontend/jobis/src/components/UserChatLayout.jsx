@@ -184,6 +184,31 @@ const ChatMessageWrapper = styled.div`
   gap: 6px;
 `;
 
+const MessageTime = styled.div`
+  font-size: 11px;
+  color: #666;
+  text-align: ${(props) => (props.isMine ? 'left' : 'right')};
+  margin-top: 4px;
+  padding: 0 2px;
+`;
+
+const DateDivider = styled.div`
+  display: flex;
+  align-items: center;
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  margin: 16px 0;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #ccc;
+    margin: 0 8px;
+  }
+`;
+
 const UserChatLayout = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const chatEndRef = useRef(null);
@@ -234,7 +259,11 @@ const UserChatLayout = () => {
             )
           );
         } else {
-          setChatMessages(prev => [...prev, msg]);
+          const enrichedMessage = {
+            ...msg,
+            cl_regdate: msg.cl_regdate || Date.now(), // 시간 없으면 지금 시간으로
+          };
+          setChatMessages(prev => [...prev, enrichedMessage]);
         }
       };
       console.log('🛰️ WS raw data:', chatMessages);
@@ -280,8 +309,10 @@ const UserChatLayout = () => {
     // 메시지 전송
     const sendMessage = () => {
       if (!socket || socket.readyState !== WebSocket.OPEN || !inputText.trim()) return;
-      const hit = chatMessages.at(-1).hit;
+      const lastMessage = chatMessages.at(-1);
+      const hit = lastMessage ? lastMessage.hit : 0;
       const payload = { rno, sender: cno, content: inputText.trim(), leader: myUno, hit : hit};
+
       socket.send(JSON.stringify(payload));
       axios.post('http://localhost:9090/chat/insertChatMessage', payload).catch(console.error);
       setInputText('');
@@ -291,6 +322,24 @@ const UserChatLayout = () => {
     const filteredChatList = chatList.filter(item =>
       item.corpNm?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const formatTime = (timestamp) => {
+      const date = new Date(timestamp);
+      let hours = date.getHours();
+      const minutes = date.getMinutes();
+      const ampm = hours >= 12 ? '오후' : '오전';
+      hours = hours % 12 || 12;
+      return `${ampm} ${hours}:${String(minutes).padStart(2, '0')}`;
+    };
+    
+    const getDateLabel = (timestamp) => {
+      const date = new Date(timestamp);
+      const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const weekday = dayNames[date.getDay()];
+      return `${month}월 ${day}일 ${weekday}`;
+    };
 
     // Q&A 렌더 헬퍼
     const renderQnA = () => {
@@ -306,26 +355,48 @@ const UserChatLayout = () => {
     };
 
     // 채팅 메시지 렌더 헬퍼
-    const renderChatMessages = () =>
-  chatMessages
-    // chat_notification 타입은 아예 걸러내기
-    .filter(msg => msg.type !== 'chat_notification')
-    .map((msg, i) => {
-      const isMine = msg.sender !== myUno;
-      return (
-        <ChatMessageWrapper key={i} isMine={isMine}>
-          {isMine && msg.hit !== 1 && (
-            <div style={{ fontSize: '10px', color: '#888', marginRight: 6 }}>
-              1
-            </div>
-          )}
-          <ChatBubble isMine={isMine}>
-            <div style={{ fontSize: '13px' }}>{msg.content}</div>
-          </ChatBubble>
-        </ChatMessageWrapper>
-      );
-    });
+    const renderChatMessages = () => {
+      let lastDate = null;
 
+      return chatMessages
+        .filter(msg => msg.type !== 'chat_notification')
+        .map((msg, i) => {
+          const isMine = msg.sender !== myUno;
+          const currentDateLabel = getDateLabel(msg.cl_regdate);
+
+          const showDateDivider = lastDate !== currentDateLabel;
+          lastDate = currentDateLabel;
+
+          return (
+            <React.Fragment key={i}>
+              {showDateDivider && (
+                <DateDivider>{currentDateLabel}</DateDivider>
+              )}
+
+              <ChatMessageWrapper isMine={isMine}>
+                {isMine && msg.hit !== 1 && (
+                  <div style={{ fontSize: '10px', color: '#888', marginRight: 6 }}>1</div>
+                )}
+                {isMine ? (
+                  <>
+                    <MessageTime isMine={isMine}>{formatTime(msg.cl_regdate)}</MessageTime>
+                    <ChatBubble isMine={isMine}>
+                      <div style={{ fontSize: '13px', marginBottom: '4px' }}>{msg.content}</div>
+                    </ChatBubble>
+                  </>
+                ) : (
+                  <>
+                    <ChatBubble isMine={isMine}>
+                      <div style={{ fontSize: '13px', marginBottom: '4px' }}>{msg.content}</div>
+                    </ChatBubble>
+                    <MessageTime isMine={isMine}>{formatTime(msg.cl_regdate)}</MessageTime>
+                  </>
+                )}
+              </ChatMessageWrapper>
+            </React.Fragment>
+          );
+        });
+    };
     return (
       <Wrapper>
         <ChatListPanel>

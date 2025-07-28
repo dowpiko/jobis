@@ -200,6 +200,32 @@ const JobFilterSelect = styled.select`
     text-overflow: ellipsis;
   }
 `;
+
+const MessageTime = styled.div`
+  font-size: 11px;
+  color: #666;
+  text-align: ${(props) => (props.isMine ? 'left' : 'right')};
+  margin-top: 4px;
+  padding: 0 2px;
+`;
+
+const DateDivider = styled.div`
+  display: flex;
+  align-items: center;
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  margin: 16px 0;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #ccc;
+    margin: 0 8px;
+  }
+`;
+
 const CompanyChatLayout = () => {
   const [chatList, setChatList] = useState([]);
   const [showAnnouncement, setShowAnnouncement] = useState(false);
@@ -234,8 +260,6 @@ const CompanyChatLayout = () => {
       const uniqueJobs = Array.from(
         new Map(processedData.map(item => [item.ono, item])).values()
       );
-      setJobList(uniqueJobs);
-
       const onoList = uniqueJobs.map(job => job.ono);
 
       const responses = await Promise.all(
@@ -276,7 +300,6 @@ const CompanyChatLayout = () => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'auto' });
     }
-    console.log(chatMessages);
   }, [chatMessages]);
 
   useEffect(() => {
@@ -315,8 +338,11 @@ const CompanyChatLayout = () => {
           );
         }
       } else {
-        // 일반 채팅 메시지
-        setChatMessages((prev) => [...prev, message]);
+        const enrichedMessage = {
+          ...message,
+          cl_regdate: message.cl_regdate || Date.now(), // 시간 없으면 지금 시간으로
+        };
+        setChatMessages((prev) => [...prev, enrichedMessage]);
       }
     };
 
@@ -374,7 +400,8 @@ const CompanyChatLayout = () => {
 
   const sendMessage = () => {
     if (!socket || socket.readyState !== WebSocket.OPEN || !inputText.trim()) return;
-    const hit = chatMessages.at(-1).hit;
+    const lastMessage = chatMessages.at(-1);
+    const hit = lastMessage ? lastMessage.hit : 0;
 
     const payload = {
       rno:      selectedChat?.rno,
@@ -402,6 +429,16 @@ const CompanyChatLayout = () => {
     return `${ampm} ${hours}:${String(minutes).padStart(2, '0')}`;
   };
   
+  const getDateLabel = (timestamp) => {
+    const date = new Date(timestamp);
+    const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const weekday = dayNames[date.getDay()];
+    return `${month}월 ${day}일 ${weekday}`;
+  };
+
   return (
     <Wrapper>
       <ChatListPanel>
@@ -447,20 +484,41 @@ const CompanyChatLayout = () => {
 
       <ChatPanel>
         <ChatContent>
-          {chatMessages
-            .filter(msg => msg.type !== 'chat_notification')
-            .map((msg, idx) => {
-              const isMine = msg.sender !== selectedChat?.company;
+          {(() => {
+            let lastDate = null;
+            return chatMessages
+              .filter(msg => msg.type !== 'chat_notification')
+              .map((msg, idx) => {
+                const isMine = msg.sender !== selectedChat?.company;
+                const currentDateLabel = getDateLabel(msg.cl_regdate);
+                const showDateDivider = lastDate !== currentDateLabel;
+                lastDate = currentDateLabel;
 
-              return (
-                <ChatMessageWrapper key={idx} isMine={isMine}>
-                  {isMine && msg.hit !== 1 && <ReadCount>1</ReadCount>}
-                  <ChatBubble isMine={isMine}>
-                    <div style={{ fontSize: '13px' }}>{msg.content}</div>
-                  </ChatBubble>
-                </ChatMessageWrapper>
-              );
-            })}
+                return (
+                  <React.Fragment key={idx}>
+                    {showDateDivider && <DateDivider>{currentDateLabel}</DateDivider>}
+                    <ChatMessageWrapper isMine={isMine}>
+                      {isMine && msg.hit !== 1 && <ReadCount>1</ReadCount>}
+                      {isMine ? (
+                        <>
+                          <MessageTime isMine={isMine}>{formatTime(msg.cl_regdate)}</MessageTime>
+                          <ChatBubble isMine={isMine}>
+                            <div style={{ fontSize: '13px', marginBottom: '4px' }}>{msg.content}</div>
+                          </ChatBubble>
+                        </>
+                      ) : (
+                        <>
+                          <ChatBubble isMine={isMine}>
+                            <div style={{ fontSize: '13px', marginBottom: '4px' }}>{msg.content}</div>
+                          </ChatBubble>
+                          <MessageTime isMine={isMine}>{formatTime(msg.cl_regdate)}</MessageTime>
+                        </>
+                      )}
+                    </ChatMessageWrapper>
+                  </React.Fragment>
+                );
+              });
+          })()}
           <div ref={chatEndRef} />
         </ChatContent>
         <InputContainer>

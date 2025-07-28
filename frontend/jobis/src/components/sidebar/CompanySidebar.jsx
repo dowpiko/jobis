@@ -252,7 +252,6 @@ function CompanySidebar({ children }) {
 
   useEffect(() => {
     const reload = () => {
-      console.log(uno);
       axios.get(`/user/selectCinofoByUno?uno=${uno}`)
         .then(data => {
           if (data.data) {
