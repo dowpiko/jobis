@@ -99,10 +99,11 @@ const ScrapPage = () => {
   const [uno, setUno] = useState(null);
   const [scrapData, setScrapData] = useState([]);
   const [appliedData, setAppliedData] = useState([]); // 지원 목록 필요시 나중에
+  const host = process.env.REACT_APP_HOST;
 
   // uno 가져오기
   useEffect(() => {
-    fetch('/getMyUno', { credentials: 'include' })
+    fetch(`http://${host}:9090/getMyUno`, { credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
         setUno(data);
@@ -112,7 +113,7 @@ const ScrapPage = () => {
   // 스크랩 목록 가져오기
   useEffect(() => {
     if (!uno) return;
-    axios.post('/getFavorites', { uno }, { withCredentials: true })
+    axios.post(`http://${host}:9090/getFavorites`, { uno }, { withCredentials: true })
       .then((res) => {
         setScrapData(res.data);
       })
@@ -134,7 +135,7 @@ const ScrapPage = () => {
   // 지원한 공고 목록 가져오기
   useEffect(() => {
     if (!uno) return;
-    axios.post('/getApplied', { uno }, { withCredentials: true })
+    axios.post(`http://${host}:9090/getApplied`, { uno }, { withCredentials: true })
       .then((res) => {
         setAppliedData(res.data);
       })
@@ -143,7 +144,7 @@ const ScrapPage = () => {
 
   // 공고 지원 취소하기
   const handleCancel = (uno, ono) => {
-    axios.post('/deleteSubmission', { uno, ono }, { withCredentials: true })
+    axios.post(`http://${host}:9090/deleteSubmission`, { uno, ono }, { withCredentials: true })
       .then(() => {
         alert('지원이 취소되었습니다.');
         // 상태 다시 갱신 필요
@@ -151,8 +152,11 @@ const ScrapPage = () => {
       .catch((err) => console.error('지원 취소 실패', err));
   };
 
-
-
+  const formatDate = (timestamp) => {
+    if (!timestamp) return '-';
+    const date = new Date(timestamp);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
 
   return (
     <Page>
