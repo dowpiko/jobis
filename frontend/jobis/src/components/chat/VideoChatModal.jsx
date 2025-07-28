@@ -170,18 +170,13 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 		socket.onmessage = async (message) => {
 			const data = JSON.parse(message.data);
 
-		if (data.type === 'ready') {
-			if (!peerConnection.current) {
-				await startWebRTC();
+			if (data.type === 'ready') {
+				if (peerConnection.current) {
+					await makeOffer();
+				} else {
+					console.warn('⚠️ peerConnection 아직 초기화 안 됨. makeOffer() 스킵');
+				}
 			}
-
-			if (peerConnection.current && localStreamReady) {
-				await makeOffer();
-			} else {
-				console.warn('🎬 아직 장치 준비 안됨 → offer 대기');
-			}
-		}
-
 
 			if (data.type === 'offer') {
 				if (!peerConnection.current) {
@@ -206,35 +201,29 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 			}
 			if (data.type === 'answer') {
 				if (!peerConnection.current) {
-					console.warn('⚠️ answer 수신 시 peerConnection 없음 → 생성');
-					await startWebRTC();
+					console.warn('⚠️ answer 수신 시 peerConnection이 없음 → 무시');
+					return;
 				}
-
 				await peerConnection.current.setRemoteDescription(
 					new RTCSessionDescription({ type: 'answer', sdp: data.sdp })
 				);
 			}
 
 
-
 			if (data.type === 'candidate' && data.candidate) {
 				const candidate = new RTCIceCandidate(data.candidate);
 
-				if (!peerConnection.current) {
-					console.warn('🕳 ICE 후보를 큐에 저장 + WebRTC 시작');
+				if (peerConnection.current) {
+					try {
+						await peerConnection.current.addIceCandidate(candidate);
+					} catch (err) {
+						console.warn('ICE 추가 실패:', err);
+					}
+				} else {
+					console.warn('🕳 ICE 후보를 큐에 저장 (peerConnection 아직 없음)');
 					pendingCandidates.current.push(candidate);
-					await startWebRTC(); // 🔥 이거 추가!!
-					return;
-				}
-
-				try {
-					await peerConnection.current.addIceCandidate(candidate);
-				} catch (err) {
-					console.warn('ICE 추가 실패:', err);
 				}
 			}
-
-
 
 
 			if (data.type === 'reminder') {
@@ -421,5 +410,3 @@ useEffect(() => {
 };
 
 export default VideoChatModal;
-
-
