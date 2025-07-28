@@ -842,9 +842,13 @@ useEffect(() => {
         {showVideoModal && (
           <VideoChatModal
             cno={bannerChat?.cno}
-            scheduleTime={bannerChat?.sch_date}           // 종료 시점 기준 시간
-            myUno={myUno}             // 나의 닉네임 (context or props 등에서 가져와야 함)
-            peerUno={bannerChat?.targetNickname}     // 상대방 닉네임
+            scheduleTime={bannerChat?.sch_date}
+            myUno={myUno}
+            peerUno={
+              bannerChat?.leader === myUno
+                ? bannerChat?.member
+                : bannerChat?.leader
+            }
             onExit={() => setShowVideoModal(false)}
           />
         )}

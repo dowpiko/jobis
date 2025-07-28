@@ -17,7 +17,7 @@ public class DiscordController {
 	@Autowired
 	private DiscordService dService;
 	
-	@GetMapping("/nickname/{uno}")
+	@GetMapping(value = "/nickname/{uno}", produces = "text/plain;charset=UTF-8")
 	public ResponseEntity<String> getNickname(@PathVariable("uno") Integer uno) {
 	    if (uno == null) {
 	        return ResponseEntity.badRequest().body("Missing 'uno'");
