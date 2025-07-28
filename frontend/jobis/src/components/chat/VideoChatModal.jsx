@@ -168,14 +168,36 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 		socket.onmessage = async (message) => {
 			const data = JSON.parse(message.data);
 
-			if (data.type === 'ready') await makeOffer();
+			if (data.type === 'ready') {
+				if (peerConnection.current) {
+					await makeOffer();
+				} else {
+					console.warn('⚠️ peerConnection 아직 초기화 안 됨. makeOffer() 스킵');
+				}
+			}
 
 			if (data.type === 'offer') {
-				await peerConnection.current.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: data.sdp }));
-				const answer = await peerConnection.current.createAnswer();
-				await peerConnection.current.setLocalDescription(answer);
-				socket.send(JSON.stringify({ type: 'answer', cno, sdp: answer.sdp }));
+				if (!peerConnection.current) {
+					console.warn('⚠️ peerConnection이 아직 초기화되지 않음. offer 처리 스킵');
+					return;
+				}
+
+				try {
+					await peerConnection.current.setRemoteDescription(
+						new RTCSessionDescription({ type: 'offer', sdp: data.sdp })
+					);
+					const answer = await peerConnection.current.createAnswer();
+					await peerConnection.current.setLocalDescription(answer);
+					socket.send(JSON.stringify({
+						type: 'answer',
+						cno,
+						sdp: answer.sdp
+					}));
+				} catch (err) {
+					console.error('📡 offer 처리 중 오류:', err);
+				}
 			}
+
 
 			if (data.type === 'answer') {
 				await peerConnection.current.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: data.sdp }));
