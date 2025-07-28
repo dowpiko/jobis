@@ -143,40 +143,38 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 	const remoteVideoRef = useRef(null);
 	const peerConnection = useRef(null);
 	const websocket = useRef(null);
-	const [connected, setConnected] = useState(false);
+	const [localStreamReady, setLocalStreamReady] = useState(false);
 	const [remoteConnected, setRemoteConnected] = useState(false); // 상대 입장 여부
   const [showReminder, setShowReminder] = useState(false);
   const [showEnded, setShowEnded] = useState(false);
 	const [peerNickname, setPeerNickname] = useState('');
+	const [localStream, setLocalStream] = useState(null);
 	useEffect(() => {
-    if (!cno) return;
-    websocket.current = new WebSocket(`${SIGNALING_SERVER_URL}?cno=${cno}`);
+		if (!cno) return;
 
-		websocket.current.onopen = () => {
-				websocket.current.send(JSON.stringify({
-          type: 'join',
-          cno,
-          scheduleTime, // 🔸서버로 전달
-        }));
+		const socket = new WebSocket(`${SIGNALING_SERVER_URL}?cno=${cno}`);
+		websocket.current = socket;
+
+		socket.onopen = () => {
+			const formattedScheduleTime = new Date(scheduleTime).toISOString().slice(0, 19); // "2025-07-28T14:32:00"
+
+			socket.send(JSON.stringify({
+				type: 'join',
+				cno,
+				scheduleTime: formattedScheduleTime
+			}));
 		};
 
-		websocket.current.onmessage = async (message) => {
+		socket.onmessage = async (message) => {
 			const data = JSON.parse(message.data);
 
-			if (data.type === 'ready') {
-				await makeOffer();
-			}
+			if (data.type === 'ready') await makeOffer();
 
 			if (data.type === 'offer') {
 				await peerConnection.current.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: data.sdp }));
 				const answer = await peerConnection.current.createAnswer();
 				await peerConnection.current.setLocalDescription(answer);
-
-        websocket.current.send(JSON.stringify({
-          type: 'answer',
-          cno,
-          sdp: answer.sdp
-        }));
+				socket.send(JSON.stringify({ type: 'answer', cno, sdp: answer.sdp }));
 			}
 
 			if (data.type === 'answer') {
@@ -187,28 +185,31 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 				await peerConnection.current.addIceCandidate(new RTCIceCandidate(data.candidate));
 			}
 
-      if (data.type === 'reminder') {
-        setShowReminder(true);
-        setTimeout(() => setShowReminder(false), 2000);
-      }
+			if (data.type === 'reminder') {
+				setShowReminder(true);
+				setTimeout(() => setShowReminder(false), 2000);
+			}
 
-
-    if (data.type === 'force-exit') {
-      setShowEnded(true); // 모달 표시
-      setTimeout(() => {
-        setShowEnded(false); // 모달 숨기기
-        handleExit();
-      }, 2000);
-    }
-
+			if (data.type === 'force-exit') {
+				setShowEnded(true);
+				setTimeout(() => {
+					setShowEnded(false);
+					handleExit();
+				}, 2000);
+			}
 		};
-
-		startWebRTC();
 
 		return () => {
-			websocket.current?.close();
+			socket.close();
+			websocket.current = null;
 		};
 	}, [cno]);
+	useEffect(() => {
+		if (scheduleTime) {
+			console.log('🕒 전달받은 scheduleTime:', scheduleTime);
+		}
+	}, [scheduleTime]);
+
 	useEffect(() => {
 		if (!peerUno) return;
 
@@ -225,33 +226,48 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 
 		fetchPeerNickname();
 	}, [peerUno]);
+	useEffect(() => {
+		console.log("동료 이름: ", peerNickname);
+	}, [peerNickname]);
+
 	const startWebRTC = async () => {
-		const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-		localVideoRef.current.srcObject = localStream;
+		try {
+			const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+			setLocalStream(stream); // 상태에 저장
 
-		peerConnection.current = new RTCPeerConnection(CONFIG);
+			peerConnection.current = new RTCPeerConnection(CONFIG);
 
-		peerConnection.current.onicecandidate = (event) => {
-			if (event.candidate) {
-				websocket.current.send(JSON.stringify({
-					type: 'candidate',
-					cno,
-					candidate: event.candidate
-				}));
-			}
-		};
+			peerConnection.current.onicecandidate = (event) => {
+				if (event.candidate) {
+					websocket.current?.send(JSON.stringify({
+						type: 'candidate',
+						cno,
+						candidate: event.candidate
+					}));
+				}
+			};
 
-		peerConnection.current.ontrack = (event) => {
-			remoteVideoRef.current.srcObject = event.streams[0];
-			setRemoteConnected(true);
-		};
+			peerConnection.current.ontrack = (event) => {
+				if (remoteVideoRef.current) {
+					remoteVideoRef.current.srcObject = event.streams[0];
+				}
+				setRemoteConnected(true);
+			};
 
-		localStream.getTracks().forEach((track) => {
-			peerConnection.current.addTrack(track, localStream);
-		});
+			stream.getTracks().forEach((track) => {
+				peerConnection.current.addTrack(track, stream);
+			});
 
-		setConnected(true);
+			setLocalStreamReady(true);
+		} catch (err) {
+			console.error('장치 접근 실패:', err);
+			setLocalStreamReady(false);
+		}
 	};
+
+
+
+
 
 	const makeOffer = async () => {
 		const offer = await peerConnection.current.createOffer();
@@ -263,6 +279,14 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 			sdp: offer.sdp
 		}));
 	};
+	useEffect(() => {
+		if (localStream && localVideoRef.current) {
+			localVideoRef.current.srcObject = localStream;
+			localVideoRef.current.play?.().catch(err =>
+				console.warn('🎬 local video 재생 실패:', err)
+			);
+		}
+	}, [localStream]);
 
   const handleExit = () => {
     // 소켓 알림
@@ -276,23 +300,39 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 
     onExit?.(); // 부모에 알림
   };
-  const endCallCleanup = () => {
-    peerConnection.current?.close();
-    peerConnection.current = null;
+	const endCallCleanup = () => {
+		peerConnection.current?.close();
+		peerConnection.current = null;
 
-    if (localVideoRef.current?.srcObject) {
-      localVideoRef.current.srcObject.getTracks().forEach(track => track.stop());
-      localVideoRef.current.srcObject = null;
-    }
+		if (localVideoRef.current?.srcObject) {
+			localVideoRef.current.srcObject.getTracks().forEach(track => track.stop());
+			localVideoRef.current.srcObject = null;
+		}
+		if (remoteVideoRef.current?.srcObject) {
+			remoteVideoRef.current.srcObject.getTracks().forEach(track => track.stop());
+			remoteVideoRef.current.srcObject = null;
+		}
 
-    if (remoteVideoRef.current?.srcObject) {
-      remoteVideoRef.current.srcObject.getTracks().forEach(track => track.stop());
-      remoteVideoRef.current.srcObject = null;
-    }
+		if (localStream) {
+			localStream.getTracks().forEach(track => track.stop());
+			setLocalStream(null);
+		}
 
-    setRemoteConnected(false);
-    setConnected(false);
-  };
+		if (websocket.current) {
+			websocket.current.close();
+			websocket.current = null;
+		}
+
+		setRemoteConnected(false);
+		setLocalStreamReady(false);
+	};
+// ✅ 장치 초기화 트리거
+useEffect(() => {
+	if (cno && !localStreamReady) {
+		startWebRTC();
+	}
+}, [cno]);
+
 	return (
 		<Wrapper>
       {showReminder && <ReminderModal>⏰ 면접 종료 10분 전입니다</ReminderModal>}
@@ -300,14 +340,19 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 			<Title>📡 모의면접 진행 중</Title>
 			<VideoBox>
 				<MyVideoWrapper>
-					<Video ref={localVideoRef} autoPlay playsInline muted />
+					{localStreamReady ? (
+						<Video ref={localVideoRef} autoPlay playsInline muted />
+					) : (
+						<LoadingOverlay>📷 장치가 준비되지 않았습니다</LoadingOverlay>
+					)}
 				</MyVideoWrapper>
 				<PeerVideoWrapper>
+					<NicknameOverlay>
+						{peerNickname || '닉네임 불러오는 중...'}
+					</NicknameOverlay>
+
 					{remoteConnected ? (
-						<>
-							<NicknameOverlay>{peerNickname}</NicknameOverlay>
-							<Video ref={remoteVideoRef} autoPlay playsInline />
-						</>
+						<Video ref={remoteVideoRef} autoPlay playsInline />
 					) : (
 						<LoadingOverlay>상대방 입장 대기 중...</LoadingOverlay>
 					)}
