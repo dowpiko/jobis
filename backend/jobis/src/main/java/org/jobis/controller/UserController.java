@@ -45,6 +45,7 @@ public class UserController {
 	@ResponseBody
 	public int insertCUser(@RequestBody CUserVO cuvo) {
 		System.out.println("기업 회원가입");
+		System.out.println(cuvo);
 		return service.insertCUser(cuvo);
 	}
 	

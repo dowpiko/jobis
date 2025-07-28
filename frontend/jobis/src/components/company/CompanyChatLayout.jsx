@@ -13,7 +13,7 @@ const Wrapper = styled.div`
 
 const ChatListPanel = styled.div`
   flex: 1.3;  // 💡 대략 16% 비율에 맞게 조정
-  min-width: 200px;
+  min-width: 300px;
   padding: 10px;
   box-sizing: border-box;
   border-right: 1px solid #b0bccb;

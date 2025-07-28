@@ -5,6 +5,7 @@ import axios from 'axios';
 import { AuthContext } from '../../contexts/AuthContext';
 import logo from '../../img/SIMPLELOGO.png';
 import { SocketContext } from '../../contexts/SocketContext';
+import cogwheel from '../../img/cogwheel.png';
 
 const AppLayout = styled.div`
   display: flex;
@@ -208,10 +209,87 @@ const NotificationItem = styled.div`
   }
 `;
 
+const ProfileImg = styled.img`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid #2563EB;
+  cursor: pointer;
+`;
+
+const ImgModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ImgModalContent = styled.div`
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  max-width: 40vw;
+  max-height: 40vh;
+`;
+
+const ModalImgWrap = styled.div`
+  position: relative;
+  display: inline-block;
+`;
+
+const ModalImg = styled.img`
+  width: 220px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+`;
+
+const GearIcon = styled.img`
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 35px;
+  height: 35px;
+  cursor: pointer;
+  background: #fff;
+  border-radius: 50%;
+  padding: 3px;
+  box-shadow: 0 0 3px rgba(22, 20, 20, 0.25);
+  border: 2px solid rgba(22, 20, 20, 0.25);
+`;
+
+const ButtonRow = styled.div`
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  margin-top: 8px;
+`;
+
+const SmallBtn = styled.button`
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+
+  background: ${({ $bg = '#2563EB' }) => $bg};
+  color: ${({ $color = '#fff' }) => $color};
+
+  &:hover {
+    background: ${({ $hoverBg = '#1E4DB7' }) => $hoverBg};
+  }
+`;
+
 function CompanySidebar({ children }) {
   const navigate = useNavigate();
   const [cName, setCName] = useState('');
-  const [enpRpFnm, setEnpRpFnm] = useState('');
+  const [enpRprFnm, setEnpRprFnm] = useState('');
   const { uno, logout } = useContext(AuthContext);
   const [dbCount, setDbCount] = useState(0);
   const location = useLocation(); 
@@ -219,7 +297,10 @@ function CompanySidebar({ children }) {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const notificationRef = useRef(null);
   const [notifications, setNotifications] = useState({});
-  
+  const [profileUrl, setProfileUrl] = useState('/img/user.svg');
+  const [originalUrl, setOriginalUrl] = useState('/img/user.svg');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const fileInputRef = useRef(null);
   const display  = dbCount > 99 ? '99+' : dbCount.toString();
   const len = display.length; 
 
@@ -268,7 +349,7 @@ function CompanySidebar({ children }) {
           .then(data => {
               if (data.data) {
                 setCName(data.data.corpNm);
-                setEnpRpFnm(data.data.enpRpFnm);
+                setEnpRprFnm(data.data.enpRprFnm);
                 setDbCount(data.data.count);
 
                 if (socket && socket.readyState === WebSocket.OPEN && uno) {
@@ -345,6 +426,86 @@ function CompanySidebar({ children }) {
     navigate(`/companyChatLayout?rno=${rno}`);
   };
 
+  useEffect(() => {
+    if (!uno) return;
+
+    const fileName = `${uno}.png`;
+    const checkUrl = `/files/profile-list/UserCustom`;
+    
+    axios.get(checkUrl)
+    .then(res => {
+      const files = res.data?.files || [];
+      const match = files.find(f => f.filename === fileName);
+      console.log(files);
+        if (match) {
+          const urlWithCacheBypass = `${match.url}?t=${Date.now()}`;
+          setProfileUrl(urlWithCacheBypass);
+          setOriginalUrl(urlWithCacheBypass);
+        } else {
+          setProfileUrl('/img/user.svg');
+          setOriginalUrl('/img/user.svg');
+        }
+      })
+      .catch(() => {
+        setProfileUrl('/img/user.svg');
+        setOriginalUrl('/img/user.svg');
+      });
+    }, [uno]);
+
+  const handleSaveNickname = async () => {
+    const file = fileInputRef.current?.files[0];
+    if (!file || !uno) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('uno', uno);
+
+    try {
+      await axios.post('http://localhost:9090/files/upload/profileImage', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const updatedUrl = `/profile/${uno}.png?t=${Date.now()}`;
+      setOriginalUrl(updatedUrl);
+      setProfileUrl(updatedUrl);
+      setIsModalOpen(false);
+      alert('변경되었습니다.');
+    } catch (e) {
+      console.error('업로드 실패', e);
+      alert('이미지 저장 실패');
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.png')) {
+      alert('PNG 확장자 파일만 등록할 수 있습니다.');
+      fileInputRef.current.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setProfileUrl(event.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleOpenImg = async () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleClose = () => {
+    setProfileUrl(originalUrl);
+    setIsModalOpen(false);
+    fileInputRef.current.value = ""
+  };
+  
+  const handleClick = () => setIsModalOpen(true);
+
   return (
     <AppLayout>
       <Sidebar>
@@ -379,11 +540,12 @@ function CompanySidebar({ children }) {
           </NotificationWrapper>
 
           <ProfileInfo>
+            <ProfileImg src={profileUrl} alt={profileUrl} onClick={() => handleClick(profileUrl)}/>
             <ProfileLine>
               <strong>기업명 :</strong> <span>{cName}</span>
             </ProfileLine>
             <ProfileLine>
-              <strong>대표자명 :</strong> <span>{enpRpFnm}</span>
+              <strong>대표자명 :</strong> <span>{enpRprFnm}</span>
             </ProfileLine>
           </ProfileInfo>
 
@@ -406,6 +568,21 @@ function CompanySidebar({ children }) {
       </Sidebar>
 
       <Main>{children}</Main>
+      {isModalOpen && (
+              <ImgModalOverlay>
+                <input type="file" accept="image/png, image/jpeg" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }}/>
+                  <ImgModalContent onClick={e => e.stopPropagation()}>
+                    <ModalImgWrap>
+                      <ModalImg src={profileUrl} alt="profile large" />
+                      <GearIcon src={cogwheel} alt="settings" onClick={handleOpenImg} />
+                    </ModalImgWrap>
+                    <ButtonRow>
+                      <SmallBtn $bg="#ff8b7eff" $color="#ffffffff" $hoverBg="#ff5050ff" onClick={handleClose}>취소</SmallBtn>
+                      <SmallBtn $bg="#2563EB" $hoverBg="#777779ff" onClick={handleSaveNickname}>저장</SmallBtn>
+                    </ButtonRow>
+                  </ImgModalContent>
+                </ImgModalOverlay>
+              )}
     </AppLayout>
   );
 }

@@ -197,6 +197,8 @@ const CompanyInfo = () => {
   const [uno,setUno] =useState(null);
   const [favorite,setFavorite] = useState([]);
   const host = process.env.REACT_APP_HOST;
+  const [profileUrl, setProfileUrl] = useState('/img/user.svg');
+  
 
   useEffect(() => {
     fetch(`http://${host}:9090/getMyUno`, { credentials: 'include' }) 
@@ -282,7 +284,29 @@ const CompanyInfo = () => {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   };
 
+  useEffect(() => {
+    if (!uno) return;
 
+    const fileName = `${uno}.png`;
+    const checkUrl = `/files/profile-list/UserCustom`;
+    
+    axios.get(checkUrl)
+    .then(res => {
+      const files = res.data?.files || [];
+      const match = files.find(f => f.filename === fileName);
+      console.log(fileName);
+        if (match) {
+          const urlWithCacheBypass = `${match.url}?t=${Date.now()}`;
+          setProfileUrl(urlWithCacheBypass);
+        } else {
+          setProfileUrl('/img/user.svg');
+        }
+      })
+      .catch(() => {
+        setProfileUrl('/img/user.svg');
+      });
+    }, [uno]);
+    
   return (
     <Page>
       <Content>
@@ -315,7 +339,7 @@ const CompanyInfo = () => {
                   >
                     {favorite.includes(o.ono) ? '★' : '☆'}
                   </ScrapButton>
-                  <CardImage src={o.profileImage} />
+                  <CardImage src={`/profile/${(o.uno)}.png`} />
                 </CardImageWrapper>
                 <CardContent>
                   <CorpName>{o.corpName}</CorpName>

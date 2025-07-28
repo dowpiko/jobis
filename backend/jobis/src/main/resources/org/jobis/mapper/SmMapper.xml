@@ -19,10 +19,25 @@
 		  INSERT INTO TBL_USER (UNO, ID, PW, EMAIL, AUTH)
 		  VALUES (#{uno}, #{id}, #{pw}, #{email}, 'company');
 		
-		  INSERT INTO TBL_CINFO VALUES (
-		    #{uno}, #{corpNm}, #{bzno}, #{enpRprFnm}, #{enpBsadr}, #{sicNm}, #{enpEmpeCnt}
-		  );
-	  END;
+		  INSERT INTO TBL_CINFO (
+				  UNO,
+				  CORPNM,
+				  BZNO,
+				  ENPRPRFNM,
+				  ENPBSADR,
+				  SICNM,
+				  ENPEMPECNT
+				)
+				VALUES (
+				  #{uno},
+				  #{corpNm},
+				  #{bzno},
+				  #{enpRprFnm},
+				  #{enpBsadr},
+				  #{sicNm},
+				  #{enpEmpeCnt}
+				);
+	  		END;
 	</insert>
 	
 	<!-- 면접 공고 등록 -->

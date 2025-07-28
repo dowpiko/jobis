@@ -136,7 +136,7 @@ const SignUpCmp = () => {
   const [crno, setCrno] = useState('');                           // 법인번호
   const [corpNm, setCorpNm] = useState('');                       // 법인명
   const [bzno, setBzno] = useState('');                           // 사업자등록번호
-  const [enpRpFnm, setEnpRpFnm] = useState('');                   // 법인 대표자명
+  const [enpRprFnm, setEnpRprFnm] = useState('');                 // 법인 대표자명
   const [enpBsadr, setEnpBsadr] = useState('');                   // 법인 주소
   const [sicNm, setSicNm] = useState('');                         // 업종명
   const [enpEmpeCnt, setEnpEmpeCnt] = useState('');               // 종업원 수
@@ -195,10 +195,10 @@ const SignUpCmp = () => {
       return;
     }
     try {
-      const res = await axios.get('http://localhost:9090/checkComp', {
+      const res = await axios.get('http://localhost:9090/user/checkComp', {
         params: { crno: crno },
       });
-      
+      console.log(res);
       const data = res.data;
       const item = data.response?.body?.items?.item?.[0];
       
@@ -206,7 +206,7 @@ const SignUpCmp = () => {
         setCrno(item.crno);
         setCorpNm(item.corpNm);
         setBzno(item.bzno);
-        setEnpRpFnm(item.enpRpFnm);
+        setEnpRprFnm(item.enpRprFnm);
         setEnpBsadr(item.enpBsadr);
         setSicNm(item.sicNm);
         setEnpEmpeCnt(item.enpEmpeCnt);
@@ -225,7 +225,7 @@ const SignUpCmp = () => {
     setIsCrno(false);
     setCorpNm('');
     setBzno('');
-    setEnpRpFnm('');
+    setEnpRprFnm('');
     setEnpBsadr('');
     setSicNm('');
     setEnpEmpeCnt('');
@@ -296,10 +296,10 @@ const SignUpCmp = () => {
       return;
     }
 
-    if (!email.trim() || !emailVerified) {
-      alert("이메일 인증을 완료해주세요.");
-      return;
-    }
+    // if (!email.trim() || !emailVerified) {
+    //   alert("이메일 인증을 완료해주세요.");
+    //   return;
+    // }
 
     try {
       const res = await axios.post('http://localhost:9090/user/insertCUser', {
@@ -309,13 +309,14 @@ const SignUpCmp = () => {
         crno: crno,
         corpNm: corpNm,
         bzno: bzno,
-        enpRpFnm: enpRpFnm,
+        enpRprFnm: enpRprFnm,
         enpBsadr: enpBsadr,
         sicNm: sicNm,
         enpEmpeCnt: enpEmpeCnt
       });
       if (res.status === 200) {
         alert("회원가입 성공");
+        navigate('/');
       } else {
         alert("회원가입 실패");
       }
@@ -391,7 +392,7 @@ const SignUpCmp = () => {
 
         <InputGroup>
           <Label>법인대표자명</Label>
-          <Input type="text" placeholder='※법인번호 확인 시 자동 등록※' value={enpRpFnm} readOnly/>
+          <Input type="text" placeholder='※법인번호 확인 시 자동 등록※' value={enpRprFnm} readOnly/>
         </InputGroup>
 
         <InputGroup>
