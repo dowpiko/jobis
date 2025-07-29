@@ -10,21 +10,6 @@ import categories from '../../data/categories';
 import VideoChatModal from './VideoChatModal';
 import axios from 'axios';
 
-const TagSelect = styled.select`
-  padding: 8px 12px;
-  border: 1px solid #b0bccb;
-  border-radius: 6px;
-  background-color: #e6f0ff;
-  color: #1f3a93;
-  font-weight: bold;
-  appearance: none;
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-    border-color: #1f3a93;
-  }
-`;
 
 const InfoNotice = styled.p`
   color: #6b7280;
@@ -41,20 +26,58 @@ const Wrapper = styled.div`
   background-color: #f8f9fa;
   font-family: sans-serif;
 `;
-const TitleInputWrapper = styled.div`       
+const TitleInputWrapper = styled.div`
   display: flex;
-  margin-bottom: 10px;
- 
-`; 
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  width: 100%;
+`;
 
-const SuffixInput = styled.input`          
+const TagAndInputGroup = styled.div`
+  display: flex;
+  height: 44px;
+  flex: 1;
+`;
+
+const TagSelect = styled.select`
+  width: 100px;
+  padding: 0 10px;
+  border: 1px solid #b0bccb;
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  background-color: #e6f0ff;
+  color: #1f3a93;
+  font-weight: bold;
+  appearance: none;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: #1f3a93;
+  }
+`;
+
+const SuffixInput = styled.input`
   flex: 1;
   border: 1px solid #b0bccb;
   border-left: none;
   border-radius: 0 6px 6px 0;
-  padding: 8px 10px;
+  padding: 0 12px;
   font-size: 14px;
   color: #1f2a37;
+`;
+
+const StyledDatePicker = styled(DatePicker).withConfig({
+  shouldForwardProp: (prop) => !['blur'].includes(prop),
+})`
+  height: 44px;
+  padding: 0 12px;
+  font-size: 14px;
+  border: 1px solid #b0bccb;
+  border-radius: 6px;
+  flex: 1;
+  min-width: 160px;
 `;
 
 const Container = styled.div`
@@ -82,7 +105,7 @@ const Title = styled.h3`
 
 const ChatBox = styled.div`
   flex: 1;
-  max-height: 630px;     // ✅ 스크롤 제한 높이 추가
+  max-height: 650px;     // ✅ 스크롤 제한 높이 추가
   overflow-y: auto;
   padding-bottom: 10px;
   border: 1px solid #ccc; // (선택) 시각적으로 구분
@@ -147,34 +170,19 @@ const InputSection = styled.div`
 `;
 
 const SendButton = styled.button`
-  padding: 8px 16px;         
+  height: 44px;
+  padding: 0 14px;
   background-color: #5c8bc4;
   color: white;
   font-size: 14px;
   border: none;
   border-radius: 6px;
+  white-space: nowrap;
   cursor: pointer;
-  white-space: nowrap;       
-  height: 52px;             
-`;
 
-const StyledDatePicker = styled(DatePicker).withConfig({
-  shouldForwardProp: (prop) =>
-    !['blur'].includes(prop),
-})`
-  flex: 1;
-  width: 100%;
-  height: 34px;
-  padding: 8px 10px;
-  font-size: 14px;
-  border: 1px solid #b0bccb;
-  border-radius: 6px;
-`;
-
-const DateRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  &:hover {
+    background-color: #4673a9;
+  }
 `;
 
 const slideDown = keyframes`
@@ -465,37 +473,49 @@ const DiscordPage = () => {
 
   // 알람 useEffect
   useEffect(() => {
-  const checkUpcoming = () => {
-    const now = new Date();
-    const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+    const checkUpcoming = () => {
+      const now = new Date();
 
-    const upcoming = allMyChats.filter(chat => {
-      return (
-        chat.sch_date > now &&
-        chat.sch_date <= oneHourLater &&
-        chat.member &&                       // 같이 할 사람 있을때만
-        !alertedCnos.has(chat.cno)   
-      );
-    });
+      const upcoming = allMyChats.filter(chat => {
+        if (!chat.member) return false;
 
-    if (upcoming.length > 0) {
-      upcoming.forEach(chat => {
-        setBannerChat(chat);
-        setAlertedCnos(prev => {
-          const newSet = new Set(prev);
-          newSet.add(chat.cno);
-          return newSet;
-        });
+        const start = new Date(chat.sch_date.getTime() - 30 * 60 * 1000); // 30분 전
+        const end = new Date(chat.sch_date.getTime() + 60 * 60 * 1000);  // 1시간 후
+
+        return now >= start && now <= end && !alertedCnos.has(chat.cno);
       });
-    }
-  };
 
-  checkUpcoming(); 
+  if (upcoming.length > 0) {
+    upcoming.forEach(chat => {
+      console.log("📢 알림 띄움:", chat.r_title, chat.sch_date.toLocaleString());
+      setBannerChat(chat);
+      setAlertedCnos(prev => {
+        const newSet = new Set(prev);
+        newSet.add(chat.cno);
+        return newSet;
+      });
+    });
+  } else if (
+    bannerChat &&
+    (now < new Date(bannerChat.sch_date.getTime() - 30 * 60 * 1000) ||
+    now > new Date(bannerChat.sch_date.getTime() + 60 * 60 * 1000))
+  ) {
+    console.log('🔕 알림 닫힘 (시간 벗어남)');
+    setBannerChat(null);
+  }
 
-  const interval = setInterval(checkUpcoming, 60000);
+    };
 
-  return () => clearInterval(interval);
-}, [allMyChats, alertedCnos]);
+    checkUpcoming();
+
+    const interval = setInterval(checkUpcoming, 10000); // 10초마다 체크
+
+    return () => clearInterval(interval);
+  }, [allMyChats, alertedCnos]);
+
+  useEffect(() => {
+    console.log('👁 bannerChat changed:', bannerChat);
+  }, [bannerChat]);
 
 
   const handleCreateChat = () => {
@@ -716,16 +736,16 @@ useEffect(() => {
   return (  
     
      <Wrapper>
-      {bannerChat && (
-        <NotificationBanner>
-          <NotificationTitle>
-            {bannerChat.r_title} |{' '}
-            {bannerChat.sch_date.toLocaleDateString('ko-KR')} {bannerChat.sch_date.toLocaleTimeString('ko-KR')}
-          </NotificationTitle>
-          <NotificationButton onClick={() => setShowVideoModal(true)}>참여</NotificationButton>
-          <NotificationButton onClick={() => setBannerChat(null)}>닫기</NotificationButton>
-        </NotificationBanner>
-      )}
+    {bannerChat && (
+      <NotificationBanner>
+        <NotificationTitle>
+          {bannerChat.r_title} |{' '}
+          {bannerChat.sch_date.toLocaleDateString('ko-KR')} {bannerChat.sch_date.toLocaleTimeString('ko-KR')}
+        </NotificationTitle>
+        <NotificationButton onClick={() => setShowVideoModal(true)}>참여</NotificationButton>
+        <NotificationButton onClick={() => setBannerChat(null)}>닫기</NotificationButton>
+      </NotificationBanner>
+    )}
       {!hasProfile && (
         <BlurOverlay>
           ⚠️ 먼저 프로필을 생성해야 면접 일정에 참여할 수 있습니다.
@@ -819,10 +839,9 @@ useEffect(() => {
             );
           })}
         </ChatBox>
-
-
         <InputSection>
-           <TitleInputWrapper>                                          
+          <TitleInputWrapper>
+          <TagAndInputGroup>
             <TagSelect
               value={selectedSub}
               onChange={e => setSelectedSub(e.target.value)}
@@ -833,52 +852,52 @@ useEffect(() => {
                 </option>
               ))}
             </TagSelect>
+
             <SuffixInput
-              placeholder="제목을 입력하세요"                            
-              value={titleSuffix}                                      
-              onChange={e => setTitleSuffix(e.target.value)}          
+              placeholder="제목을 입력하세요"
+              value={titleSuffix}
+              onChange={e => setTitleSuffix(e.target.value)}
             />
-          </TitleInputWrapper>  
+          </TagAndInputGroup>
+
+          <StyledDatePicker
+            selected={selectedDate}
+            onChange={handleDateChange}
+            placeholderText="날짜 선택"
+            dateFormat="yyyy-MM-dd HH:mm"
+            minDate={new Date()}
+            maxDate={new Date(new Date().setMonth(new Date().getMonth() + 1))}
+            filterTime={(time) => {
+              const now = new Date();
+              const sixHoursLater = new Date(now.getTime() + 6 * 60 * 60 * 1000);
+              const isAfterSixHours = time.getTime() >= sixHoursLater.getTime();
+              const isNotConflicting = !blockedIntervals.some(({ start, end }) => time >= start && time <= end);
+              return isAfterSixHours && isNotConflicting;
+            }}
+            showTimeSelect
+            timeIntervals={30}
+            timeFormat="HH:mm"
+            locale={ko}
+            timeCaption="시간"
+          />
+
+          {isBlocked ? (
+            <PenaltyNotice>
+              '{formattedUntil}'까지 모의면접 생성, 참여가 불가능합니다.
+            </PenaltyNotice>
+          ) : (
+            <SendButton onClick={handleCreateChat}>모집하기</SendButton>
+          )}
+        </TitleInputWrapper>
+
           <InfoNotice>
-            ※ 모의 면접 일정의 생성은 지금부터 <strong>6시간 이후</strong>의 시간만 가능합니다.<br/>
-            또한 상대가 있는 24시간 이내의 일정을 취소할 시 {""} 
+            ※ 모의 면접 일정의 생성은 지금부터 <strong>6시간 이후</strong>의 시간만 가능합니다.<br />
+            또한 상대가 있는 24시간 이내의 일정을 취소할 시{' '}
             <strong style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setShowPenaltyInfo(true)}>
-               패널티
+              패널티
             </strong>
             가 부여됩니다.
           </InfoNotice>
-          <DateRow>
-            <StyledDatePicker
-              selected={selectedDate}
-              onChange={handleDateChange}
-              placeholderText="날짜 선택"
-              dateFormat="yyyy-MM-dd HH:mm"
-              minDate={new Date()}
-              maxDate={new Date(new Date().setMonth(new Date().getMonth() + 1))} // 한 달 제한
-              filterTime={(time) => {
-                const now = new Date();
-                const sixHoursLater = new Date(now.getTime() + 6 * 60 * 60 * 1000);
-
-                const isAfterSixHours = time.getTime() >= sixHoursLater.getTime();
-                const isNotConflicting = !blockedIntervals.some(({ start, end }) => time >= start && time <= end);
-
-                return isAfterSixHours && isNotConflicting;
-              }}
-              showTimeSelect
-              timeIntervals={30}
-              timeFormat="HH:mm"
-              locale={ko}
-              timeCaption="시간"
-            />
-              {isBlocked ? (
-                <PenaltyNotice>
-                  '{formattedUntil}'까지 모의면접 생성, 참여가 불가능합니다.
-                </PenaltyNotice>
-              ) : (
-                <SendButton onClick={handleCreateChat}>모집하기</SendButton>
-              )}
-            
-          </DateRow>
         </InputSection>
 
         {showModal && (
@@ -888,6 +907,7 @@ useEffect(() => {
             onConfirm={handleOnConfirm}
           />
         )}
+        
         {showVideoModal && (
           <VideoChatModal
             cno={bannerChat?.cno}
@@ -901,9 +921,10 @@ useEffect(() => {
             onExit={() => setShowVideoModal(false)}
           />
         )}
+
         {showPenaltyInfo && (
-        <PenaltyInfoModal penalty={penalty} onClose={() => setShowPenaltyInfo(false)} />
-      )}
+          <PenaltyInfoModal penalty={penalty} onClose={() => setShowPenaltyInfo(false)} />
+        )}
       </Container>
     </Wrapper>
   );

@@ -741,9 +741,9 @@ function UserSidebar({ children }) {
           </MenuScroll>
 
           <Footer>
-            <FooterLink href="#">개인정보처리방침</FooterLink>
+            <FooterLink>개인정보처리방침</FooterLink>
             <FooterDivider>|</FooterDivider>
-            <FooterLink href="#">이용약관</FooterLink>
+            <FooterLink>이용약관</FooterLink>
           </Footer>
         </ScrollContainer>
       </Sidebar>

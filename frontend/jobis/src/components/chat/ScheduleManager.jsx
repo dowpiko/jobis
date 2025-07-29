@@ -360,7 +360,7 @@ const handleDelete = async (event) => {
       <Page>
         <Container>
           <Section>
-            <SectionTitle>날짜 관리</SectionTitle>
+            <SectionTitle> 날짜 관리</SectionTitle>
             <CalendarContainer>
               <FullCalendar
                 dayMaxEvents={1}
@@ -393,7 +393,7 @@ const handleDelete = async (event) => {
           <Divider />
 
           <Section>
-            <SectionTitle>일정 관리</SectionTitle>
+            <SectionTitle> {currentMonth + 1}월 일정 관리</SectionTitle>
             <ScheduleList>
               {scheduleData
                 .filter(event => {
