@@ -1,15 +1,20 @@
-import React, { useEffect, useState, useRef, useMemo, useContext, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
 import DatePicker from 'react-datepicker'; // 날짜 선택
 import { ko } from 'date-fns/locale';    // 달력 한글로 만들기
 import 'react-datepicker/dist/react-datepicker.css';
 import JoinInterviewModal from '../modal/JoinInterviewModal';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import categories from '../../data/categories';  
 import VideoChatModal from './VideoChatModal';
-import { AuthContext } from '../../contexts/AuthContext';
 import axios from 'axios';
 
+const InfoNotice = styled.p`
+  color: #6b7280;
+  font-size: 13px;
+  margin-bottom: 8px;
+  margin-top: 4px;
+`;
 
 const Wrapper = styled.div`
   display: flex;
@@ -66,22 +71,11 @@ const Title = styled.h3`
   margin: 0;
 `;
 
-const JoinButton = styled.button`
-  background-color: #5c8bc4;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  font-size: 13px;
-  border-radius: 6px;
-  cursor: pointer;
-  &:hover {
-    background-color: #4376b6;
-  }
-`;
+
 
 const ChatBox = styled.div`
   flex: 1;
-  max-height: 650px;     // ✅ 스크롤 제한 높이 추가
+  max-height: 610px;     // ✅ 스크롤 제한 높이 추가
   overflow-y: auto;
   padding-bottom: 10px;
   border: 1px solid #ccc; // (선택) 시각적으로 구분
@@ -300,7 +294,6 @@ const DiscordPage = () => {
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
   const socketRef = useRef(null);
-  const navigate = useNavigate();
 
   const refreshMySchedules = () => {
     fetch(`http://${host}:9090/getUserChat`, { credentials: 'include' })
@@ -345,6 +338,7 @@ const DiscordPage = () => {
     if (subList.length > 0) setSelectedSub(subList[0].name);
     else setSelectedSub('');
   }, [category, subList]);
+  
 
 
   const fetchChatList = () => {
@@ -550,7 +544,7 @@ const DiscordPage = () => {
   refreshMySchedules();
 
 };
-
+ 
 
 
 const handleOnConfirm = () => {
@@ -666,6 +660,7 @@ useEffect(() => {
         }];
         return updatedChatList.sort((a, b) => a.r_regdate - b.r_regdate);
       });
+      refreshMySchedules();
     }
 
   } catch (e) {
@@ -685,12 +680,6 @@ useEffect(() => {
   };
 }, [category, myUno]);  
 
-  // 화상채팅 참여
-  const handleJoin = () => {
-      const handleJoin = () => {
-        setShowVideoModal(true);
-      };
-  };
 
   // 사진 
   const fetchLeaderProfile = useCallback(async (uno) => {
@@ -719,10 +708,8 @@ useEffect(() => {
     });
   }, [visibleChats, fetchLeaderProfile, photoNum]);
 
-
-
   
-  return (
+  return (  
     
      <Wrapper>
       {bannerChat && (
@@ -740,11 +727,9 @@ useEffect(() => {
           ⚠️ 먼저 프로필을 생성해야 면접 일정에 참여할 수 있습니다.
         </BlurOverlay>
       )}
-
       <Container>
         <Header>
           <Title>태그 : {category}</Title>
-          <JoinButton onClick={handleJoin}>회의 참여</JoinButton>
         </Header>
         <ChatBox ref={scrollRef} onScroll={handleScroll}> {/* ✅ 스크롤 감지 */}
           {visibleChats.map((chat) => {
@@ -777,7 +762,7 @@ useEffect(() => {
                     {!isMine && (() => {
                       const timeDiff = chat.sch_date.getTime() - now.getTime();
                       const isPast = chat.sch_date < now;
-                      const isWithinOneDay = timeDiff <= 24 * 60 * 60 * 1000;
+                      const isWithinSixHours  = timeDiff <= 6 * 60 * 60 * 1000;
 
                       if (isPast) {
                         return <span style={{ marginLeft: '10px', color: 'gray' }}>지난 일정입니다</span>;
@@ -785,36 +770,44 @@ useEffect(() => {
                         return <span style={{ marginLeft: '10px', color: 'red' }}>패널티로 인해 참여가 불가능합니다</span>;
                       } else if (chat.member) {
                         return <span style={{ marginLeft: '10px', color: 'red' }}>인원이 꽉 찼습니다</span>;
-                      } else if (isWithinOneDay) {
+                      } else if (isWithinSixHours) {
                         return <span style={{ marginLeft: '10px', color: 'gray' }}>모의면접 하루 전부터는 참여가 불가합니다</span>;
-                      } else {
-                        return (
-                          <ActionButton
-                            onClick={() => {
-                              const nowReal = new Date(); // 💥 클릭 시점 기준으로 다시 검증
-                              const diff = chat.sch_date.getTime() - nowReal.getTime();
-                              
-                              if (chat.sch_date < nowReal) {
-                                alert('이미 지난 일정입니다. 참여할 수 없습니다.');
-                                return;
-                              }
-                              if (diff <= 24 * 60 * 60 * 1000) {
-                                alert('모의면접 하루 전부터는 참여가 불가능합니다.');
-                                return;
-                              }
-                              if (isConflict(chat.sch_date)) {
-                                alert('⚠ 이미 일정에 겹치는 시간대가 있습니다.\n해당 방에 참여할 수 없습니다.');
-                                return;
-                              }
+                      }else if (isConflict(chat.sch_date)) {
+                          return <span style={{ marginLeft: '10px', color: 'gray' }}>
+                            ⚠ 다른 일정과 시간이 겹칩니다
+                          </span>;
+                        } else {
+                                return (
+                              <ActionButton
+                                onClick={() => {
+                                  const nowReal = new Date(); // 2중으로 막아버리기
+                                  const diff = chat.sch_date.getTime() - nowReal.getTime();
+                                  
+                                  if (chat.sch_date < nowReal) {
+                                    alert('이미 지난 일정입니다. 참여할 수 없습니다.');
+                                    return;
+                                  }
+                                  if (diff <= 6 * 60 * 60 * 1000) {
+                                    alert('모의면접 6시간 전부터는 참여가 불가능합니다.');
+                                    return;
+                                  }
+                                  if (isConflict(chat.sch_date)) {
+                                    alert('⚠ 이미 일정에 겹치는 시간대가 있습니다.\n해당 방에 참여할 수 없습니다.');
+                                    return;
+                                  }
+                                  if (isConflict(chat.sch_date)) {
+                                    alert('⚠ 이미 일정에 겹치는 시간대가 있습니다.\n해당 방에 참여할 수 없습니다.');
+                                    return;
+                                  }
 
-                              setSelectedChat(chat);
-                              setShowModal(true);
-                            }}
-                          >
-                            참가
-                          </ActionButton>
-                        );
-                      }
+                                  setSelectedChat(chat);
+                                  setShowModal(true);
+                                }}
+                              >
+                                참가
+                              </ActionButton>
+                            );
+                          }
                     })()}
                   </MeetingInfo>
                 </BubbleContainer>
@@ -823,7 +816,9 @@ useEffect(() => {
           })}
         </ChatBox>
 
+
         <InputSection>
+        
          <InputRow>
             <select
               value={selectedSub}
@@ -848,7 +843,10 @@ useEffect(() => {
               onChange={e => setTitleSuffix(e.target.value)}          
             />
           </TitleInputWrapper>  
-
+          <InfoNotice>
+            ※ 모의 면접 일정의 생성은 지금부터 <strong>6시간 이후</strong>의 시간만 가능합니다.<br/>
+            또한 상대가 있는 24시간 이내의 일정을 취소할 시 패널티가 부여됩니다.
+          </InfoNotice>
           <DateRow>
             <StyledDatePicker
               selected={selectedDate}
@@ -856,17 +854,15 @@ useEffect(() => {
               placeholderText="날짜 선택"
               dateFormat="yyyy-MM-dd HH:mm"
               minDate={new Date()}
-              maxDate={new Date(new Date().setMonth(new Date().getMonth() + 1))} // ✅ 한달 이내로 제한
+              maxDate={new Date(new Date().setMonth(new Date().getMonth() + 1))} // 한 달 제한
               filterTime={(time) => {
-                  const now = new Date();
-                  const selectedDay = selectedDate || new Date();
-                  const isToday = selectedDay.toDateString() === now.toDateString();
+                const now = new Date();
+                const sixHoursLater = new Date(now.getTime() + 6 * 60 * 60 * 1000);
 
-                  if (isToday) {
-                      return time.getTime() >= now.getTime() &&
-                          !blockedIntervals.some(({ start, end }) => time >= start && time <= end);
-                  }
-                  return !blockedIntervals.some(({ start, end }) => time >= start && time <= end);
+                const isAfterSixHours = time.getTime() >= sixHoursLater.getTime();
+                const isNotConflicting = !blockedIntervals.some(({ start, end }) => time >= start && time <= end);
+
+                return isAfterSixHours && isNotConflicting;
               }}
               showTimeSelect
               timeIntervals={30}
