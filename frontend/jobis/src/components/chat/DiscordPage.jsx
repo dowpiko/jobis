@@ -4,10 +4,27 @@ import DatePicker from 'react-datepicker'; // 날짜 선택
 import { ko } from 'date-fns/locale';    // 달력 한글로 만들기
 import 'react-datepicker/dist/react-datepicker.css';
 import JoinInterviewModal from '../modal/JoinInterviewModal';
+import PenaltyInfoModal from '../modal/PenaltyInfoModal';
 import { useLocation } from 'react-router-dom';
 import categories from '../../data/categories';  
 import VideoChatModal from './VideoChatModal';
 import axios from 'axios';
+
+const TagSelect = styled.select`
+  padding: 8px 12px;
+  border: 1px solid #b0bccb;
+  border-radius: 6px;
+  background-color: #e6f0ff;
+  color: #1f3a93;
+  font-weight: bold;
+  appearance: none;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: #1f3a93;
+  }
+`;
 
 const InfoNotice = styled.p`
   color: #6b7280;
@@ -27,18 +44,8 @@ const Wrapper = styled.div`
 const TitleInputWrapper = styled.div`       
   display: flex;
   margin-bottom: 10px;
+ 
 `; 
-
-const PrefixInput = styled.input`          
-  flex: 0 0 auto;
-  background-color: #f0f0f0;
-  border: 1px solid #b0bccb;
-  border-radius: 6px 0 0 6px;
-  padding: 8px 10px;
-  font-size: 14px;
-  color: #444;
-  cursor: default;
-`;
 
 const SuffixInput = styled.input`          
   flex: 1;
@@ -75,7 +82,7 @@ const Title = styled.h3`
 
 const ChatBox = styled.div`
   flex: 1;
-  max-height: 610px;     // ✅ 스크롤 제한 높이 추가
+  max-height: 630px;     // ✅ 스크롤 제한 높이 추가
   overflow-y: auto;
   padding-bottom: 10px;
   border: 1px solid #ccc; // (선택) 시각적으로 구분
@@ -137,10 +144,6 @@ const ActionButton = styled.button`
 const InputSection = styled.div`
   padding: 16px 0;
   border-top: 1px solid #dcdcdc;
-`;
-
-const InputRow = styled.div`
-  margin-bottom: 10px;
 `;
 
 const SendButton = styled.button`
@@ -290,6 +293,7 @@ const DiscordPage = () => {
   const hasProfile = localStorage.getItem('hasProfile') === 'true';
   const [photoNum,setPhotoNum] = useState({});
   const [nicknameMap, setNicknameMap] = useState({});
+  const [showPenaltyInfo, setShowPenaltyInfo] = useState(false);
 
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
@@ -818,25 +822,17 @@ useEffect(() => {
 
 
         <InputSection>
-        
-         <InputRow>
-            <select
+           <TitleInputWrapper>                                          
+            <TagSelect
               value={selectedSub}
               onChange={e => setSelectedSub(e.target.value)}
-              /* ... 스타일 ... */
             >
               {subList.map(sub => (
                 <option key={sub.name} value={sub.name}>
                   {sub.name}
                 </option>
               ))}
-            </select>
-          </InputRow>
-           <TitleInputWrapper>                                          
-            <PrefixInput
-              readOnly
-              value={`[${selectedSub}]`}                              
-            />
+            </TagSelect>
             <SuffixInput
               placeholder="제목을 입력하세요"                            
               value={titleSuffix}                                      
@@ -845,7 +841,11 @@ useEffect(() => {
           </TitleInputWrapper>  
           <InfoNotice>
             ※ 모의 면접 일정의 생성은 지금부터 <strong>6시간 이후</strong>의 시간만 가능합니다.<br/>
-            또한 상대가 있는 24시간 이내의 일정을 취소할 시 패널티가 부여됩니다.
+            또한 상대가 있는 24시간 이내의 일정을 취소할 시 {""} 
+            <strong style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setShowPenaltyInfo(true)}>
+               패널티
+            </strong>
+            가 부여됩니다.
           </InfoNotice>
           <DateRow>
             <StyledDatePicker
@@ -901,6 +901,9 @@ useEffect(() => {
             onExit={() => setShowVideoModal(false)}
           />
         )}
+        {showPenaltyInfo && (
+        <PenaltyInfoModal penalty={penalty} onClose={() => setShowPenaltyInfo(false)} />
+      )}
       </Container>
     </Wrapper>
   );
