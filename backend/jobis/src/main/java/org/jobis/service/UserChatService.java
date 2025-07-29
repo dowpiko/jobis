@@ -7,6 +7,7 @@ import org.jobis.domain.CJSVO;
 import org.jobis.domain.CompanyOfferDTO;
 import org.jobis.domain.FavDTO;
 import org.jobis.domain.PenaltyVO;
+import org.jobis.domain.ProfileVO;
 import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,9 @@ public interface UserChatService {
 	
 	//member삭제하기
 	public void leaveChatAsMember(int cno);
+	
+	//uno로 프로필 접근하기
+	public ProfileVO getProfileByUno(int uno);
 	
 	//----------------여기부터는 기업공고정보 페이지-----------------------------
 	
