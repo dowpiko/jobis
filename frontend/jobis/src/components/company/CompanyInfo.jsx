@@ -26,7 +26,7 @@ const ListSection = styled.div`
   display: flex;
   flex-direction: column;
   overflow-y: auto;      /* 이 영역만 세로 스크롤 발생 */
-  padding-bottom: 16px;  /* 버튼 안 가리게 여유 */
+  padding-bottom: 10px;  /* 버튼 안 가리게 여유 */
 `;
 const Page = styled.div`
   display: flex;
@@ -182,7 +182,7 @@ const LoadMoreButton = styled.button`
 `;
 
 const DateLabel = styled.div`
-  font-size: 11px;
+  font-size: 15px;
   color: #666;
   align-self: flex-end;   /* 우측 정렬 */
   margin-top: 4px;
@@ -277,10 +277,22 @@ const CompanyInfo = () => {
     navigate('/applyNotice', { state: { ono } });
   };
 
-  const formatDate = (timestamp) => {
+  const getDday = (timestamp) => {
     if (!timestamp) return '-';
-    const date = new Date(timestamp);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+    const MS_PER_DAY = 1000 * 60 * 60 * 24;
+    const target = new Date(timestamp);
+    const today  = new Date();
+
+    // 00:00 기준으로 맞춰서 순수 일수 차이 계산
+    target.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.round((target - today) / MS_PER_DAY);
+
+    if (diffDays > 0)  return `D-${diffDays}`;       // 미래
+    if (diffDays === 0) return 'D-Day';             // 당일
+    return `D+${Math.abs(diffDays)}`;               // 과거
   };
 
   useEffect(() => {
@@ -362,7 +374,7 @@ const CompanyInfo = () => {
                   <CorpName>{o.corpName}</CorpName>
                   <CategoryBadge>{o.category}</CategoryBadge>
                   <PostingName>{o.title}</PostingName>
-                  <DateLabel>마감 : {formatDate(o.o_activedays)}</DateLabel>
+                  <DateLabel>{getDday(o.o_activedays)}</DateLabel>
                 </CardContent>
               </CompanyCard>
             ))}
