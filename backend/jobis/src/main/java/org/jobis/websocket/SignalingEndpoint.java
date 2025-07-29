@@ -8,9 +8,6 @@ import org.jobis.domain.SignalingMessage;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -22,8 +19,6 @@ public class SignalingEndpoint {
     // cno별로 참가 세션 리스트를 관리
     private static final Map<String, List<Session>> channels = new ConcurrentHashMap<>();
     private static final ObjectMapper mapper = new ObjectMapper();
-    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
-    private static final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     @OnOpen
     public void onOpen(Session session) {
@@ -41,50 +36,6 @@ public class SignalingEndpoint {
 	            List<Session> room = channels.get(cno);
 	            room.add(session);
 	            System.out.println("채널 합류 " + cno + " (members: " + room.size() + "명)");
-	
-	            if (room.size() == 1) {
-	                try {
-	                    LocalDateTime start = LocalDateTime.parse(msg.getScheduleTime(), fmt);
-	                    LocalDateTime end          = start.plusMinutes(60);
-	                    LocalDateTime reminderTime = end.minusSeconds(30);
-	                    LocalDateTime exitTime     = end.plusMinutes(1);
-	
-	                    long delayReminder = Duration.between(LocalDateTime.now(), reminderTime).toMillis();
-	                    long delayExit     = Duration.between(LocalDateTime.now(), exitTime).toMillis();
-	
-	                    // 1초마다 남은 시간 로그
-	                    ScheduledFuture<?> logFuture = scheduler.scheduleAtFixedRate(() -> {
-	                        long secsLeft = Duration.between(LocalDateTime.now(), reminderTime).getSeconds();
-	                        System.out.println("[Timer] 리마인더까지 남은 시간: " + Math.max(secsLeft, 0) + "초");
-	                    }, 0, 1, TimeUnit.SECONDS);
-	
-	                    // 리마인더 스케줄 (30초 전)
-	                    if (delayReminder > 0) {
-	                        scheduler.schedule(() -> {
-	                            // 로깅 중단
-	                            logFuture.cancel(false);
-	                            // 리마인더 전송
-	                            broadcast(cno, SignalingMessage.builder()
-	                                .type("reminder")
-	                                .cno(cno)
-	                                .build());
-	                        }, delayReminder, TimeUnit.MILLISECONDS);
-	                    }
-	
-	                    // 강제 종료 스케줄 (종료 1분 후)
-	                    if (delayExit > 0) {
-	                        scheduler.schedule(() -> {
-	                            broadcast(cno, SignalingMessage.builder()
-	                                .type("force-exit")
-	                                .cno(cno)
-	                                .build());
-	                        }, delayExit, TimeUnit.MILLISECONDS);
-	                    }
-	
-	                } catch (Exception e) {
-	                    System.err.println("스케줄링 오류: " + e.getMessage());
-	                }
-	            }
 	            break;
 
 
@@ -126,21 +77,5 @@ public class SignalingEndpoint {
                 }
             }
         }
-    }
-
-    // raw가 아니라, SignalingMessage 빌더를 쓰고 싶을 때
-    private void broadcast(String cno, SignalingMessage msg) {
-        String txt;
-        try {
-            txt = mapper.writeValueAsString(msg);
-        } catch (IOException e) {
-            return;
-        }
-        channels.getOrDefault(cno, Collections.emptyList()).forEach(s -> {
-            if (s.isOpen()) {
-                try { s.getBasicRemote().sendText(txt); }
-                catch (IOException ignored) {}
-            }
-        });
     }
 }
