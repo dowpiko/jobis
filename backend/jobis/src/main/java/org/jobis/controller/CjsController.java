@@ -2,6 +2,7 @@ package org.jobis.controller;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,8 +12,10 @@ import org.jobis.domain.CJSVO;
 import org.jobis.domain.CompanyOfferDTO;
 import org.jobis.domain.FavDTO;
 import org.jobis.domain.PenaltyVO;
+import org.jobis.domain.ProfileVO;
 import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
+import org.jobis.service.JshService;
 import org.jobis.service.UserChatService;
 import org.jobis.websocket.ChatSocket2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -271,7 +274,31 @@ public class CjsController {
 
 	    return new ResponseEntity<>(jobList, HttpStatus.OK);
 	}
+	// uno로 프로필 접근하기
+	@GetMapping("/getProfileImageByUno")
+	public Map<String, Object> getProfileImageByUno(@RequestParam int uno) {
+	    Map<String, Object> result = new HashMap<>();
 
+	    ProfileVO profile = ucservice.getProfileByUno(uno);  
+	    if (profile != null && profile.getProfileimage() >= 0) {
+	        int profileNum = profile.getProfileimage();  
+	        String filename = "basic" + profileNum + "__.png";
+	        String url = "/profile/" + filename;
+
+	        result.put("success", true);
+	        result.put("profileImageUrl", url);
+	        result.put("nickname", profile.getNickname());
+	    } else {
+	        result.put("success", false);
+	        result.put("profileImageUrl", "/img/user.svg");
+	    }
+
+	    return result;
+	}
+
+
+	
+	
 	// -----------------------------------기업 공고 관련-------------------------------------------
 	// 기업 공고 가져오기
 	@ResponseBody

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo, useContext } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useContext, useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
 import DatePicker from 'react-datepicker'; // 날짜 선택
 import { ko } from 'date-fns/locale';    // 달력 한글로 만들기
@@ -293,9 +293,9 @@ const DiscordPage = () => {
   const [penalty, setPenalty] = useState(null);
   const [now,setNow] = useState(new Date());
   const [showVideoModal, setShowVideoModal] = useState(false);
-  const {nickname} = useContext(AuthContext);
   const hasProfile = localStorage.getItem('hasProfile') === 'true';
   const [photoNum,setPhotoNum] = useState({});
+  const [nicknameMap, setNicknameMap] = useState({});
 
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
@@ -693,23 +693,31 @@ useEffect(() => {
   };
 
   // 사진 
-  const fetchLeaderProfile = async (uno) => {
+  const fetchLeaderProfile = useCallback(async (uno) => {
     if (photoNum[uno]) return;
     try {
-      const res = await fetch(`/checkProfile?uno=${uno}`, { credentials: 'include' });
+      const res = await fetch(`http://${host}:9090/getProfileImageByUno?uno=${uno}`, {
+        credentials: 'include'
+      });
       const data = await res.json();
-      if (data.exists && data.profileImageUrl) {
+      if (data.success && data.profileImageUrl) {
         setPhotoNum(prev => ({ ...prev, [uno]: data.profileImageUrl }));
+        setNicknameMap(prev => ({ ...prev, [uno]: data.nickname }));
       }
     } catch (e) {
       console.error('❌ 프로필 이미지 fetch 실패:', e);
     }
-  };
+  }, [photoNum]);
 
-  useEffect(()=>{
-    
 
-  })
+
+  useEffect(() => {
+    visibleChats.forEach(chat => {
+      if (chat.leader && !photoNum[chat.leader]) {
+        fetchLeaderProfile(chat.leader);
+      }
+    });
+  }, [visibleChats, fetchLeaderProfile, photoNum]);
 
 
 
@@ -744,10 +752,10 @@ useEffect(() => {
             return (
               <ChatBubble key={chat.cno} $isMine={isMine}>
                   {!isMine && (
-                    <Avatar src={ photoNum[chat.leader] } alt="avatar"/>
+                   <Avatar src={photoNum[chat.leader] || '/img/user.svg'} alt="avatar" />
                   )}
                 {/* {!isMine && <Avatar src="https://placehold.co/40x40" alt="avatar" />} */}
-                {!isMine && <div>{nickname}</div>}
+                {!isMine && <div>{nicknameMap[chat.leader] || '알 수 없음'}</div>}
                 <BubbleContainer $isMine={isMine}>
                   <Bubble $isMine={isMine}>{chat.r_title}</Bubble>
                   <MeetingInfo>

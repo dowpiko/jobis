@@ -116,6 +116,11 @@
 	  WHERE cno = #{cno}
 	</update>
 	
+	<!-- uno로 프로필 가져오기 -->
+	<select id="getProfileByUno" resultType="org.jobis.domain.ProfileVO" parameterType="int">
+		SELECT * FROM tbl_uprofile WHERE uno=#{uno}
+	</select>
+	
 	<!--  기업 정보 가져오기 -->
 	<select id="getCompanyOffers" resultType="org.jobis.domain.CompanyOfferDTO">
 		SELECT
