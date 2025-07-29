@@ -284,7 +284,6 @@ const DiscordPage = () => {
   const [selectedChat,setSelectedChat] = useState(null);
   const [visibleCount, setVisibleCount] = useState(9);   // 로드시 버튼 수
   const [isAtBottom, setIsAtBottom] = useState(true);    // 스크롤 위치 상태 저장
-  // const [myUno, setMyUno] = useState(() => window.myUno);
   const [myUno, setMyUno] = useState(null);
   const [selectedSub, setSelectedSub] = useState(subList[0]?.name || '');
   const [titleSuffix, setTitleSuffix] = useState('');  
@@ -296,6 +295,7 @@ const DiscordPage = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const {nickname} = useContext(AuthContext);
   const hasProfile = localStorage.getItem('hasProfile') === 'true';
+  const [photoNum,setPhotoNum] = useState({});
 
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
@@ -692,6 +692,26 @@ useEffect(() => {
       };
   };
 
+  // 사진 
+  const fetchLeaderProfile = async (uno) => {
+    if (photoNum[uno]) return;
+    try {
+      const res = await fetch(`/checkProfile?uno=${uno}`, { credentials: 'include' });
+      const data = await res.json();
+      if (data.exists && data.profileImageUrl) {
+        setPhotoNum(prev => ({ ...prev, [uno]: data.profileImageUrl }));
+      }
+    } catch (e) {
+      console.error('❌ 프로필 이미지 fetch 실패:', e);
+    }
+  };
+
+  useEffect(()=>{
+    
+
+  })
+
+
 
   
   return (
@@ -723,8 +743,10 @@ useEffect(() => {
             const isMine = chat.leader === myUno;
             return (
               <ChatBubble key={chat.cno} $isMine={isMine}>
-                {!isMine && <Avatar src="https://placehold.co/40x40" alt="avatar" />}
-                {/* {!isMine && <div>{chat.leader_name}</div>} */}
+                  {!isMine && (
+                    <Avatar src={ photoNum[chat.leader] } alt="avatar"/>
+                  )}
+                {/* {!isMine && <Avatar src="https://placehold.co/40x40" alt="avatar" />} */}
                 {!isMine && <div>{nickname}</div>}
                 <BubbleContainer $isMine={isMine}>
                   <Bubble $isMine={isMine}>{chat.r_title}</Bubble>
