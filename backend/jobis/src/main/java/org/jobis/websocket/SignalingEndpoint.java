@@ -36,42 +36,57 @@ public class SignalingEndpoint {
         String cno = msg.getCno();
         System.out.println("메시지 타입 : "+msg.getType());
         switch (msg.getType()) {
-            case "join":
-                channels.putIfAbsent(cno, Collections.synchronizedList(new ArrayList<>()));
-                List<Session> room = channels.get(cno);
-                room.add(session);
-                System.out.println("채널 합류 " + cno + " (members: " + room.size() + "명)");
+	        case "join":
+	            channels.putIfAbsent(cno, Collections.synchronizedList(new ArrayList<>()));
+	            List<Session> room = channels.get(cno);
+	            room.add(session);
+	            System.out.println("채널 합류 " + cno + " (members: " + room.size() + "명)");
+	
+	            if (room.size() == 1) {
+	                try {
+	                    LocalDateTime start = LocalDateTime.parse(msg.getScheduleTime(), fmt);
+	                    LocalDateTime end          = start.plusMinutes(60);
+	                    LocalDateTime reminderTime = end.minusSeconds(30);
+	                    LocalDateTime exitTime     = end.plusMinutes(1);
+	
+	                    long delayReminder = Duration.between(LocalDateTime.now(), reminderTime).toMillis();
+	                    long delayExit     = Duration.between(LocalDateTime.now(), exitTime).toMillis();
+	
+	                    // 1초마다 남은 시간 로그
+	                    ScheduledFuture<?> logFuture = scheduler.scheduleAtFixedRate(() -> {
+	                        long secsLeft = Duration.between(LocalDateTime.now(), reminderTime).getSeconds();
+	                        System.out.println("[Timer] 리마인더까지 남은 시간: " + Math.max(secsLeft, 0) + "초");
+	                    }, 0, 1, TimeUnit.SECONDS);
+	
+	                    // 리마인더 스케줄 (30초 전)
+	                    if (delayReminder > 0) {
+	                        scheduler.schedule(() -> {
+	                            // 로깅 중단
+	                            logFuture.cancel(false);
+	                            // 리마인더 전송
+	                            broadcast(cno, SignalingMessage.builder()
+	                                .type("reminder")
+	                                .cno(cno)
+	                                .build());
+	                        }, delayReminder, TimeUnit.MILLISECONDS);
+	                    }
+	
+	                    // 강제 종료 스케줄 (종료 1분 후)
+	                    if (delayExit > 0) {
+	                        scheduler.schedule(() -> {
+	                            broadcast(cno, SignalingMessage.builder()
+	                                .type("force-exit")
+	                                .cno(cno)
+	                                .build());
+	                        }, delayExit, TimeUnit.MILLISECONDS);
+	                    }
+	
+	                } catch (Exception e) {
+	                    System.err.println("스케줄링 오류: " + e.getMessage());
+	                }
+	            }
+	            break;
 
-                // 처음 join할 때만 스케줄링
-                if (room.size() == 1) {
-                    try {
-                        LocalDateTime start = LocalDateTime.parse(msg.getScheduleTime(), fmt);
-                        long delayReminder = Duration.between(LocalDateTime.now(), start.plusMinutes(50)).toMillis();
-                        long delayExit     = Duration.between(LocalDateTime.now(), start.plusMinutes(60)).toMillis();
-
-                        if (delayReminder > 0) {
-                            scheduler.schedule(() -> 
-                                broadcast(cno, SignalingMessage.builder()
-                                    .type("reminder")
-                                    .cno(cno)
-                                    .build()),
-                                delayReminder, TimeUnit.MILLISECONDS
-                            );
-                        }
-                        if (delayExit > 0) {
-                            scheduler.schedule(() -> 
-                                broadcast(cno, SignalingMessage.builder()
-                                    .type("force-exit")
-                                    .cno(cno)
-                                    .build()),
-                                delayExit, TimeUnit.MILLISECONDS
-                            );
-                        }
-                    } catch (Exception e) {
-                        System.err.println("스케줄링 오류: " + e.getMessage());
-                    }
-                }
-                break;
 
             case "offer":
             case "answer":
@@ -129,60 +144,3 @@ public class SignalingEndpoint {
         });
     }
 }
-
-
-//ver0
-//package org.jobis.websocket;
-//
-//import org.jobis.domain.SignalingMessage;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//
-//import javax.websocket.*;
-//import javax.websocket.server.ServerEndpoint;
-//import java.io.IOException;
-//import java.util.Map;
-//import java.util.concurrent.ConcurrentHashMap;
-//
-//@ServerEndpoint(
-//  value = "/signal",
-//  configurator = org.jobis.config.CustomSpringConfigurator.class
-//)
-//public class SignalingEndpoint {
-//
-//    private static final Map<String, Session> clients = new ConcurrentHashMap<>();
-//    private static final ObjectMapper objectMapper = new ObjectMapper();
-//
-//    @OnOpen
-//    public void onOpen(Session session) {
-//        System.out.println("WebSocket Opened: " + session.getId());
-//    }
-//
-//    @OnMessage
-//    public void onMessage(String message, Session session) throws IOException {
-//        SignalingMessage signalingMessage = objectMapper.readValue(message, SignalingMessage.class);
-//        System.out.println("Received: " + signalingMessage.getType() + " from: " + signalingMessage.getFrom());
-//
-//        if ("join".equals(signalingMessage.getType())) {
-//            clients.put(signalingMessage.getFrom(), session);
-//            System.out.println("Client joined: " + signalingMessage.getFrom());
-//        } else {
-//            Session targetSession = clients.get(signalingMessage.getTo());
-//            if (targetSession != null && targetSession.isOpen()) {
-//                targetSession.getBasicRemote().sendText(message);
-//            } else {
-//                System.out.println("Target not found or closed: " + signalingMessage.getTo());
-//            }
-//        }
-//    }
-//
-//    @OnClose
-//    public void onClose(Session session) {
-//        clients.values().remove(session);
-//        System.out.println("WebSocket Closed: " + session.getId());
-//    }
-//
-//    @OnError
-//    public void onError(Session session, Throwable throwable) {
-//        System.err.println("WebSocket Error: " + throwable.getMessage());
-//    }
-//}

@@ -95,6 +95,28 @@ const ExitButton = styled.button`
 	font-size: 1rem;
 	&:hover { background-color: #d9363e; }
 `;
+// 1) 스타일드 컴포넌트 추가
+const WarningModal = styled.div`
+  position: absolute;
+	z-index: 10000;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(255,165,0,0.85);  /* 주황빛 경고 배경 */
+  color: #000;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  backdrop-filter: blur(2px);
+  animation: fadeInOut 10s ease forwards;
+  @keyframes fadeInOut {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+`;
 
 const SIGNALING_SERVER_URL = 'ws://' + process.env.REACT_APP_HOST + ':9090/signal';
 const CONFIG = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
@@ -108,9 +130,9 @@ export default function VideoChatModal({ cno, scheduleTime, peerUno, onExit }) {
 	const timerRef    = useRef(null);
 
 	const [peerName, setPeerName] = useState('닉네임 불러오는 중...');
-	const [showRem, setShowRem] = useState(false);
-	const [showEnded, setShowEnded] = useState(false);
-
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningSec, setWarningSec] = useState(0);
+	const [showEnded,   setShowEnded]   = useState(false);
 	useEffect(() => {
 		if (!peerUno) return;
 		axios
@@ -171,12 +193,6 @@ export default function VideoChatModal({ cno, scheduleTime, peerUno, onExit }) {
 				await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: msg.sdp }));
 			} else if (msg.type === 'candidate') {
 				await pc.addIceCandidate(new RTCIceCandidate(msg.candidate)).catch(() => {});
-			} else if (msg.type === 'reminder') {
-				setShowRem(true);
-				setTimeout(() => setShowRem(false), 2000);
-			} else if (msg.type === 'force-exit') {
-				setShowEnded(true);
-				setTimeout(() => { setShowEnded(false); onExit?.(); }, 2000);
 			}
 		};
 
@@ -202,7 +218,55 @@ export default function VideoChatModal({ cno, scheduleTime, peerUno, onExit }) {
 			pcRef.current?.close();
 			[localRef, remoteRef].forEach(r => r.current?.srcObject.getTracks().forEach(t => t.stop()));
 		};
-	}, [cno, scheduleTime, onExit]);
+	}, [cno, scheduleTime]);
+  // 2) 기존 콘솔 타이머 useEffect 대신 이걸 사용
+	useEffect(() => {
+		// 1) scheduleTime 파싱 & 종료 시각 계산
+		const scheduleDate = new Date(scheduleTime);
+		const endTime      = new Date(scheduleDate.getTime() + 60 * 1000);
+
+		const intervalId = setInterval(() => {
+			const now        = new Date();
+			const remainingMs  = endTime.getTime() - now.getTime();
+			const remainingSec = Math.ceil(Math.max(remainingMs / 1000, 0));
+
+			// -- 콘솔 로그 (KST)
+			const nowKst = now.toLocaleTimeString('ko-KR', {
+				hour12: false, timeZone: 'Asia/Seoul'
+			});
+			const endKst = endTime.toLocaleTimeString('ko-KR', {
+				hour12: false, timeZone: 'Asia/Seoul'
+			});
+			console.log(
+				`[Timer] 현재시각: ${nowKst}, 종료시각: ${endKst}, 남은: ${remainingSec}초`
+			);
+
+			// -- 30초 전 경고 모달
+			if (remainingSec === 30) {
+				setWarningSec(30);
+				setShowWarning(true);
+				setTimeout(() => setShowWarning(false), 10_000);
+			}
+
+			// -- 종료 처리
+			if (remainingMs <= 0) {
+				console.log('[Timer] 면접이 종료되었습니다.');
+				clearInterval(intervalId);
+				setShowEnded(true);
+				setTimeout(() => {
+					setShowEnded(false);
+					onExit?.();
+				}, 2_000);
+			}
+		}, 1000);
+
+		return () => clearInterval(intervalId);
+	}, [scheduleTime, onExit]);
+
+
+
+
+
 
 	const startCall = async () => {
 		const pc = pcRef.current;
@@ -219,8 +283,11 @@ export default function VideoChatModal({ cno, scheduleTime, peerUno, onExit }) {
 
 	return (
 		<Wrapper>
-			{showRem && <ReminderModal>⏰ 면접 종료 10분 전입니다</ReminderModal>}
-			{showEnded && <EndedModal>💬 면접 시간이 종료되었습니다</EndedModal>}
+			{showWarning && (
+        <WarningModal>
+          ⏰ {warningSec}초 후에 면접이 종료됩니다
+        </WarningModal>
+      )}
 			<Title>📡 모의면접 진행 중</Title>
 			<VideoBox>
 				<VideoWrapper><Video ref={localRef} autoPlay muted playsInline /></VideoWrapper>
@@ -232,4 +299,4 @@ export default function VideoChatModal({ cno, scheduleTime, peerUno, onExit }) {
 			<ButtonRow><ExitButton onClick={handleExit}>❌ 나가기</ExitButton></ButtonRow>
 		</Wrapper>
 	);
-}
+};
