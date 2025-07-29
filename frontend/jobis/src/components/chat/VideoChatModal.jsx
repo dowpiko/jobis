@@ -112,7 +112,7 @@ export default function VideoChatModal({ cno, scheduleTime, peerUno, onExit }) {
       .catch(() => setPeerName('닉네임 로딩 실패'));
   }, [peerUno]);
 
-  // WebRTC 초기화 → WebSocket → 자동 startCall (1초 후부터, 0.2초 간격)
+  // WebRTC 초기화 → WebSocket → 자동 startCall
   useEffect(() => {
     let mounted = true;
 
@@ -133,7 +133,10 @@ export default function VideoChatModal({ cno, scheduleTime, peerUno, onExit }) {
 
       pc.ontrack = ({ streams }) => {
         remoteRef.current.srcObject = streams[0];
-        // 연결되면 자동 호출 중단
+        // 연결 완료 시점 로그 출력
+        console.log('✅ 연결완료 시 connectionState:', pc.connectionState, 
+                    'iceConnectionState:', pc.iceConnectionState, 
+                    'signalingState:', pc.signalingState);
         clearTimeout(timerRef.current);
         clearInterval(intervalRef.current);
         console.log('🔒 연결 완료, 자동 호출 중단');
@@ -147,36 +150,46 @@ export default function VideoChatModal({ cno, scheduleTime, peerUno, onExit }) {
     ws.onopen = () => ws.send(JSON.stringify({ type: 'join', cno, scheduleTime }));
 
     ws.onmessage = async ({ data }) => {
-      if (!pcRef.current) return;
+      const pc = pcRef.current;
+      if (!pc || pc.signalingState === 'closed') {
+        console.warn('⚠️ PC not ready or closed, skipping:', pc?.signalingState);
+        return;
+      }
       const msg = JSON.parse(data);
-      switch (msg.type) {
-        case 'offer':
-          await pcRef.current.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: msg.sdp }));
-          const ans = await pcRef.current.createAnswer();
-          await pcRef.current.setLocalDescription(ans);
-          ws.send(JSON.stringify({ type: 'answer', cno, sdp: ans.sdp }));
-          break;
-        case 'answer':
-          await pcRef.current.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: msg.sdp }));
-          break;
-        case 'candidate':
-          try { await pcRef.current.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch {};
-          break;
-        case 'reminder':
-          setShowRem(true);
-          setTimeout(() => setShowRem(false), 2000);
-          break;
-        case 'force-exit':
-          setShowEnded(true);
-          setTimeout(() => { setShowEnded(false); onExit?.(); }, 2000);
-          break;
+      try {
+        switch (msg.type) {
+          case 'offer':
+            await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: msg.sdp }));
+            const ans = await pc.createAnswer();
+            await pc.setLocalDescription(ans);
+            ws.send(JSON.stringify({ type: 'answer', cno, sdp: ans.sdp }));
+            break;
+          case 'answer':
+            await pc.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: msg.sdp }));
+            break;
+          case 'candidate':
+            try { await pc.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch {};
+            break;
+          case 'reminder':
+            setShowRem(true); setTimeout(() => setShowRem(false), 2000);
+            break;
+          case 'force-exit':
+            setShowEnded(true); setTimeout(() => { setShowEnded(false); onExit?.(); }, 2000);
+            break;
+        }
+      } catch (err) {
+        console.error('RTC error handling message', err);
       }
     };
     ws.onerror = e => console.error(e);
 
-    // 1초 지연 후 0.2초 간격 startCall 호출
+    // 1초 후 재시도 시작 (0.2초 간격), 호출 시점 로그 추가
     timerRef.current = setTimeout(() => {
       intervalRef.current = setInterval(() => {
+        const pc = pcRef.current;
+        console.log('🔁 재시도 시 connectionState:', pc?.connectionState, 
+                    'iceConnectionState:', pc?.iceConnectionState, 
+                    'signalingState:', pc?.signalingState);
         console.log('⏳ startCall 자동 호출');
         startCall();
       }, 200);
@@ -188,16 +201,19 @@ export default function VideoChatModal({ cno, scheduleTime, peerUno, onExit }) {
       clearInterval(intervalRef.current);
       ws.close();
       pcRef.current?.close();
-      [localRef, remoteRef].forEach(r => {
-        if (r.current?.srcObject) r.current.srcObject.getTracks().forEach(t => t.stop());
-      });
+      [localRef, remoteRef].forEach(r => r.current?.srcObject.getTracks().forEach(t => t.stop()));
     };
   }, [cno, scheduleTime, onExit]);
 
   const startCall = async () => {
-    if (!pcRef.current) return;
-    const offer = await pcRef.current.createOffer();
-    await pcRef.current.setLocalDescription(offer);
+    const pc = pcRef.current;
+    if (!pc || pc.signalingState === 'closed') return;
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    // offer 전송 직전 로그
+    console.log('▶ offer 전송 전 connectionState:', pc.connectionState, 
+                'iceConnectionState:', pc.iceConnectionState, 
+                'signalingState:', pc.signalingState);
     console.log('📤 offer 전송');
     wsRef.current.send(JSON.stringify({ type: 'offer', cno, sdp: offer.sdp }));
   };
@@ -208,13 +224,11 @@ export default function VideoChatModal({ cno, scheduleTime, peerUno, onExit }) {
     <Wrapper>
       {showRem && <ReminderModal>⏰ 면접 종료 10분 전입니다</ReminderModal>}
       {showEnded && <EndedModal>💬 면접 시간이 종료되었습니다</EndedModal>}
-
       <Title>📡 모의면접 진행 중</Title>
       <VideoBox>
         <VideoWrapper><Video ref={localRef} autoPlay muted playsInline /></VideoWrapper>
         <VideoWrapper><NicknameOverlay>{peerName}</NicknameOverlay><Video ref={remoteRef} autoPlay playsInline /></VideoWrapper>
       </VideoBox>
-
       <ButtonRow><ExitButton onClick={handleExit}>❌ 나가기</ExitButton></ButtonRow>
     </Wrapper>
   );
