@@ -135,7 +135,7 @@ const EndedModal = styled.div`
 	}
 `;
 
-const SIGNALING_SERVER_URL = 'ws://' + '192.168.0.101' + ':9090/signal';
+const SIGNALING_SERVER_URL = 'ws://' + 'localhost' + ':9090/signal';
 const CONFIG = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 const host = process.env.REACT_APP_HOST;
 const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
@@ -174,9 +174,12 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 				if (peerConnection.current) {
 					await makeOffer();
 				} else {
-					console.warn('⚠️ peerConnection 아직 초기화 안 됨. makeOffer() 스킵');
+					console.warn('⚠️ peerConnection 아직 초기화 안 됨. startWebRTC() → 이후 makeOffer() 예정');
+					await startWebRTC(); // 이 안에서 candidate 처리 + 초기화
+					await makeOffer();   // ✅ 이제 안전하게 offer 전송
 				}
 			}
+
 
 			if (data.type === 'offer') {
 				if (!peerConnection.current) {
