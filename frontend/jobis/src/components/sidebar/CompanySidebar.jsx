@@ -436,7 +436,6 @@ function CompanySidebar({ children }) {
     .then(res => {
       const files = res.data?.files || [];
       const match = files.find(f => f.filename === fileName);
-      console.log(files);
         if (match) {
           const urlWithCacheBypass = `${match.url}?t=${Date.now()}`;
           setProfileUrl(urlWithCacheBypass);

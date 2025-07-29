@@ -178,7 +178,8 @@ const Login = () => {
   const [id, setId] = useState('');
   const [pw, setPw] = useState('');
   const navigate = useNavigate();
-
+  const host = process.env.REACT_APP_HOST;
+  
   useEffect(() => {
     initKakao(process.env.REACT_APP_KAKAO_JS_KEY)
       .then()

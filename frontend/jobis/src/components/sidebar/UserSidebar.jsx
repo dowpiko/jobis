@@ -553,7 +553,6 @@ function UserSidebar({ children }) {
     .then(res => {
       const files = res.data?.files || [];
       const match = files.find(f => f.filename === fileName);
-      console.log(fileName);
         if (match) {
           const urlWithCacheBypass = `${match.url}?t=${Date.now()}`;
           setProfileUrl(urlWithCacheBypass);

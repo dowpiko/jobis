@@ -165,7 +165,6 @@ const SignUpCmp = () => {
       const res = await axios.get('http://localhost:9090/user/findUserId', {
         params: { id: id },
       });
-      console.log(res.status);
       if (res.data === 0) {
         if (window.confirm("사용 하시겠습니까?"))setIsId(true);
       } else alert("이미 사용 중인 아이디입니다.")         
@@ -198,7 +197,6 @@ const SignUpCmp = () => {
       const res = await axios.get('http://localhost:9090/user/checkComp', {
         params: { crno: crno },
       });
-      console.log(res);
       const data = res.data;
       const item = data.response?.body?.items?.item?.[0];
       

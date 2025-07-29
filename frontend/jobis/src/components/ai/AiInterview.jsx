@@ -136,7 +136,6 @@ const AiInterview = () => {
 			try {
 				const res = await axios.get('/jsh/getUser');
 				const user = res.data;
-				console.log(user);
 				if (!user) return;
 				
 				setUno(user.uno);

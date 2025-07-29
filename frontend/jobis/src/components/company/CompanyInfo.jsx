@@ -261,7 +261,6 @@ const CompanyInfo = () => {
 
   const visible = filtered.slice(0, visibleCount);
   
-  console.log(visible);
 
   const onSearchChange = e => {
     setSearchTerm(e.target.value);
@@ -294,7 +293,6 @@ const CompanyInfo = () => {
     .then(res => {
       const files = res.data?.files || [];
       const match = files.find(f => f.filename === fileName);
-      console.log(fileName);
         if (match) {
           const urlWithCacheBypass = `${match.url}?t=${Date.now()}`;
           setProfileUrl(urlWithCacheBypass);
