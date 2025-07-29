@@ -210,9 +210,9 @@ const NotificationItem = styled.div`
 `;
 
 const ProfileImg = styled.img`
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+  margin-left: px;
+  width: 180px;
+  height: 100px;
   cursor: pointer;
   border: 2px solid transparent;      /* 기본은 투명 테두리 */
   transition: border-color 0.2s ease; /* 부드러운 전환 */

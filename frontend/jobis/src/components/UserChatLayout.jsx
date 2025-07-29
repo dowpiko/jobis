@@ -10,7 +10,7 @@ const Wrapper = styled.div`
   height: 98%;
   font-family: sans-serif;
   background-color: #f8f9fa;
-  border: 1px solid #dadadbff;
+  border: 1px solid #afafb0ff;
   border-radius: 6px;
 `;
 
@@ -39,7 +39,7 @@ const ChatCard = styled.div`
   background-color: ${(props) => (props.selected ? '#e0e7ef' : '#f0f2f5')};
   border: 2px solid ${(props) => (props.selected ? '#4376B6' : '#b0bccb')};
   padding: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   border-radius: 6px;
   cursor: pointer;
   box-shadow: ${(props) => (props.selected ? '0 0 8px rgba(67, 118, 182, 0.5)' : 'none')};
@@ -140,6 +140,17 @@ const AnswerText = styled.div`
   font-size: 13px;
 `;
 
+const CorpName = styled.div`
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2a37;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 8px;
+`;
+
 const ChatBubble = styled.div`
   max-width: 60%;
   margin-bottom: 8px;
@@ -167,12 +178,6 @@ const SearchInput = styled.input`
   outline: none;
   width: 180px;
   height: 28px;
-`;
-
-const CorpName = styled.div`
-  font-size: 15px;
-  color: #1f2a37;
-  padding-left: 8px;
 `;
 
 const ChatMessageWrapper = styled.div`

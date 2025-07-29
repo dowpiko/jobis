@@ -9,7 +9,7 @@ const Wrapper = styled.div`
   height: 99%;
   font-family: sans-serif;
   background-color: #f8f9fa;
-  border: 1px solid #dadadbff;
+  border: 1px solid #afafb0ff;
   border-radius: 6px;
 `;
 
@@ -52,7 +52,7 @@ const ChatCard = styled.div`
   background-color: ${(props) => (props.selected ? '#e0e7ef' : '#f0f2f5')};
   border: 2px solid ${(props) => (props.selected ? '#4376B6' : '#b0bccb')};
   padding: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   border-radius: 6px;
   cursor: pointer;
   box-shadow: ${(props) => (props.selected ? '0 0 8px rgba(67, 118, 182, 0.5)' : 'none')};
@@ -246,7 +246,7 @@ const DateDivider = styled.div`
 `;
 
 const ChatName = styled.div`
-  font-family: 'Noto Sans KR', sans-serif; /* 원하는 폰트를 넣어주세요 */
+  font-family: 'Noto Sans KR', sans-serif;
   font-size: 16px;
   font-weight: 500;
   color: #1f2a37;
