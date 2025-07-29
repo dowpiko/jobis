@@ -314,13 +314,32 @@ const CompanyInfo = () => {
         </FilterSection>
 
         {/* 카테고리 필터 메뉴 */}
-        <CategorySection>
+        {/*<CategorySection>
           {categories.map(cat => (
             <MenuItem key={cat.category} active={selectedCategory === cat.category} onClick={() => onCategoryClick(cat.category)}>
               🛠️ {cat.category}
             </MenuItem>
           ))}
+        </CategorySection>*/}
+        <CategorySection>
+          <MenuItem
+            key="전체"
+            active={selectedCategory === ''}
+            onClick={() => onCategoryClick('')}
+          >
+            📋 전체
+          </MenuItem>
+          {categories.map(cat => (
+            <MenuItem
+              key={cat.category}
+              active={selectedCategory === cat.category}
+              onClick={() => onCategoryClick(cat.category)}
+            >
+              🛠️ {cat.category}
+            </MenuItem>
+          ))}
         </CategorySection>
+
 
         {/* 기업 카드 그리드 */}
         <ListSection>
