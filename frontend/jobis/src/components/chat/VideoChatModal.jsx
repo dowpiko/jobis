@@ -320,14 +320,14 @@ const VideoChatModal = ({ cno, scheduleTime, myUno, peerUno, onExit }) => {
 
 	const makeOffer = async () => {
 		const offer = await peerConnection.current.createOffer();
-		await peerConnection.current.setLocalDescription(offer);
-
+		await peerConnection.current.setLocalDescription(offer); // 꼭 이거 먼저
 		websocket.current.send(JSON.stringify({
 			type: 'offer',
 			cno,
 			sdp: offer.sdp
 		}));
 	};
+
 	useEffect(() => {
 		if (localStream && localVideoRef.current) {
 			localVideoRef.current.srcObject = localStream;
