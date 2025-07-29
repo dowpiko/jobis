@@ -213,8 +213,13 @@ const ProfileImg = styled.img`
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  border: 2px solid #2563EB;
   cursor: pointer;
+  border: 2px solid transparent;      /* 기본은 투명 테두리 */
+  transition: border-color 0.2s ease; /* 부드러운 전환 */
+
+  &:hover {
+    border-color: #2563EB;            /* 호버 시에만 파란 테두리 */
+  }
 `;
 
 const ImgModalOverlay = styled.div`

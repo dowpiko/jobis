@@ -82,9 +82,14 @@ const ProfileImg = styled.img`
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  border: 2px solid #2563EB;
+  border: 2px solid transparent;      /* 기본은 투명 테두리 */
   object-fit: cover;
   cursor: pointer;
+  transition: border-color 0.2s ease;  /* 부드러운 전환 */
+
+  &:hover {
+    border-color: #2563EB;            /* 호버 시에만 파란 테두리 */
+  }
 `;
 
 const ProfileName = styled.span`

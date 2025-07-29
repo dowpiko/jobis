@@ -88,8 +88,13 @@ const ProfileImg = styled.img`
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  border: 2px solid #2563EB;
   cursor: pointer;
+  border: 2px solid transparent;
+  transition: border 0.2s ease;
+
+  &:hover {
+    border-color: #2563EB;
+  }
 `;
 
 const ProfileName = styled.span`
@@ -382,14 +387,6 @@ const SmallBtn = styled.button`
   &:hover {
     background: ${({ $hoverBg = '#1E4DB7' }) => $hoverBg};
   }
-`;
-
-const StyledProfileImg = styled.img`
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  border: 2px solid #2563EB;
-  cursor: pointer;
 `;
 
 const NotificationModal = styled.div`

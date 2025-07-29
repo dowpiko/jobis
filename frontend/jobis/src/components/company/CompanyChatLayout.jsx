@@ -6,25 +6,44 @@ import styled from 'styled-components';
 
 const Wrapper = styled.div`
   display: flex;
-  height: 100%;
+  height: 99%;
   font-family: sans-serif;
   background-color: #f8f9fa;
+  border: 1px solid #dadadbff;
+  border-radius: 6px;
 `;
 
 const ChatListPanel = styled.div`
-  flex: 1.3;  // 💡 대략 16% 비율에 맞게 조정
+  flex: 1.3;
   min-width: 300px;
   padding: 10px;
   box-sizing: border-box;
   border-right: 1px solid #b0bccb;
   background-color: #f0f2f5;
+
+  display: flex;
+  flex-direction: column;
+`;
+
+const ChatCardsContainer = styled.div`
+  flex: 1;               /* 남은 공간 모두 차지 */
+  overflow-y: auto;      /* 이 영역만 스크롤 */
+  margin-top: 10px;      /* 헤더/필터와 간격 */
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.2);
+    border-radius: 3px;
+  }
 `;
 
 const PanelTitle = styled.h3`
   font-size: 16px;
   font-weight: 600;
   color: #1f2a37;
-  margin: 0;
+  margin: 0 0 0 20px;
 `;
 
 const ChatCard = styled.div`
@@ -45,8 +64,8 @@ const ChatCard = styled.div`
 
 const Avatar = styled.img`
   margin-right: 8px;
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
 `;
 
@@ -166,7 +185,7 @@ const SearchInput = styled.input`
   border: 1px solid #b0bccb;
   border-radius: 4px;
   outline: none;
-  width: 120px;
+  width: 180px;
   height: 28px;
 `;
 
@@ -226,6 +245,29 @@ const DateDivider = styled.div`
   }
 `;
 
+const ChatName = styled.div`
+  font-family: 'Noto Sans KR', sans-serif; /* 원하는 폰트를 넣어주세요 */
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2a37;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 8px;
+`;
+
+const EmptyState = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 20px;
+  padding: 20px;
+  text-align: center;
+`;
+
 const CompanyChatLayout = () => {
   const [chatList, setChatList] = useState([]);
   const [showAnnouncement, setShowAnnouncement] = useState(false);
@@ -233,22 +275,22 @@ const CompanyChatLayout = () => {
   const [chatMessages, setChatMessages] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [inputText, setInputText] = useState('');
-  const [jobList, setJobList] = useState([]); 
-  const [selectedOno, setSelectedOno] = useState(null);
   const chatEndRef = useRef(null);
   const [activeChatKey, setActiveChatKey] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isChatSelected, setIsChatSelected] = useState(false);
   const socket = useContext(SocketContext);
   const [myUno, setMyUno] = useState('');
   const [initCheck, setInitCheck] = useState(true);
   const [interviewList, setInterviewList] = useState([]);
   const [selectedJobFilter, setSelectedJobFilter] = useState('');
   const [searchParams] = useSearchParams();
+  const host = process.env.REACT_APP_HOST;
   const navigate = useNavigate();
 
   const initChatLayout = async (uno) => {
     try {
-      const res = await axios.get(`http://localhost:9090/chat/initCompanyChatLayout?cno=${uno}`);
+      const res = await axios.get(`http://${host}:9090/chat/initCompanyChatLayout?cno=${uno}`);
 
       const processedData = res.data.map(item => ({
         ...item,
@@ -265,7 +307,7 @@ const CompanyChatLayout = () => {
 
       const responses = await Promise.all(
         onoList.map(ono =>
-          axios.get('http://localhost:9090/offers/oneInterViewByOno', {
+          axios.get(`http://${host}:9090/offers/oneInterViewByOno`, {
             params: { ono }
           })
         )
@@ -378,9 +420,10 @@ const CompanyChatLayout = () => {
 
     setShowAnnouncement(true);
     setActiveChatKey(newChatKey);
+    setIsChatSelected(true);
 
     try {
-      const res = await axios.get(`http://localhost:9090/offers/selectOfferAndSubmission`, {
+      const res = await axios.get(`http://${host}:9090/offers/selectOfferAndSubmission`, {
         params: { ono, emp, company: myUno },
       });
       setOfferSubmission(res.data);
@@ -398,7 +441,7 @@ const CompanyChatLayout = () => {
 
   const fetchByRnoChatMessages = async (rno, uno) => {
     try {
-      const res = await axios.get(`http://localhost:9090/chat/selectByRnoChatMessages`, {
+      const res = await axios.get(`http://${host}:9090/chat/selectByRnoChatMessages`, {
         params: { rno ,
           uno : uno
         }
@@ -422,7 +465,7 @@ const CompanyChatLayout = () => {
       hit: hit,
     };
     socket.send(JSON.stringify(payload));
-    axios.post('http://localhost:9090/chat/insertChatMessage', payload);
+    axios.post(`http://${host}:9090/chat/insertChatMessage`, payload);
 
     setInputText('');
   };
@@ -476,24 +519,27 @@ const CompanyChatLayout = () => {
           ))}
         </JobFilterSelect>
 
-        {filteredChatList.map((item, index) => {
-          const chatKey = `${item.ono}_${item.emp}`;
-          const isSelected = chatKey === activeChatKey;
-
-          return (
-            <ChatCard
-              key={index}
-              selected={isSelected}
-              onClick={() => handleChatCardClick(item.ono, item.emp)}
-            >
-              <Avatar src="https://via.placeholder.com/32" alt="avatar" />
-              <div>{item.name}</div>
-            </ChatCard>
-          );
-        })}
+        <ChatCardsContainer>
+          {filteredChatList.map((item, index) => {
+            const chatKey = `${item.ono}_${item.emp}`;
+            const isSelected = chatKey === activeChatKey;
+            return (
+              <ChatCard
+                key={index}
+                selected={isSelected}
+                onClick={() => handleChatCardClick(item.ono, item.emp)}
+              >
+                <Avatar src={`/profile/${item.emp}.png`} alt="avatar" />
+                <ChatName title={item.name}>{item.name}</ChatName>
+              </ChatCard>
+            );
+          })}
+        </ChatCardsContainer>
       </ChatListPanel>
 
       <ChatPanel>
+        {isChatSelected ? (
+          <>
         <ChatContent>
           {(() => {
             let lastDate = null;
@@ -545,6 +591,14 @@ const CompanyChatLayout = () => {
           <Button>🎤</Button>
           <Button>🔄</Button>
         </InputContainer>
+        </>
+        ) : (
+          <EmptyState>
+            <div style={{ fontSize: '60px', marginBottom: '16px' }}>💬</div>
+            <div>채팅방을 선택해 대화를 시작하세요!</div>
+            <div>💡 왼쪽에서 지원자 목록을 클릭해 보세요.</div>
+          </EmptyState>
+        )}
       </ChatPanel>
 
       <AnnouncementPanel>
@@ -568,7 +622,7 @@ const CompanyChatLayout = () => {
             </QAWrapper>
           </AnnouncementContent>
         ) : (
-          <div style={{ color: '#aaa', fontSize: '13px' }}>채팅방을 선택하세요</div>
+          ''
         )}
       </AnnouncementPanel>
     </Wrapper>

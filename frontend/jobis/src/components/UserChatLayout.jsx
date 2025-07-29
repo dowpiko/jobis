@@ -7,25 +7,30 @@ import { AuthContext }   from '../contexts/AuthContext';
 
 const Wrapper = styled.div`
   display: flex;
-  height: 100%;
+  height: 98%;
   font-family: sans-serif;
   background-color: #f8f9fa;
+  border: 1px solid #dadadbff;
+  border-radius: 6px;
 `;
 
 const ChatListPanel = styled.div`
   flex: 1.3;
-  min-width: 200px;
+  min-width: 300px;
   padding: 10px;
   box-sizing: border-box;
   border-right: 1px solid #b0bccb;
   background-color: #f0f2f5;
+
+  display: flex;
+  flex-direction: column;
 `;
 
 const PanelTitle = styled.h3`
   font-size: 16px;
   font-weight: 600;
   color: #1f2a37;
-  margin: 0;
+  margin: 0 0 0 20px;
 `;
 
 const ChatCard = styled.div`
@@ -160,13 +165,14 @@ const SearchInput = styled.input`
   border: 1px solid #b0bccb;
   border-radius: 4px;
   outline: none;
-  width: 120px;
+  width: 180px;
   height: 28px;
 `;
 
 const CorpName = styled.div`
   font-size: 15px;
   color: #1f2a37;
+  padding-left: 8px;
 `;
 
 const ChatMessageWrapper = styled.div`
@@ -202,6 +208,25 @@ const DateDivider = styled.div`
   }
 `;
 
+const EmptyState = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 20px;
+  padding: 20px;
+  text-align: center;
+`;
+
+const Avatar = styled.img`
+  margin-right: 8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+`;
+
 const UserChatLayout = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [chatList, setChatList] = useState([]);
@@ -211,6 +236,7 @@ const UserChatLayout = () => {
     const [cno, setCno] = useState(null);
     const [inputText, setInputText] = useState('');
     const [initCheck, setInitCheck] = useState(true);
+    const [isChatSelected, setIsChatSelected] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
     const chatEndRef = useRef(null);
@@ -292,6 +318,7 @@ const UserChatLayout = () => {
       setCno(company);
       setInitCheck(false);
       setInputText('');
+      setIsChatSelected(true);
 
       try {
         const resOffer = await axios.get('http://localhost:9090/offers/selectOfferAndSubmission', {
@@ -420,27 +447,38 @@ const UserChatLayout = () => {
               selected={item.rno === rno}
               onClick={() => handleChatCardClick(item.rno, item.ono, item.company)}
             >
+              <Avatar src={`/profile/${item.company}.png`} alt="avatar" />
               <CorpName>{item.corpNm}</CorpName>
             </ChatCard>
           ))}
         </ChatListPanel>
 
         <ChatPanel>
-          <ChatContent>
-            {renderChatMessages()}
-            <div ref={chatEndRef} />
-          </ChatContent>
-          <InputContainer>
-            <Input
-              type="text"
-              placeholder="메시지를 입력하세요"
-              value={inputText}
-              onChange={e => setInputText(e.target.value)}
-              onKeyDown={e => e.key==='Enter' && sendMessage()}
-              readOnly = {initCheck}
-            />
-            <Button onClick={sendMessage}>▶️</Button>
-          </InputContainer>
+          {isChatSelected ? (
+            <>
+              <ChatContent>
+                {renderChatMessages()}
+                <div ref={chatEndRef} />
+              </ChatContent>
+              <InputContainer>
+                <Input
+                  type="text"
+                  placeholder="메시지를 입력하세요"
+                  value={inputText}
+                  onChange={e => setInputText(e.target.value)}
+                  onKeyDown={e => e.key==='Enter' && sendMessage()}
+                  readOnly = {initCheck}
+                />
+                <Button onClick={sendMessage}>▶️</Button>
+              </InputContainer>
+            </>
+            ) : (
+            <EmptyState>
+              <div style={{ fontSize: '60px', marginBottom: '16px' }}>💬</div>
+              <div>채팅방을 선택해 대화를 시작하세요!</div>
+              <div>💡 왼쪽에서 지원자 목록을 클릭해 보세요.</div>
+            </EmptyState>
+          )}
         </ChatPanel>
 
         <AnnouncementPanel>
@@ -453,7 +491,7 @@ const UserChatLayout = () => {
                 <QAWrapper>{renderQnA()}</QAWrapper>
               </>
             ) : (
-              <div style={{ color:'#aaa', fontSize:'13px' }}>채팅방을 선택하세요</div>
+              ''
             )}
           </AnnouncementContent>
         </AnnouncementPanel>
