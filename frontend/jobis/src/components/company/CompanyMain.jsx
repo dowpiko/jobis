@@ -138,6 +138,7 @@ const InfoText = styled.span`
   font-size: 13px;
   color: #555;
 `;
+const host = process.env.REACT_APP_HOST;
 
 const CompanyMain = () => {
   const [check, setCheck] = useState(0);
@@ -156,7 +157,7 @@ const CompanyMain = () => {
   }, [check]);
 
   useEffect(() => {
-    axios.get('/jsh/getUser')
+    axios.get(`http://${host}:9090/user/getUser`, {withCredentials:true})
       .then(res => {
         if (res.data){
           setMyUno(res.data.uno);

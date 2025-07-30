@@ -312,7 +312,7 @@ const ErrorText = styled.p`
   font-size: 12px;
   color: #e11d48; /* 빨간색 */
 `;
-
+const host = process.env.REACT_APP_HOST;
 function ProfileSidebar({ children }) {
   const navigate = useNavigate();
   const [nickname, setNickname] = useState(null);
@@ -332,7 +332,7 @@ function ProfileSidebar({ children }) {
   useEffect(() => {
     const checkLogin = async () => {
       try {
-        const res = await axios.get('/jsh/getUser');
+        const res = await axios.get(`http://${host}:9090/user/getUser`, {withCredentials:true});
         if (!res.data?.uno) {
           alert('로그인이 필요합니다.');
           navigate('/');
@@ -349,7 +349,7 @@ function ProfileSidebar({ children }) {
 
   const fetchProfile = async () => {
     try {
-      const res = await axios.get('/jsh/checkProfile');
+      const res = await axios.get(`http://${host}:9090/user/checkProfile`, {withCredentials:true});
       if (res.data.exists) {
         setHasProfile(true);
         setNickname(res.data.nickname);
@@ -367,7 +367,7 @@ function ProfileSidebar({ children }) {
 
   const handleLogout = async () => {
     try {
-      await axios.post('/jsh/logout');
+      await axios.post(`http://${host}:9090/user/logout`, {withCredentials:true});
     } catch (e) {
       console.warn('서버 로그아웃 실패', e);
     }
@@ -393,7 +393,7 @@ function ProfileSidebar({ children }) {
       return;
     };
     try {
-      const res = await axios.post('/updateNickname', { nickname: nicknameTemp, profileimage: selectImg });
+      const res = await axios.post(`http://${host}:9090/user/updateNickname`, { nickname: nicknameTemp, profileimage: selectImg }, {withCredentials:true});
       
       if (res.data.duplicated) {
         setNickError('중복된 닉네임입니다.');

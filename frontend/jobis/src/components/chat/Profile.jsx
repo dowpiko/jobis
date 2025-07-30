@@ -49,9 +49,8 @@ const Card = styled.div`
 `;
 
 const CardImage = styled.img`
-  width: 120px;
-  height: 120px;
-  object-fit: contain;
+  padding-left: 20px;
+  width: 250px;
   margin-bottom: 16px;
 `;
 
@@ -60,21 +59,24 @@ const CardTitle = styled.h3`
   font-weight: bold;
   color: #4376B6;
   margin: 14px 0;
+  text-align: center;
 `;
 
 const Description = styled.p`
   font-size: 15px;
   line-height: 1.6;
   color: #374151;
+  text-align: center;
 `;
+
+const host = process.env.REACT_APP_HOST;
 
 const Profile = () => {
   const navigate = useNavigate();
-
   const aiInterview = () => navigate('/aiInterview');
   const handleProfile = async () => {
     try {
-      const res = await axios.get('/jsh/checkProfile');
+      const res = await axios.get(`http://${host}:9090/user/checkProfile`, {withCredentials:true});
       if (res.data.exists) {
         navigate('/scheduleManager');
       } else {
@@ -92,17 +94,17 @@ const Profile = () => {
       <Title>프로필 선택</Title>
       <CardContainer>
         <Card onClick={aiInterview}>
-          <CardImage src="https://via.placeholder.com/120" alt="AI 면접" />
+          <CardImage src="/img/aiinterview.png"/>
           <CardTitle>AI 모의 면접</CardTitle>
           <Description>
-            AI가 질문하고 실시간 피드백을 제공하는 지능형 인터뷰 환경을 경험해보세요.
+            AI가 질문하고 실시간 피드백을 <br/>제공하는 지능형 인터뷰 환경을 경험해보세요.
           </Description>
         </Card>
         <Card onClick={handleProfile}>
-          <CardImage src="https://via.placeholder.com/120" alt="화상 면접" />
+          <CardImage src="/img/interview.png" alt="화상 면접" />
           <CardTitle>화상 모의 면접</CardTitle>
           <Description>
-            실제 면접과 유사한 화상 환경에서 실전 감각을 키워보세요.
+            실제 면접과 유사한 <br/>화상 환경에서 실전 감각을 키워보세요.
           </Description>
         </Card>
       </CardContainer>

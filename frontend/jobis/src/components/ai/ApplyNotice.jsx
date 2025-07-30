@@ -86,6 +86,7 @@ const ActionButton = styled(SubmitButton)`
   }
 `;
 
+const host = process.env.REACT_APP_HOST;
 const ApplyNotice = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -100,7 +101,7 @@ const ApplyNotice = () => {
   
    // 1) 세션에서 uno 가져오기
   useEffect(() => {
-    axios.get('/getMyUno', { withCredentials: true })
+    axios.get(`http://${host}:9090/user/getMyUno`, { withCredentials: true })
       .then(res => {
         setUno(res.data);
       })
@@ -118,7 +119,7 @@ const ApplyNotice = () => {
       try {
         // — 면접/공고 정보
         const { data: interview } = await axios.get(
-          `/offers/oneInterViewByOno?ono=${ono}`,
+          `http://${host}:9090/offers/oneInterViewByOno?ono=${ono}`,
           { withCredentials: true }
         );
         setOffer(interview);
@@ -128,7 +129,7 @@ const ApplyNotice = () => {
 
         // — 회사 정보
         const { data: corp } = await axios.get(
-          `/user/selectCinofoByUno?uno=${companyUno}`,
+          `http://${host}:9090/user/selectCinofoByUno?uno=${companyUno}`,
           { withCredentials: true }
         );
         setCorpInfo(corp);
@@ -166,7 +167,7 @@ const ApplyNotice = () => {
     };
 
     try {
-      const res = await axios.post('/insertSubmission', {
+      const res = await axios.post(`http://${host}:9090/offers/insertSubmission`, {
         ono,
         o_title: offer.o_title,
         o_tag : offer.o_tag,

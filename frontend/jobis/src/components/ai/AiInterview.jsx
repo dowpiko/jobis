@@ -115,6 +115,9 @@ const NextTryInfo = styled.p`
 	font-size: 14px;
 	text-align: center;
 `;
+
+const host = process.env.REACT_APP_HOST;
+
 const AiInterview = () => {
 	const navigate = useNavigate();
 	const [subscribe, setSubscribe] = useState(0);
@@ -134,7 +137,7 @@ const AiInterview = () => {
 	useEffect(() => {
 		const getUserInfo = async () => {
 			try {
-				const res = await axios.get('/jsh/getUser');
+				const res = await axios.get(`http://${host}:9090/user/getUser`, {withCredentials:true});
 				const user = res.data;
 				if (!user) return;
 				

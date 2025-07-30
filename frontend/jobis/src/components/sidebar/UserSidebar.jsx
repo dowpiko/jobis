@@ -455,6 +455,7 @@ function UserSidebar({ children }) {
   const socket = useContext(SocketContext);
   const display = dbCount > 99 ? '99+' : dbCount.toString();
   const len = display.length;
+  const host = process.env.REACT_APP_HOST;
 
   const BellIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="#1F2A37" viewBox="0 0 24 24">
@@ -464,7 +465,7 @@ function UserSidebar({ children }) {
 
   const handleProfile = async () => {
     try {
-      const res = await axios.get('/jsh/checkProfile');
+      const res = await axios.get(`http://${host}:9090/user/checkProfile`, {withCredentials:true});
       navigate(res.data.exists ? '/scheduleManager' : '/createProfile');
     } catch (err) {
       console.error('프로필 확인 실패:', err);
@@ -484,7 +485,7 @@ function UserSidebar({ children }) {
   }, []);
 
   useEffect(() => {
-    axios.get('/jsh/getUser')
+    axios.get(`http://${host}:9090/user/getUser`, {withCredentials:true})
       .then(res => {
         if (res.data?.name) {
           setUserName(res.data.name);
@@ -518,7 +519,7 @@ function UserSidebar({ children }) {
 
   useEffect(() => {
     const reload = () => {
-      axios.get(`/jsh/getUser?uno=${uno}`)
+      axios.get(`http://${host}:9090/user/getUser`, {withCredentials:true})
         .then(data => {
           if (data.data) setDbCount(data.data.count);
         })
@@ -589,7 +590,7 @@ function UserSidebar({ children }) {
 
   const handleLogout = async () => {
     try {
-      await axios.post('/jsh/logout');
+      await axios.post(`http://${host}:9090/user/logout`, {withCredentials:true});
     } catch (e) {
       console.warn('서버 로그아웃 실패', e);
     }

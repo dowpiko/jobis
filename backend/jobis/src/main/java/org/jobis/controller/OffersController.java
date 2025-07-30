@@ -7,14 +7,19 @@ import javax.servlet.http.HttpSession;
 
 import org.jobis.domain.CUserVO;
 import org.jobis.domain.ChatMessageVO;
+import org.jobis.domain.CompanyOfferDTO;
 import org.jobis.domain.InterViewBCVO;
 import org.jobis.domain.OfferSubmissionDTO;
 import org.jobis.domain.ProfileVO;
+import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserRoomDTO;
 import org.jobis.domain.CompanyRoomDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.SmService;
+import org.jobis.service.UserChatService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,11 +31,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin("*")
+@CrossOrigin(origins = {"http://localhost:3000", "http://192.168.0.101:3000"}, allowCredentials = "true")
 @RequestMapping("/offers")
 public class OffersController {
 	@Autowired
 	private SmService service;
+	
+	@Autowired
+	private UserChatService ucservice;
 	
 	// 면접 공고 등록
 	@PostMapping("/insertInterView")
@@ -74,4 +82,46 @@ public class OffersController {
 		System.out.println("공고 답변, 질문 가져오기");
 		return service.selectOfferAndSubmission(ono, emp, company);
 	}
+	
+	// 기업 공고 가져오기
+	@ResponseBody
+	@GetMapping(value = "/getCompanyOffer", produces = MediaType.APPLICATION_JSON_VALUE)
+	public List<CompanyOfferDTO> getCompanyOfferList(){
+		return ucservice.getCompanyOffers();
+	}
+	
+	// 기업 공고 작성 완료(유저가 답변 완료)
+	@ResponseBody
+	@PostMapping(value = "/insertSubmission", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<String> insertSubmission(@RequestBody SubmissionDTO submissiondto, HttpSession session){
+	   UserVO user = (UserVO) session.getAttribute("User");
+		
+	   if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("세션 만료 또는 로그인 필요");
+       }
+	   submissiondto.setUno(user.getUno());
+	   if (submissiondto.getAnswers() != null) {
+		   submissiondto.setO_content(String.join("\n", submissiondto.getAnswers()));
+	   }
+	   
+	   int result = ucservice.insertSubmission(submissiondto);
+	   
+	   if (result == 1) {
+           return ResponseEntity.ok("1");  
+       } else {
+           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("0");
+       }
+	}
+	
+	// 스크랩 목록 가져오기
+    @PostMapping("/getFavorites")
+    public ResponseEntity<List<CompanyOfferDTO>> getFavorites(@RequestBody Map<String, Integer> payload, HttpSession session) {
+        UserVO user = (UserVO) session.getAttribute("User");
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        List<CompanyOfferDTO> list = ucservice.getFavByUno(user.getUno());
+        return ResponseEntity.ok(list);
+    }
+    
 }

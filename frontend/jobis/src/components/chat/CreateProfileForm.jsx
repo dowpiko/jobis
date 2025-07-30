@@ -62,6 +62,8 @@ const SubmitButton = styled.button`
   }
 `;
 
+const host = process.env.REACT_APP_HOST;
+
 const CreateProfileForm = () => {
   const [nickname, setNickname] = useState('');
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -76,7 +78,7 @@ const CreateProfileForm = () => {
         nickname,
         profileimage: selectedImageIndex,
       };
-      const res = await axios.post('/jsh/createProfile', payload);
+      const res = await axios.post(`http://${host}:9090/user/createProfile`, payload, {withCredentials:true});
 
       if (res.data.success) {
         alert('프로필이 생성되었습니다!');

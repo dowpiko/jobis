@@ -325,7 +325,7 @@ const CompanyChatLayout = () => {
   );
 
   useEffect(() => {
-    axios.get('/jsh/getUser')
+    axios.get(`http://${host}:9090/user/getUser`, {withCredentials:true})
       .then(res => {
         if (res.data){
           setMyUno(res.data.uno);
@@ -471,6 +471,7 @@ const CompanyChatLayout = () => {
   };
 
   const truncate = (text, length = 16) => {
+    if (!text) return '';
     return text.length > length ? text.slice(0, length) + '...' : text;
   };
 

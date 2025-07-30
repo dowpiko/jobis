@@ -131,7 +131,7 @@ const Message = styled.p`
     cursor: pointer;
   }
 `;
-
+const host = process.env.REACT_APP_HOST;
 const SignUpUser = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -170,7 +170,7 @@ const SignUpUser = () => {
   const checkId = async () => {
     if (formErrors.id || !formData.id.trim()) return;
     try {
-      const res = await axios.get(`/jsh/checkid?id=${encodeURIComponent(formData.id)}`);
+      const res = await axios.get(`http://${host}:9090/jsh/checkid?id=${encodeURIComponent(formData.id)}`);
       setIdOk(res.data.available);
       alert(res.data.available ? '사용 가능한 아이디입니다' : '이미 사용 중인 아이디입니다');
     } catch (e) {
@@ -183,7 +183,7 @@ const SignUpUser = () => {
     if (formErrors.email || !formData.email.trim()) return;
     setLoading(true);
     try {
-      const res = await axios.post('/jsh/sendemailcode', { email: formData.email });
+      const res = await axios.post(`http://${host}:9090/user/sendemailcode`, { email: formData.email });
       setEmailCodeSent(res.data.success);
       if (res.data.success) alert('코드 발송됨');
       else alert('실패: ' + res.data.message);
@@ -202,7 +202,7 @@ const SignUpUser = () => {
         ['email', formData.email],
         ['code', verifyCode],
       ]);
-      const res = await axios.post('/jsh/verifyemailcode', params, {
+      const res = await axios.post(`http://${host}:9090/user/verifyemailcode`, params, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
       setEmailVerified(res.data.verified);
@@ -221,7 +221,7 @@ const SignUpUser = () => {
 
     try {
       const payload = { ...formData, birthdate: formData.birthdate.toISOString().split('T')[0] };
-      const res = await axios.post('/jsh/signup', payload);
+      const res = await axios.post(`http://${host}:9090/user/signup`, payload);
       alert(res.data.success ? '가입 성공' : '가입 실패');
       if (res.data.success) navigate('/');
     } catch (e) {

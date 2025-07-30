@@ -231,6 +231,7 @@ const Avatar = styled.img`
   height: 38px;
   border-radius: 50%;
 `;
+const host = process.env.REACT_APP_HOST;
 
 const UserChatLayout = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -302,7 +303,6 @@ const UserChatLayout = () => {
           setChatMessages(prev => [...prev, enrichedMessage]);
         }
       };
-      console.log('🛰️ WS raw data:', chatMessages);
 
       socket.addEventListener('message', handler);
       return () => socket.removeEventListener('message', handler);
@@ -326,12 +326,13 @@ const UserChatLayout = () => {
       setIsChatSelected(true);
 
       try {
-        const resOffer = await axios.get('http://localhost:9090/offers/selectOfferAndSubmission', {
+        const resOffer = await axios.get(`http://${host}:9090/offers/selectOfferAndSubmission`, {
           params: { ono, emp: myUno, company }
         });
+        console.log(resOffer.data);
         setOfferSubmission(resOffer.data);
 
-        const resMsgs = await axios.get('http://localhost:9090/chat/selectByRnoChatMessages', {
+        const resMsgs = await axios.get(`http://${host}:9090/chat/selectByRnoChatMessages`, {
           params: { rno, uno: myUno }
         });
         setChatMessages(resMsgs.data);

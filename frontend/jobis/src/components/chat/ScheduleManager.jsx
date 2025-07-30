@@ -144,7 +144,7 @@ const CloseButton = styled.button`
   border-radius: 6px;
   cursor: pointer;
 `;
-
+const host = process.env.REACT_APP_HOST;
 function ScheduleManager() {
   const [events, setEvents] = useState([]);
   const [scheduleData, setScheduleData] = useState([]);
@@ -154,22 +154,31 @@ function ScheduleManager() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
 
   useEffect(() => {
-    fetch('/getMyUno', { credentials: 'include' })
-      .then(res => res.json())
-      .then(setMyUno)
-      .catch(console.error);
+    axios.get(`http://${host}:9090/user/getMyUno`, {
+      withCredentials: true
+    })
+    .then(res => {
+      setMyUno(res.data);
+    })
+    .catch(err => {
+      console.error('getMyUno 요청 실패:', err);
+    });
   }, []);
 
+  
   useEffect(() => {
     if (!myUno) return;
-    fetch('/getUserChat', { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        const parsed = data.map(chat => ({
+
+    axios.get(`http://${host}:9090/chat/getUserChat`, { withCredentials: true })
+      .then(res => {
+        const parsed = res.data.map(chat => ({
           ...chat,
           sch_date: new Date(chat.sch_date),
         }));
         setChatList(parsed);
+      })
+      .catch(err => {
+        console.error('채팅 목록 불러오기 실패:', err);
       });
   }, [myUno]);
 
@@ -254,104 +263,35 @@ const handleDelete = async (event) => {
   // 6) 절대경로로 fetch (proxy 없이 바로 9090으로)
   try {
       const response = await axios.delete(
-            'http://localhost:9090/deleteUserChat',
+            `http://${host}:9090/chat/deleteUserChat`,
             {
               // DELETE 바디에 JSON 으로 보내기
               data: { cno},
               withCredentials: true,  
             }
           );
-          console.log('▶ DELETE status=', response.status);
-          console.log('▶ DELETE data=', response.data);
-          alert(`✅ ${response.data}`);
+        console.log('▶ DELETE status=', response.status);
+        console.log('▶ DELETE data=', response.data);
+        alert(`✅ ${response.data}`);
 
           // 7) 삭제 후 목록 갱신
-          const chatRes = await fetch(
-            'http://localhost:9090/getUserChat',
-            { credentials: 'include' }
-          );
-    const chatData = await chatRes.json();
-    console.log('▶ 갱신된 chat 목록:', chatData);
-    setChatList(
-      chatData.map(chat => ({
-        ...chat,
-        sch_date: new Date(chat.sch_date),
-      }))
-    );
-  } catch (err) {
-    console.error('▶ DELETE 중 에러:', err);
-    alert('⚠ 삭제 중 오류가 발생했습니다.');
-  }
+        const chatRes = await axios.get(
+          `http://${host}:9090/chat/getUserChat`,
+          { withCredentials: true }
+        );
+        const chatData = chatRes.data;
+        console.log('▶ 갱신된 chat 목록:', chatData);
+        setChatList(
+          chatData.map(chat => ({
+            ...chat,
+            sch_date: new Date(chat.sch_date),
+          }))
+        );
+    } catch (err) {
+      console.error('▶ DELETE 중 에러:', err);
+      alert('⚠ 삭제 중 오류가 발생했습니다.');
+    }
 };
-
-
-
-  // const handleDelete = (event) => {
-  //   const dateObj = new Date(event.date);
-  //   const now = new Date();
-  //   const diff = dateObj.getTime() - now.getTime();
-
-  //   const isWithin24Hours = diff > 0 && diff < 24 * 60 * 60 * 1000;
-  //   const hasMember = !!event.extendedProps?.memberName;
-
-  //   if (isWithin24Hours && hasMember) {
-  //     const ok = window.confirm('이 일정은 참여자가 있는 24시간 이내의 일정입니다.\n취소 시 패널티가 부과될 수 있습니다.\n정말 취소하시겠습니까?');
-  //     if (!ok) return;
-  //   } else {
-  //     const ok = window.confirm('모의 채팅 일정을 삭제하시겠습니까?');
-  //     if (!ok) return;
-  //   }
-
-  //   const cno = event.extendedProps?.cno;
-  //     if (!cno) {
-  //       alert('❌ 면접방 번호(cno)를 찾을 수 없습니다.');
-  //       return;
-  //     }
-
-  //     fetch(`/deleteUserChat?cno=${cno}`, {
-  //       method: 'DELETE',
-  //       credentials: 'include',
-  //     })
-  //       .then(res => {
-  //       if (!res.ok) {
-  //         return res.text().then(msg => { throw new Error(msg); });
-  //       }
-  //       return res.text();
-  //       })
-  //       .then(msg => {
-  //         alert(`✅ ${msg}`); // 🔧 서버 메시지를 그대로 사용자에게 표시
-  //         // 🔧 삭제 성공 시 채팅 목록 다시 불러오기
-  //         fetch('/getUserChat', { credentials: 'include' })
-  //           .then(res => res.json())
-  //           .then(data => {
-  //             const parsed = data.map(chat => ({
-  //               ...chat,
-  //               sch_date: new Date(chat.sch_date),
-  //             }));
-  //             setChatList(parsed); 
-  //           });
-  //       })
-  //       //   if (res.status === 200) return res.text();
-  //       //   throw new Error('삭제 실패');
-  //       // })
-  //       // .then(() => {
-  //       //   alert('✅ 일정이 삭제되었습니다.');
-  //       //   fetch('/getUserChat', { credentials: 'include' })
-  //       //     .then(res => res.json())
-  //       //     .then(data => {
-  //       //       const parsed = data.map(chat => ({
-  //       //         ...chat,
-  //       //         sch_date: new Date(chat.sch_date),
-  //       //       }));
-  //       //       setChatList(parsed);
-  //       //     });
-  //       // })
-  //       .catch(err => {
-  //         console.error(err);
-  //         alert('⚠ 삭제 중 오류가 발생했습니다.');
-  //       });
-  //   };
-
   const days = ['일', '월', '화', '수', '목', '금', '토'];
 
   return (

@@ -1,6 +1,5 @@
 package org.jobis.controller;
 
-import java.sql.Date;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,18 +15,16 @@ import org.jobis.service.SmService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {"http://localhost:3000", "http://192.168.0.101:3000"}, allowCredentials = "true")
 @RestController
 @RequestMapping("/jsh")
 public class JshController {
@@ -73,6 +70,7 @@ public class JshController {
 	// 로그인
 	@PostMapping("/login")
 	public Map<String, Object> login(@RequestBody Map<String, String> body, HttpSession session) {
+		System.out.println("로그인");
 	    String id = body.get("id");
 	    String pw = body.get("pw");
 
@@ -91,15 +89,16 @@ public class JshController {
 	        result.put("success", false);
 	        result.put("message", "아이디 또는 비밀번호가 일치하지 않습니다.");
 	    }
-
+	    System.out.println(result);
 	    return result;
 	}
 	
 	// 로그인 정보 확인
 	@GetMapping("/getUser")
 	public UserVO getUser(HttpSession session) {
+		System.out.println("로그인 정보 확인");
 	    UserVO User = (UserVO) session.getAttribute("User");
-	    
+	    System.out.println("User : " + User);
 	    if (User != null) {
 	    	User.setCount(smService.chatLogCount(User.getUno()));
 	        return User;

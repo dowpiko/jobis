@@ -201,30 +201,29 @@ const CompanyInfo = () => {
   
 
   useEffect(() => {
-    fetch(`http://${host}:9090/getMyUno`, { credentials: 'include' }) 
-      .then(res => {
-        if (res.status === 401) {
-          alert('로그인이 필요합니다.');
-          window.location.href = '/';
-          return;
-        }
-        return res.json();
-      })
-      .then(data => {
-        if (data) setUno(data);
-      });
+    axios.get(`http://${host}:9090/user/getMyUno`, {withCredentials: true})
+    .then(res => {
+      setUno(res.data);
+    })
+    .catch(err => {
+      if (err.response?.status === 401) {
+        alert('로그인이 필요합니다.');
+        window.location.href = '/';
+      } else {
+        console.error('getMyUno 요청 실패:', err);
+      }
+    });
   }, []);
 
   useEffect(() => {
-    axios.get(`http://${host}:9090/getCompanyOffer`)
+    axios.get(`http://${host}:9090/offers/getCompanyOffer`)
       .then(res => setOffers(res.data))
-      
       .catch(err => console.error('공고 조회 실패', err));
   }, []);
 
   useEffect(() => {
     if (uno) {
-      axios.post(`http://${host}:9090/getFavorites`, { uno }, { withCredentials: true })  // 🔄 수정됨
+      axios.post(`http://${host}:9090/offers/getFavorites`, { uno }, { withCredentials: true })  // 🔄 수정됨
         .then(res => setFavorite(res.data.map(f => f.ono)))
         .catch(err => console.error('스크랩 목록 실패', err));
     }
@@ -235,10 +234,10 @@ const CompanyInfo = () => {
     const isFav = favorite.includes(ono);
     try {
       if (isFav) {
-        await axios.delete(`http://${host}:9090/removeFavorite`, { data: { ono, uno } });
+        await axios.delete(`http://${host}:9090/user/removeFavorite`, { data: { ono, uno } });
         setFavorite(favorite.filter(id => id !== ono));
       } else {
-        await axios.post(`http://${host}:9090/addFavorite`, { ono, uno });
+        await axios.post(`http://${host}:9090/user/addFavorite`, { ono, uno });
         setFavorite([...favorite, ono]);
       }
     } catch (err) {
@@ -325,14 +324,6 @@ const CompanyInfo = () => {
           <SearchInput placeholder="기업 검색..." value={searchTerm} onChange={onSearchChange} />
         </FilterSection>
 
-        {/* 카테고리 필터 메뉴 */}
-        {/*<CategorySection>
-          {categories.map(cat => (
-            <MenuItem key={cat.category} active={selectedCategory === cat.category} onClick={() => onCategoryClick(cat.category)}>
-              🛠️ {cat.category}
-            </MenuItem>
-          ))}
-        </CategorySection>*/}
         <CategorySection>
           <MenuItem
             key="전체"

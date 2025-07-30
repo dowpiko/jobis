@@ -18,14 +18,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-@Controller
-@CrossOrigin("*")
+@RestController
+@CrossOrigin(origins = {"http://localhost:3000", "http://192.168.0.101:3000"}, allowCredentials = "true")
 @RequestMapping("/files")
 public class FileUploadController {
 
-    // (선택) 컨테이너 루트 경로가 필요하면 주입
     @Autowired
     private ServletContext servletContext;
 

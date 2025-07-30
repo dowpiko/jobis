@@ -517,7 +517,7 @@ export default function RadarSection() {
   useEffect(() => {
     const getDatas = async () => {
       try {
-        const userRes = await axios.get('/jsh/getUser');
+        const userRes = await axios.get(`http://${host}:9090/user/getUser`, {withCredentials:true});
         const user = userRes.data;
         uno.current = user.uno;
         setSubscribe(user.subscribe); // ✅ 구독 상태 반영
@@ -585,13 +585,14 @@ export default function RadarSection() {
     if (pick) base.forEach(d => d.A = pick.result[d.subject]);
     return base;
   }, [selInterviewId]);
-const barData = useMemo(() => {
-	const sliced = filtered.map(i => ({
-		id: i.id,
-		title: i.title,
-		value: selSubject ? i.result[selSubject] : null,
-		avg: Math.round(Object.values(i.result).reduce((a, b) => a + b, 0) / 5),
-	})).reverse();
+
+  const barData = useMemo(() => {
+    const sliced = filtered.map(i => ({
+      id: i.id,
+      title: i.title,
+      value: selSubject ? i.result[selSubject] : null,
+      avg: Math.round(Object.values(i.result).reduce((a, b) => a + b, 0) / 5),
+    })).reverse();
 
 	// 📌 항상 10개 고정. 없는 항목은 빈 객체로 채움
 	const padded = Array.from({ length: 10 }, (_, idx) => sliced[idx] || {
@@ -668,7 +669,7 @@ const barData = useMemo(() => {
           : i
       ));
 
-      const userRes = await axios.get('/jsh/getUser');
+      const userRes = await axios.get(`http://${host}:9090/jsh/getUser`, {withCredentials:true});
       setSubscribe(userRes.data.subscribe); // ✅ 갱신된 구독 상태 반영
     } catch (err) {
       console.error(err);

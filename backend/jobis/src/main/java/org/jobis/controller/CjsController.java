@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,12 +37,8 @@ import org.springframework.stereotype.Controller;
 import lombok.extern.log4j.Log4j;
 
 @Log4j
-
-//@Controller
 @RestController
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:9090", "http://192.168.0.101:3000"}, allowCredentials = "true")
-
-
+@CrossOrigin(origins = {"http://localhost:3000", "http://192.168.0.101:3000"}, allowCredentials = "true")
 public class CjsController {
 	
 	@Autowired

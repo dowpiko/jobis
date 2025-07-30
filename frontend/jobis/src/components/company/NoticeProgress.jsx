@@ -121,7 +121,7 @@ const FlexRow = styled.div`
   gap: 8px;
   margin-bottom: 16px;
 `;
-
+const host = process.env.REACT_APP_HOST;
 const NoticeProgress = () => {
   const navigate = useNavigate();
   const [o_title, setTitle] = useState('');
@@ -162,7 +162,7 @@ const NoticeProgress = () => {
   }, [category, subCategory]);
   
   useEffect(() => {
-    axios.get('/jsh/getUser')
+    axios.get(`http://${host}:9090/user/getUser`, {withCredentials:true})
       .then(res => {
         if (res.data){
           setMyUno(res.data.uno);

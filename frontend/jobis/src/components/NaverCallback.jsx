@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
+const host = process.env.REACT_APP_HOST;
 const NaverCallback = () => {
   const navigate = useNavigate();
 
@@ -11,7 +11,7 @@ const NaverCallback = () => {
     const state = url.searchParams.get('state');
 
     if (code) {
-      axios.post('/jsh/naver', { code, state })
+      axios.post(`http://${host}:9090/user/naver`, { code, state })
         .then((res) => {
           navigate('/profile');
         })

@@ -194,7 +194,7 @@ const Login = () => {
       return;
     }
     try {
-      const res = await axios.post('/jsh/login', { id, pw });
+      const res = await axios.post(`http://${host}:9090/user/login`, { id, pw },{withCredentials:true});
 
       if (res.data.success) {
         login(res.data);

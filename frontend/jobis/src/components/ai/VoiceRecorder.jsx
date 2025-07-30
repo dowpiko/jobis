@@ -71,6 +71,9 @@ const ModalWrapper = styled.div`
 	align-items: center;
 	justify-content: center;
 `;
+
+const host = process.env.REACT_APP_HOST;
+
 const VoiceRecorder = ({ onClose, onResult }) => {
 	const [recording, setRecording] = useState(false);
 	const [isProcessing, setIsProcessing] = useState(false);
@@ -122,7 +125,7 @@ const VoiceRecorder = ({ onClose, onResult }) => {
 					const formData = new FormData();
 					formData.append('voice', wavBlob, 'recording.wav');
 
-					const res = await axios.post('/jsh/voicetotext', formData);
+					const res = await axios.post(`http://${host}:9090/interview/voicetotext`, formData);
 					const recognizedText = res.data.text || '';
 
 					if (recognizedText) {

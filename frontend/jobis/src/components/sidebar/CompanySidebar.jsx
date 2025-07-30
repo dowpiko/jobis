@@ -291,6 +291,7 @@ const SmallBtn = styled.button`
   }
 `;
 
+const host = process.env.REACT_APP_HOST;
 function CompanySidebar({ children }) {
   const navigate = useNavigate();
   const [cName, setCName] = useState('');
@@ -317,7 +318,7 @@ function CompanySidebar({ children }) {
 
   const handleLogout = async () => {
     try {
-      await axios.post('/jsh/logout');
+      await axios.post(`http://${host}:9090/user/logout`, {withCredentials:true});
     } catch (e) {
       console.warn('서버 로그아웃 실패', e);
     }
@@ -347,10 +348,11 @@ function CompanySidebar({ children }) {
   }, []);
 
   useEffect(() => {
-    axios.get('/jsh/getUser')
+    axios.get(`http://${host}:9090/user/getUser`, {withCredentials:true})
       .then(res => {
+        console.log(res);
         if (res.data) {
-          axios.get(`/user/selectCinofoByUno?uno=${res.data.uno}`)
+          axios.get(`http://${host}:9090/user/selectCinofoByUno?uno=${res.data.uno}`)
           .then(data => {
               if (data.data) {
                 setCName(data.data.corpNm);
@@ -399,7 +401,7 @@ function CompanySidebar({ children }) {
   useEffect(() => {
     const reload = () => {
       if (uno === null) {
-        axios.post('/jsh/logout')
+        axios.post(`http://${host}:9090/user/logout`, {withCredentials:true})
         alert('로그인이 필요합니다.')
         logout();
         navigate('/');

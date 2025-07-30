@@ -130,7 +130,7 @@ const PwStatusIcon = styled.span`
   pointer-events: none;
   color: ${props => (props.valid ? 'green' : 'red')};
 `;
-
+const host = process.env.REACT_APP_HOST;
 const SignUpCmp = () => {
   const navigate = useNavigate();                                 // 페이지 이동용 네비게이션
   const [crno, setCrno] = useState('');                           // 법인번호
@@ -238,7 +238,7 @@ const SignUpCmp = () => {
     }
     setLoading(true);
     try {
-      const res = await axios.post('/jsh/sendemailcode', { email });
+      const res = await axios.post(`http://${host}:9090/user/sendemailcode`, { email });
       setEmailCodeSent(res.data.success);
       if (res.data.success) alert('코드 발송됨');
       else alert('실패: ' + res.data.message);
@@ -261,7 +261,7 @@ const SignUpCmp = () => {
         ['email', email],
         ['code', verifyCode],
       ]);
-      const res = await axios.post('/jsh/verifyemailcode', params, {
+      const res = await axios.post(`http://${host}:9090/user/verifyemailcode`, params, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
       setEmailVerified(res.data.verified);

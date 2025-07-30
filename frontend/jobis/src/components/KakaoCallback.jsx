@@ -32,7 +32,7 @@ const SubmitButton = styled.button`
   font-size: 16px;
   cursor: pointer;
 `;
-
+const host = process.env.REACT_APP_HOST;
 const KakaoCallback = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState('loading');
@@ -47,7 +47,7 @@ const KakaoCallback = () => {
 
     setCodeUsed(true);
 
-    axios.post('/jsh/kakao/check', { code: codeFromUrl })
+    axios.post(`http://${host}:9090/user/kakao/check`, { code: codeFromUrl })
       .then((res) => {
         if (!res.data.success && res.data.message) {
           alert(res.data.message);
@@ -80,7 +80,7 @@ const KakaoCallback = () => {
     }
 
     try {
-      const res = await axios.post('/jsh/kakao', {
+      const res = await axios.post(`http://${host}:9090/user/kakao`, {
         email,
         accessToken,
         birth: birthDate.toISOString().split('T')[0],

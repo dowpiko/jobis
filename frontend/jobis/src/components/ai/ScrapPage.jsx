@@ -112,27 +112,54 @@ const ScrapPage = () => {
   const [appliedData, setAppliedData] = useState([]);
   const host = process.env.REACT_APP_HOST;
 
+  const fetchScrapData = async (uno) => {
+    if (!uno) return;
+    try {
+      const res = await axios.post(
+        `http://${host}:9090/offers/getFavorites`,
+        { uno },
+        { withCredentials: true }
+      );
+      setScrapData(res.data);
+    } catch (err) {
+      console.error('스크랩 목록 조회 실패', err);
+    }
+  };
+
+  const fetchAppliedData = async (uno) => {
+    if (!uno) return;
+    try {
+      const res = await axios.post(
+        `http://${host}:9090/user/getApplied`,
+        { uno },
+        { withCredentials: true }
+      );
+      setAppliedData(res.data);
+    } catch (err) {
+      console.error('지원 목록 조회 실패', err);
+    }
+  };
+
   // uno 가져오기
   useEffect(() => {
-    fetch(`http://${host}:9090/getMyUno`, { credentials: 'include' })
-      .then((res) => res.json())
-      .then((data) => {
-        setUno(data);
-      });
+    axios.get(`http://${host}:9090/user/getMyUno`, {
+      withCredentials: true
+    })
+    .then((res) => {
+      setUno(res.data);
+    })
+    .catch((err) => {
+      console.error('❌ getMyUno 요청 실패:', err);
+    });
   }, []);
-
+  
   // 스크랩 목록 가져오기
   useEffect(() => {
-    if (!uno) return;
-    axios.post(`http://${host}:9090/getFavorites`, { uno }, { withCredentials: true })
-      .then((res) => {
-        setScrapData(res.data);
-      })
-      .catch((err) => console.error('스크랩 목록 조회 실패', err));
+    fetchScrapData(uno);
+    fetchAppliedData(uno);
   }, [uno]);
 
   const data = activeTab === 'scrap' ? scrapData : appliedData;
-
 
    const handleItemClick = (ono) => {
     if (window.confirm('스크랩한 공고를 지원하시겠습니까?')) {
@@ -141,9 +168,10 @@ const ScrapPage = () => {
       return;
     }
   };
+
   // 스크랩 취소하기
   const handleUnScrap = (ono) => {
-    axios.delete(`http://${host}:9090/removeFavorite`, {
+    axios.delete(`http://${host}:9090/user/removeFavorite`, {
       data: { uno, ono },
       withCredentials: true
     })
@@ -154,11 +182,10 @@ const ScrapPage = () => {
       .catch(err => console.error('스크랩 취소 실패', err));
   };
 
-
   // 지원한 공고 목록 가져오기
   useEffect(() => {
     if (!uno) return;
-    axios.post(`http://${host}:9090/getApplied`, { uno }, { withCredentials: true })
+    axios.post(`http://${host}:9090/user/getApplied`, { uno }, { withCredentials: true })
       .then((res) => {
         setAppliedData(res.data);
       })
@@ -167,13 +194,14 @@ const ScrapPage = () => {
 
   // 공고 지원 취소하기
   const handleCancel = (uno, ono) => {
-    axios.post(`http://${host}:9090/deleteSubmission`, { uno, ono }, { withCredentials: true })
+    axios.post(`http://${host}:9090/user/deleteSubmission`, { uno, ono }, { withCredentials: true })
       .then(() => {
+        fetchScrapData(uno);
+        fetchAppliedData(uno);
         alert('지원이 취소되었습니다.');
-        // 상태 다시 갱신 필요
       })
       .catch((err) => console.error('지원 취소 실패', err));
-  };
+    };
 
   const formatDate = (timestamp) => {
     if (!timestamp) return '-';

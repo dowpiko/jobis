@@ -83,6 +83,7 @@ const ButtonWrapper = styled.div`
   align-items: center;
   gap: 10px; /* 버튼 사이 간격 */
 `;
+const host = process.env.REACT_APP_HOST;
 
 const ApplicantDetailView = ({ applicant, onBack }) => {
   const [interviewData, setInterviewData] = useState(null);
@@ -98,7 +99,7 @@ const ApplicantDetailView = ({ applicant, onBack }) => {
   useEffect(() => {
     const fetchInterviewData = async () => {
       try {
-        const res = await axios.get(`http://localhost:9090/offers/oneInterViewByOno?ono=${applicant.ono}`);
+        const res = await axios.get(`http://${host}:9090/offers/oneInterViewByOno?ono=${applicant.ono}`);
         setInterviewData(res.data);
       } catch (err) {
         console.error(err);
@@ -109,7 +110,7 @@ const ApplicantDetailView = ({ applicant, onBack }) => {
   }, [applicant]);
 
   useEffect(() => {
-    axios.get('/jsh/getUser')
+    axios.get(`http://${host}:9090/user/getUser`, {withCredentials:true})
       .then(res => {
         if (res.data){
           setMyUno(res.data.uno);

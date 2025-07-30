@@ -290,8 +290,6 @@ const parseKoreanDate = (str) => {
   }
 };
 
-
-
 const DiscordPage = () => {
 
   const location = useLocation();
@@ -325,16 +323,22 @@ const DiscordPage = () => {
   const prevChatListLength = useRef(0);
   const socketRef = useRef(null);
 
-  const refreshMySchedules = () => {
-    fetch(`http://${host}:9090/getUserChat`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        const parsed = data.map(c => ({
-          ...c,
-          sch_date: new Date(c.sch_date),
-        }));
-        setAllMyChats(parsed.filter(c => c.leader === myUno || c.member));
+
+  const refreshMySchedules = async () => {
+    try {
+      const res = await axios.get(`http://${host}:9090/chat/getUserChat`, {
+        withCredentials: true,
       });
+
+      const parsed = res.data.map(c => ({
+        ...c,
+        sch_date: new Date(c.sch_date),
+      }));
+
+      setAllMyChats(parsed.filter(c => c.leader === myUno || c.member));
+    } catch (err) {
+      console.error('❌ 내 일정 새로고침 실패:', err);
+    }
   };
 
 
@@ -348,7 +352,7 @@ const DiscordPage = () => {
 
   // 세션 uno랑 leader랑 비교
   useEffect(() => {
-    axios.get('http://localhost:9090/getMyUno', { withCredentials: true })
+    axios.get(`http://${host}:9090/user/getMyUno`, { withCredentials: true })
       .then(res => {
         if (res.status === 200 && res.data !== undefined) {
           setMyUno(res.data);
@@ -364,7 +368,7 @@ const DiscordPage = () => {
       });
     }, []);
 
-   useEffect(() => {
+  useEffect(() => {
     if (subList.length > 0) setSelectedSub(subList[0].name);
     else setSelectedSub('');
   }, [category, subList]);
@@ -376,62 +380,60 @@ const DiscordPage = () => {
   
 
 
-  const fetchChatList = () => {
-     const url = category === '전체'
-      ? '/getUserChat'
-      : `/getUserChatByTag?r_tag=${encodeURIComponent(category)}`;
-    fetch(url,{ credentials: 'include' })
-      .then((res) => res.json())
-      .then(data => {
-        const parsed = data.map((chat) => ({
-          ...chat,
-          sch_date: new Date(chat.sch_date), // 문자열 → Date 객체로 변환
-        }))
-        .reverse();
-        setChatList(parsed);
-      })
-      .catch(err => console.error('채팅 목록 불러오기 실패:', err));
+  const fetchChatList = async () => {
+    const url = category === '전체'
+      ? `http://${host}:9090/chat/getUserChat`
+      : `http://${host}:9090/chat/getUserChatByTag?r_tag=${encodeURIComponent(category)}`;
+
+    try {
+      const res = await axios.get(url, { withCredentials: true });
+
+      const parsed = res.data.map(chat => ({
+        ...chat,
+        sch_date: new Date(chat.sch_date),
+      })).reverse();
+
+      setChatList(parsed);
+    } catch (err) {
+      console.error('채팅 목록 불러오기 실패:', err);
+    }
   };
-  useEffect(() => {
-    fetchChatList(); 
-  }, [category]);
 
   // 전체 일정 불러오기
-   useEffect(() => {
-    fetch(`http://${host}:9090/getUserChat`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        const parsed = data.map(c => ({
-          ...c,
-          sch_date: new Date(c.sch_date),
-        }));
-        setAllMyChats(parsed.filter(c => c.leader === myUno || c.member));
-      })
-      .catch(err => console.error('전체 내 일정 불러오기 실패:', err));
+  useEffect(() => {
+    if (!myUno) return;
+
+    axios.get(`http://${host}:9090/chat/getUserChat`, {
+      withCredentials: true
+    })
+    .then(res => {
+      const parsed = res.data.map(c => ({
+        ...c,
+        sch_date: new Date(c.sch_date),
+      }));
+      setAllMyChats(parsed.filter(c => c.leader === myUno || c.member));
+    })
+    .catch(err => {
+      console.error('전체 내 일정 불러오기 실패:', err);
+    });
   }, [myUno]);
 
   // 패널티 일정 가져오기
   useEffect(() => {
     if (myUno === null) return;
 
-    fetch('/getPenaltyStatus', { credentials: 'include' })
-      .then(res => {
-        if (!res.ok) throw new Error('패널티 조회 실패');
-
-        const contentType = res.headers.get("content-type") || "";
-        if (!contentType.includes("application/json")) {
-          return null; // 또는 적절한 fallback 객체
-        }
-
-        return res.json();
-      })
-      .then(data => {
-        if (data) {
-          console.log("🚨 패널티 정보:", data);
-          setPenalty(data);
-        }
-      })
-      .catch(err => console.error('패널티 fetch 에러:', err));
+    axios.get(`http://${host}:9090/chat/getPenaltyStatus`, {withCredentials: true})
+    .then(res => {
+      if (res.headers['content-type']?.includes('application/json')) {
+        console.log("🚨 패널티 정보:", res.data);
+        setPenalty(res.data);
+      } else {
+        console.warn("⚠️ 응답에 JSON이 없습니다.");
+      }
+    })
+    .catch(err => {
+      console.error('패널티 axios 에러:', err);
+    });
   }, [myUno]);
 
   const isBlocked = penalty?.count >= 3 && new Date(penalty.until) > new Date();
@@ -461,7 +463,7 @@ const DiscordPage = () => {
   }, []); 
 
 
-    //  스크롤 위로 → 더 과거 추가
+  //  스크롤 위로 → 더 과거 추가
   const handleScroll = () => {
     const box = scrollRef.current;
     const isBottom = Math.abs(box.scrollHeight - box.scrollTop - box.clientHeight) <= 1;
@@ -564,86 +566,69 @@ const DiscordPage = () => {
   }, [bannerChat]);
 
 
-  const handleCreateChat = () => {
+  
+  const handleCreateChat = async () => {
     if (!selectedDate || !titleSuffix.trim()) {
-    alert('제목과 날짜를 모두 입력하세요');
-    return;
+      alert('제목과 날짜를 모두 입력하세요');
+      return;
     }
+
     const payload = {
       r_title: `[${selectedSub}] ${titleSuffix}`,
       r_tag: category,
-       sch_date: selectedDate.toISOString(),
-      // sch_date: formatLocalDateTime(selectedDate),
-      leader : myUno,
-      r_regdate : ''
+      sch_date: selectedDate.toISOString(),
+      leader: myUno,
+      r_regdate: ''
     };
-    
-     console.log('✅ 모집하기 payload:', payload);
-    //   세션 만료되면 alert
-      fetch(`http://${host}:9090/insertUserChat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(payload),
-    })
-      .then(res => {
-        if (res.status === 401) {
-          alert('세션이 만료되었습니다. 다시 로그인해주시기 바랍니다.');
-          window.location.href = '/'; // 로그인 페이지로 이동
-          return;
-        }
-        return res.text();
-      })
-      .then(text => {
-        if (text === 'success') {
-          fetchChatList();
-          setVisibleCount(9); // 다시 9개부터 시작
-          setShouldScrollToBottom(true); // 스크롤 맨 아래로
-          //이미 백에서 broadcast하고 있기 때문에 여기서 한번더 부를필요가 없음(2번 올라간것처럼 보이게됨)
-          // if (socketRef.current?.readyState === WebSocket.OPEN) {
-          //   socketRef.current.send(JSON.stringify(payload));
-          // }  
-        }
-      })
-      .catch(err => console.error('Insert 요청 에러:', err));
 
+    try {
+      const res = await axios.post(
+        `http://${host}:9090/chat/insertUserChat`,
+        payload,
+        { withCredentials: true }
+      );
 
-      setTitleSuffix('');
-      setSelectedDate(null);
-
-  refreshMySchedules();
-
-};
- 
-
-
-const handleOnConfirm = () => {
-  if (!selectedChat) return;
-  if (!selectedChat || !selectedChat.cno) {
-    console.error('❌ 참여하려는 chat이 잘못됨:', selectedChat);
-    return;
-  }
-
-  fetch(`http://${host}:9090/joinChat`, {
-    method: 'POST',
-    credentials: 'include', // 세션 유지
-    headers: {
-      'Accept': 'text/plain;charset=UTF-8', 
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ cno: selectedChat.cno })
-    
-  })
-    .then((res) => {
-      if (res.status === 401) {
-        alert('세션이 만료되었습니다. 다시 로그인해주세요.');
-        window.location.href = '/';
-        return;
+      if (res.status === 200 && res.data === 'success') {
+        fetchChatList();
+        setVisibleCount(9); // 다시 9개부터 시작
+        setShouldScrollToBottom(true); // 스크롤 맨 아래로
+        // WebSocket 중복 방지 주석 유지
       }
-      return res.text(); 
-    })
-    .then((text) => {
-      if (!text) return;
+    } catch (err) {
+      if (err.response?.status === 401) {
+        alert('세션이 만료되었습니다. 다시 로그인해주시기 바랍니다.');
+        window.location.href = '/';
+      } else {
+        console.error('Insert 요청 에러:', err);
+      }
+    }
+
+    setTitleSuffix('');
+    setSelectedDate(null);
+    refreshMySchedules();
+  };
+
+  const handleOnConfirm = async () => {
+    if (!selectedChat || !selectedChat.cno) {
+      console.error('❌ 참여하려는 chat이 잘못됨:', selectedChat);
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        `http://${host}:9090/chat/joinChat`,
+        { cno: selectedChat.cno },
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'text/plain;charset=UTF-8',
+            'Content-Type': 'application/json',
+          },
+          responseType: 'text', // 중요: 응답을 텍스트로 받기
+        }
+      );
+
+      const text = res.data;
       if (text === '참여 완료') {
         alert('성공적으로 참여했습니다!');
         setShowModal(false);
@@ -651,16 +636,20 @@ const handleOnConfirm = () => {
       } else {
         alert(`참여에 실패했습니다: ${text}`);
       }
-    })
-    .catch((err) => {
-      console.error('참여 요청 실패:', err);
-      alert('서버 오류가 발생했습니다.');
-    });
+    } catch (err) {
+      if (err.response?.status === 401) {
+        alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+        window.location.href = '/';
+      } else {
+        console.error('참여 요청 실패:', err);
+        alert('서버 오류가 발생했습니다.');
+      }
+    }
 
     refreshMySchedules();
-};
+  };
 
-// 스케줄 조정
+  // 스케줄 조정
   const blockedIntervals = allMyChats.map(chat => ({
     start: new Date(chat.sch_date.getTime() - 60 * 60 * 1000),
     end:   new Date(chat.sch_date.getTime() + 60 * 60 * 1000),
@@ -680,10 +669,8 @@ const handleDateChange = (date)=>{
 
 // websocket 관련
 useEffect(() => {
-
   if (myUno === null) return;
 
-  
   const wsUrl = `ws://${host}:9090/ws/userChat2`;
   console.log('▶️ 웹소켓 연결 시도:', wsUrl);
   const socket = new WebSocket(wsUrl);
@@ -692,82 +679,133 @@ useEffect(() => {
   socket.onopen = () => {
     console.log('✅ WebSocket 연결됨:', wsUrl);
   };
-  
+
   socket.onmessage = (event) => {
-  try {
-    const message = JSON.parse(event.data);
-    console.log('📩 [WS 수신 원본 메시지]', message);
+    try {
+      const message = JSON.parse(event.data);
+      console.log('📩 [WS 수신 원본 메시지]', message);
 
-    // 삭제 메시지 처리
-    if (message.type === 'delete') {
-      console.log('🗑️ 삭제된 cno:', message.cno);
-      setChatList(prev => prev.filter(chat => chat.cno !== message.cno));
-      return;
-    }
-
-    // 일정 업데이트 메시지 처리
-    if (message.type === 'schedule') {
-      let schDate = parseKoreanDate(message.sch_date);
-      if (isNaN(schDate)) {
-        schDate = new Date(message.sch_date.replace(' ', 'T'));
-      }
-      if (isNaN(schDate)) {
-        console.error('❌ 여전히 Invalid Date 발생:', message.sch_date);
+      if (message.type === 'delete') {
+        console.log('🗑️ 삭제된 cno:', message.cno);
+        setChatList(prev => prev.filter(chat => chat.cno !== message.cno));
         return;
       }
 
-      const regDate = message.r_regdate
-        ? new Date(message.r_regdate.replace(' ', 'T'))
-        : new Date();
+      if (message.type === 'schedule') {
+        let schDate = parseKoreanDate(message.sch_date);
+        if (isNaN(schDate)) {
+          schDate = new Date(message.sch_date.replace(' ', 'T'));
+        }
+        setSelectedDate(schDate);
+      }
 
-      setChatList(prev => {
-        const withoutOld = prev.filter(chat => chat.cno !== message.cno);
-        const updatedChatList = [...withoutOld, {
-          ...message,
-          sch_date: schDate,
-          r_regdate: regDate,
-        }];
-        return updatedChatList.sort((a, b) => a.r_regdate - b.r_regdate);
-      });
-      refreshMySchedules();
+    } catch (err) {
+      console.error('📛 WebSocket 메시지 파싱 오류:', err);
     }
-
-  } catch (e) {
-    console.error('⚠️ 메시지 파싱 실패:', e);
-  }
-};
-
-  socket.onerror = (err) => {
-    console.error('⚠️ WebSocket 오류:', err);
   };
-  socket.onclose = (evt) => {
-    console.log(`❌ WebSocket 연결 종료 (code=${evt.code}, reason=${evt.reason})`);
-  };
+
   return () => {
-    console.log('🛑 WebSocket 연결 닫음:', wsUrl);
     socket.close();
+    console.log('🛑 WebSocket 연결 종료');
   };
-}, [category, myUno]);  
+}, [myUno]);
+
+
+
+  // websocket 관련
+  useEffect(() => {
+
+    if (myUno === null) return;
+
+    
+    const wsUrl = `ws://${host}:9090/ws/userChat2`;
+    console.log('▶️ 웹소켓 연결 시도:', wsUrl);
+    const socket = new WebSocket(wsUrl);
+    socketRef.current = socket;
+
+    socket.onopen = () => {
+      console.log('✅ WebSocket 연결됨:', wsUrl);
+    };
+    
+    socket.onmessage = (event) => {
+    try {
+      const message = JSON.parse(event.data);
+      console.log('📩 [WS 수신 원본 메시지]', message);
+
+      // 삭제 메시지 처리
+      if (message.type === 'delete') {
+        console.log('🗑️ 삭제된 cno:', message.cno);
+        setChatList(prev => prev.filter(chat => chat.cno !== message.cno));
+        return;
+      }
+
+      // 일정 업데이트 메시지 처리
+      if (message.type === 'schedule') {
+        let schDate = parseKoreanDate(message.sch_date);
+        if (isNaN(schDate)) {
+          schDate = new Date(message.sch_date.replace(' ', 'T'));
+        }
+        if (isNaN(schDate)) {
+          console.error('❌ 여전히 Invalid Date 발생:', message.sch_date);
+          return;
+        }
+
+        const regDate = message.r_regdate
+          ? new Date(message.r_regdate.replace(' ', 'T'))
+          : new Date();
+
+        setChatList(prev => {
+          const withoutOld = prev.filter(chat => chat.cno !== message.cno);
+          const updatedChatList = [...withoutOld, {
+            ...message,
+            sch_date: schDate,
+            r_regdate: regDate,
+          }];
+          return updatedChatList.sort((a, b) => a.r_regdate - b.r_regdate);
+        });
+        refreshMySchedules();
+      }
+
+    } catch (e) {
+      console.error('⚠️ 메시지 파싱 실패:', e);
+    }
+  };
+
+    socket.onerror = (err) => {
+      console.error('⚠️ WebSocket 오류:', err);
+    };
+    socket.onclose = (evt) => {
+      console.log(`❌ WebSocket 연결 종료 (code=${evt.code}, reason=${evt.reason})`);
+    };
+    return () => {
+      console.log('🛑 WebSocket 연결 닫음:', wsUrl);
+      socket.close();
+    };
+  }, [category, myUno]);  
 
 
   // 사진 
   const fetchLeaderProfile = useCallback(async (uno) => {
     if (photoNum[uno]) return;
+
     try {
-      const res = await fetch(`http://${host}:9090/getProfileImageByUno?uno=${uno}`, {
-        credentials: 'include'
-      });
-      const data = await res.json();
+      const res = await axios.get(
+        `http://${host}:9090/user/getProfileImageByUno`,
+        {
+          params: { uno },
+          withCredentials: true
+        }
+      );
+
+      const data = res.data;
       if (data.success && data.profileImageUrl) {
         setPhotoNum(prev => ({ ...prev, [uno]: data.profileImageUrl }));
         setNicknameMap(prev => ({ ...prev, [uno]: data.nickname }));
       }
     } catch (e) {
-      console.error('❌ 프로필 이미지 fetch 실패:', e);
+      console.error('❌ 프로필 이미지 axios 요청 실패:', e);
     }
   }, [photoNum]);
-
-
 
   useEffect(() => {
     visibleChats.forEach(chat => {
@@ -778,6 +816,10 @@ useEffect(() => {
   }, [visibleChats, fetchLeaderProfile, photoNum]);
 
   
+  useEffect(() => {
+    fetchChatList();
+  }, [category]);
+
   return (  
     
      <Wrapper>

@@ -10,6 +10,7 @@ import org.jobis.domain.AIVO;
 import org.jobis.domain.InterviewResultDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.InterviewService;
+import org.jobis.service.JshService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,20 +22,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import lombok.extern.log4j.Log4j;
 
 @Log4j
 @RestController
-@CrossOrigin(origins = {
-	    "http://localhost:3000",
-	    "http://192.168.0.101:3000"
-	  }, allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:3000","http://192.168.0.101:3000"}, allowCredentials = "true")
 @RequestMapping("/interview")
 public class AiInterviewController {
 	
 	@Autowired
 	InterviewService iService;
+	
+	@Autowired
+	JshService jshservice;
 	
 	@PostMapping("/saveSurveyResult")
 	public ResponseEntity<String> saveSurveyResult(@RequestBody AISurveyDTO surveyDTO, HttpSession session) {
@@ -67,5 +69,11 @@ public class AiInterviewController {
 		UserVO user = (UserVO)session.getAttribute("User");
 		int uno = user.getUno();
 		return iService.updateLastTryDate(uno,session)?"success":"fail";
+	}
+	
+	@PostMapping("/voicetotext")
+	public ResponseEntity<Map<String, Object>> voiceToText(@RequestParam("voice") MultipartFile voiceFile) {
+	    String result = jshservice.convertVoiceToText(voiceFile);
+	    return ResponseEntity.ok(Map.of("text", result));
 	}
 }

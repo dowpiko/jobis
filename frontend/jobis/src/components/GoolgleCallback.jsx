@@ -32,7 +32,7 @@ const SubmitButton = styled.button`
   font-size: 16px;
   cursor: pointer;
 `;
-
+const host = process.env.REACT_APP_HOST;
 const GoogleCallback = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState('loading');
@@ -47,7 +47,7 @@ const GoogleCallback = () => {
 
     setCodeUsed(true);
 
-    axios.post('/jsh/google/check', { code: codeFromUrl })
+    axios.post(`http://${host}:9090/user/google/check`, { code: codeFromUrl })
       .then((res) => {
         if (!res.data.success && res.data.message) {
           alert(res.data.message);
@@ -80,11 +80,11 @@ const GoogleCallback = () => {
     }
 
     try {
-      const res = await axios.post('/jsh/google', {
+      const res = await axios.post(`http://${host}:9090/user/google`, {
         email,
         accessToken,
         birth: birthDate.toISOString().split('T')[0],
-      });
+      }, {withCredentials:true});
 
       if (res.data.success) {
         alert('구글 회원가입 및 로그인 성공!');
