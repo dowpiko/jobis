@@ -157,6 +157,11 @@ const ApplyNotice = () => {
 
   const handleSubmit = async () => {
     // const answerText = answers.join('\n');
+      const isAllAnswered = answers.every(ans => ans.trim() !== '');
+      if (!isAllAnswered) {
+        alert('모든 질문에 답변을 입력해주세요.');
+        return;
+      }
     const payload = {
       uno,
       ono,
