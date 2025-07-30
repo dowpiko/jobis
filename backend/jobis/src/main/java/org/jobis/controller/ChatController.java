@@ -8,17 +8,12 @@ import java.util.Map;
 import javax.servlet.http.HttpSession;
 
 import org.jobis.domain.UserChatVO;
-import org.jobis.domain.CUserVO;
 import org.jobis.domain.ChatMessageVO;
-import org.jobis.domain.InterViewBCVO;
-import org.jobis.domain.OfferSubmissionDTO;
 import org.jobis.domain.PenaltyVO;
-import org.jobis.domain.ProfileVO;
 import org.jobis.domain.UserRoomDTO;
 import org.jobis.domain.CompanyRoomDTO;
 import org.jobis.domain.UserVO;
-import org.jobis.service.SmService;
-import org.jobis.service.UserChatService;
+import org.jobis.service.ChatService;
 import org.jobis.websocket.ChatSocket2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -43,36 +38,36 @@ import lombok.extern.log4j.Log4j;
 @RequestMapping("/chat")
 public class ChatController {
 	@Autowired
-	private SmService service;
+	private ChatService chatService;
 	
 	@Autowired
-	private UserChatService ucservice;
+	private ChatService ucservice;
 	
 	// 채팅방 생성
 	@GetMapping("/insertChatRoom")
 	public int insertChatRoom(int cno,int uno, int ono) {
 		System.out.println("채팅방 생성");
-		return service.insertChatRoom(cno, uno, ono);
+		return chatService.insertChatRoom(cno, uno, ono);
 	}
 	
 	// 기업이 채팅방 가져오기
 	@GetMapping("/initCompanyChatLayout")
 	public List<CompanyRoomDTO> initCompanyChatLayout(int cno) {
 		System.out.println("기업이 채팅방 가져오기");
-		return service.initCompanyChatLayout(cno);
+		return chatService.initCompanyChatLayout(cno);
 	}
 	
 	// 유저가 채팅방 가져오기
 	@GetMapping("/initUserChatLayout")
 	public List<UserRoomDTO> initUserChatLayout(int uno) {
 		System.out.println("유저가 채팅방 가져오기");
-		return service.initUserChatLayout(uno);
+		return chatService.initUserChatLayout(uno);
 	}
 	
 	// 채팅 저장
 	@PostMapping("/insertChatMessage")
     public ResponseEntity<String> insertChatMessage(@RequestBody ChatMessageVO message) {
-        int result = service.insertChatMessage(message);
+        int result = chatService.insertChatMessage(message);
 
         if (result > 0) {
             return ResponseEntity.ok("success");
@@ -84,7 +79,7 @@ public class ChatController {
 	// 채팅 불러오기
 	@GetMapping("/selectByRnoChatMessages")
 	public List<ChatMessageVO> selectByRnoChatMessages(@RequestParam("rno") int rno, int uno) {
-	    return service.selectByRnoChatMessages(rno, uno);
+	    return chatService.selectByRnoChatMessages(rno, uno);
 	}
 	
 	// 디스코스 유저 챗 저장

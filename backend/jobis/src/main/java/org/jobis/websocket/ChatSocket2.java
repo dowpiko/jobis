@@ -10,7 +10,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.jobis.config.CustomSpringConfigurator;
 import org.jobis.domain.UserChatVO;
-import org.jobis.service.UserChatService;
+import org.jobis.service.ChatService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,7 +30,7 @@ public class ChatSocket2 {
     }
 
     @Autowired 
-    UserChatService ucService;
+    ChatService ucService;
 
     private static final Set<Session> sessions = new CopyOnWriteArraySet<>();
 

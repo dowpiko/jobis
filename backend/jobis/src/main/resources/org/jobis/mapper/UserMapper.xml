@@ -3,11 +3,13 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.jobis.mapper.UserMapper">
+
 	<update id="updateLastTryDate" parameterType="long">
 		UPDATE tbl_user
 		SET last_try_date = SYSDATE
 		WHERE uno = #{uno}
 	</update>
+	
 	<select id="getUserByUno" parameterType="int" resultType="org.jobis.domain.UserVO">
 		SELECT 
 			uno,
@@ -23,11 +25,13 @@
 		FROM TBL_USER
 		WHERE UNO = #{uno}
 	</select>
+	
 	<update id="updateSubscribe">
 		UPDATE TBL_USER
 			SET SUBSCRIBE = #{num}
 		WHERE UNO = #{uno}
 	</update>
+	
 	<update id="completeSubscriptionPayment">
 		UPDATE TBL_USER
 		SET
@@ -35,6 +39,7 @@
 			SUBSCRIBE_DATE = #{subscribeDate}
 		WHERE UNO = #{uno}
 	</update>
+	
 	<update id="expireSubscriptionIfNeeded" parameterType="int">
 	<![CDATA[
 		UPDATE TBL_USER
@@ -45,4 +50,161 @@
 		  AND subscribe_date < SYSDATE
 	]]>
 	</update>
+	
+	<!-- 아이디 중복 확인 -->
+	<select id="findUserId" parameterType="String" resultType="int">
+		SELECT COUNT(*) FROM tbl_user WHERE id=#{id}
+	</select>
+	
+	<!-- 기업 회원가입 -->
+	<insert id="insertCUser" parameterType="org.jobis.domain.CUserVO">
+  
+	  <selectKey keyProperty="uno" resultType="int" order="BEFORE" statementType="STATEMENT">
+	    SELECT SEQ_UNO.NEXTVAL FROM DUAL
+	  </selectKey>
+	  
+	  BEGIN
+		  INSERT INTO TBL_USER (UNO, ID, PW, EMAIL, AUTH)
+		  VALUES (#{uno}, #{id}, #{pw}, #{email}, 'company');
+		
+		  INSERT INTO TBL_CINFO (
+				  UNO,
+				  CORPNM,
+				  BZNO,
+				  ENPRPRFNM,
+				  ENPBSADR,
+				  SICNM,
+				  ENPEMPECNT
+				)
+				VALUES (
+				  #{uno},
+				  #{corpNm},
+				  #{bzno},
+				  #{enpRprFnm},
+				  #{enpBsadr},
+				  #{sicNm},
+				  #{enpEmpeCnt}
+				);
+	  		END;
+	</insert>
+	
+	<!-- 기업 로그인 시 -->
+	<select id="selectCinofoByUno" parameterType="int" resultType="org.jobis.domain.CUserVO">
+	  SELECT
+	    c.*,
+	    (
+	      SELECT COUNT(*)
+	      FROM TBL_CHATLOG cl
+	      WHERE cl.sender = #{uno} AND cl.hit = 0
+	    ) AS count
+	  FROM TBL_CINFO c
+	  WHERE c.uno = #{uno}
+	</select>
+	
+	<!-- 채팅 기록 가져오기 -->
+	<select id="chatLogCount" parameterType="int" resultType="int">
+		SELECT COUNT(*) FROM TBL_CHATLOG
+		WHERE SENDER = #{uno} AND HIT = 0
+	</select>
+	
+	<update id="updateProfile" parameterType="org.jobis.domain.ProfileVO">
+	    UPDATE tbl_uprofile
+	       SET nickname = #{nickname}, profileimage = #{profileimage}
+	     WHERE uno = #{uno}
+	</update>
+	
+	<select id="countNicknameExceptMe" parameterType="org.jobis.domain.ProfileVO" resultType="int">
+	    SELECT COUNT(*)
+	      FROM tbl_uprofile
+	     WHERE nickname = #{nickname} AND uno != #{uno}
+	</select>
+	
+	<!--  공고 스크랩하기 -->
+	<insert id="addFavorite" parameterType="org.jobis.domain.FavDTO">
+		INSERT INTO tbl_fav (uno,ono) VALUES (#{uno}, #{ono})
+	</insert>
+	
+	<!--  스크랩 취소하기 -->
+	<delete id="removeFavorite" parameterType="org.jobis.domain.FavDTO">
+		DELETE FROM tbl_fav WHERE uno=#{uno} and ono=#{ono}
+	</delete>
+	
+	<!-- 유저가 지원한 공고 목록 가져오기 -->
+	<select id="getAppliedByUno" parameterType="int" resultType="org.jobis.domain.SubmissionDTO">
+		SELECT 
+	        s.uno, 
+	        s.ono, 
+	        c.corpnm AS corpName,   
+	        o.o_title AS o_title,     
+	        o.o_tag AS o_tag,    
+	        s.o_content AS o_content 
+	    FROM tbl_submissions s
+	    JOIN tbl_offers o ON s.ono = o.ono
+	    JOIN tbl_cinfo c ON o.uno = c.uno
+	    WHERE s.uno = #{uno}
+	</select>
+	
+	<!--  공고지원 취소하기 -->
+	<delete id="deleteSubmission">
+		DELETE FROM tbl_submissions WHERE uno = #{uno} AND ono = #{ono}
+	</delete>
+	
+	<insert id="registerUser" parameterType="org.jobis.domain.UserVO">
+		INSERT INTO tbl_user (
+        uno, name, birthdate, id, pw, email, subscribe, auth
+	    ) VALUES (
+	        seq_uno.nextval,
+	        #{name},
+	        #{birthdate},
+	        #{id},
+	        #{pw},
+	        #{email},
+	        DEFAULT,
+	        'user'
+	    )
+	</insert>
+	
+	<select id="loginUser" parameterType="map" resultType="org.jobis.domain.UserVO">
+		SELECT 
+			uno,
+			name,
+			birthdate,
+			id,
+			pw,
+			email,
+			subscribe,
+			auth,
+			last_try_date AS lastTryDate,
+			subscribe_date AS subscribeDate  <!-- ✅ 추가 -->
+		FROM tbl_user
+		WHERE id = #{id}
+		  AND pw = #{pw}
+	</select>
+	
+	<insert id="createProfile" parameterType="org.jobis.domain.ProfileVO">
+	    INSERT INTO tbl_uprofile (uno, nickname, profileimage)
+	    VALUES (#{uno}, #{nickname}, #{profileimage})
+	</insert>
+	
+	<select id="getProfileByUno" parameterType="int" resultType="org.jobis.domain.ProfileVO">
+	    SELECT *
+	    FROM tbl_uprofile
+	    WHERE uno = #{uno}
+	</select>
+	
+	<select id="getUserById" parameterType="String" resultType="org.jobis.domain.UserVO">
+		SELECT 
+			uno,
+			name,
+			birthdate,
+			id,
+			pw,
+			email,
+			subscribe,
+			auth,
+			last_try_date AS lastTryDate,
+			subscribe_date AS subscribeDate  <!-- ✅ 추가 -->
+		FROM tbl_user
+		WHERE id = #{id}
+	</select>
 </mapper>

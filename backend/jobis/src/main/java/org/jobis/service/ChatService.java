@@ -4,15 +4,29 @@ import java.util.Date;
 import java.util.List;
 
 import org.jobis.domain.UserChatVO;
-import org.jobis.domain.CompanyOfferDTO;
-import org.jobis.domain.FavDTO;
+import org.jobis.domain.UserRoomDTO;
+import org.jobis.domain.ChatMessageVO;
+import org.jobis.domain.CompanyRoomDTO;
 import org.jobis.domain.PenaltyVO;
-import org.jobis.domain.ProfileVO;
-import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
 import org.springframework.stereotype.Service;
 @Service
-public interface UserChatService {
+public interface ChatService {
+	
+	// 채팅방 생성
+	public int insertChatRoom(int cno, int uno, int ono);
+	
+	// 기업이 채팅방 가져오기
+	public List<CompanyRoomDTO> initCompanyChatLayout(int cno);
+	
+	// 유저가 채팅방 가져오기
+	public List<UserRoomDTO> initUserChatLayout(int uno);
+	
+	// 채팅 저장
+	public int insertChatMessage(ChatMessageVO message);
+	
+	// 채팅 불러오기
+	public List<ChatMessageVO> selectByRnoChatMessages(int rno, int uno);
 
 	// 유저채팅 insert
 	public int register(UserChatVO cjsvo);
@@ -47,33 +61,6 @@ public interface UserChatService {
 	//member삭제하기
 	public void leaveChatAsMember(int cno);
 	
-	//uno로 프로필 접근하기
-	public ProfileVO getProfileByUno(int uno);
-	
-	//----------------여기부터는 기업공고정보 페이지-----------------------------
-	
-	// 기업정보 가져오기
-	public List<CompanyOfferDTO> getCompanyOffers();
-	
-	// 기업공고 작성 완료 (유저가 답변)
-	public int insertSubmission(SubmissionDTO submissiondto);
-	
-	// 스크랩 공고 목록 가져오기
-	public List<CompanyOfferDTO> getFavByUno(int uno);
-	
-	// 공고 스크랩하기
-	public int addFavorite(FavDTO favdto);
-	
-	// 공고 스크랩 취소하기
-	public int removeFavorite(FavDTO favdto);
-	
-	// 유저가 지원한 공고 목록 가져오기
-	public List<SubmissionDTO> getAppliedByUno(int uno);
-	
-	// 공고 지원 취소하기
-	public int deleteSubmission(int uno, int ono);
-	
-	// ---------------------패널티 관련----------------------------
 	// 패널티 정보 가져오기
 	public PenaltyVO getPenaltyByUno(int uno);
 	

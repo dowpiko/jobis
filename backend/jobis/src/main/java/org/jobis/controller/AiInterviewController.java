@@ -10,7 +10,7 @@ import org.jobis.domain.AIVO;
 import org.jobis.domain.InterviewResultDTO;
 import org.jobis.domain.UserVO;
 import org.jobis.service.InterviewService;
-import org.jobis.service.JshService;
+import org.jobis.service.AiInterviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +36,7 @@ public class AiInterviewController {
 	InterviewService iService;
 	
 	@Autowired
-	JshService jshservice;
+	AiInterviewService aiInterviewService;
 	
 	@PostMapping("/saveSurveyResult")
 	public ResponseEntity<String> saveSurveyResult(@RequestBody AISurveyDTO surveyDTO, HttpSession session) {
@@ -73,7 +73,7 @@ public class AiInterviewController {
 	
 	@PostMapping("/voicetotext")
 	public ResponseEntity<Map<String, Object>> voiceToText(@RequestParam("voice") MultipartFile voiceFile) {
-	    String result = jshservice.convertVoiceToText(voiceFile);
+	    String result = aiInterviewService.convertVoiceToText(voiceFile);
 	    return ResponseEntity.ok(Map.of("text", result));
 	}
 }

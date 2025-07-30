@@ -21,7 +21,6 @@ import org.jobis.generators.PromptGenerator;
 import org.jobis.generators.QuestionPromptGenerator;
 import org.jobis.generators.ResultPromptGenerator;
 import org.jobis.mapper.AIMapper;
-import org.jobis.mapper.JshMapper;
 import org.jobis.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import kotlin.jvm.Throws;
 import lombok.extern.log4j.Log4j;
 
 @Log4j
@@ -40,13 +38,13 @@ public class InterviewServiceimpl implements InterviewService{
 	private static final ObjectMapper oMapper = new ObjectMapper();
 	
 	@Autowired
-	private AIMapper aMapper;
+	private AIMapper aiMapper;
 	
 	@Autowired
-	private UserMapper uMapper;
+	private UserMapper userMapper;
 	
 	@Autowired
-	AiService aService;
+	private AiService aiService;
 	
 	@Override
 	public String getPrompt(HttpSession httpSession, Session session) {
@@ -116,36 +114,36 @@ public class InterviewServiceimpl implements InterviewService{
 		long uno = User.getUno();
 		
 		AIVO aVO = new AIVO(null, uno, aTitle, sDTO.getSubCategory(), aContent, null, resultScore, null);
-		int insertResult = aMapper.insertData(aVO);
+		int insertResult = aiMapper.insertData(aVO);
 
-		uMapper.updateLastTryDate(uno);
+		userMapper.updateLastTryDate(uno);
 		updateUserSession(session);
 		return insertResult;
 	}
 	
 	@Override
 	public List<AIVO> getAllResults(int uno) {
-		List<AIVO> test = aMapper.getAllByUno(uno);
+		List<AIVO> test = aiMapper.getAllByUno(uno);
 		log.warn(test);
 		return test;
 	}
 	
 	@Override
 	public String getFeedbackFromAI(int ano, HttpSession session) {
-		AIVO aVO = aMapper.getDataByAno(ano);
+		AIVO aVO = aiMapper.getDataByAno(ano);
 		PromptGenerator gen = new FeedbackPromptGenerator(aVO);
 		String prompt = gen.generatePrompt();
-		String result = aService.getResultSync(prompt);
+		String result = aiService.getResultSync(prompt);
 
 		// 🔧 JSON 보정
 		String sanitized = fixJsonIfNeeded(result);
 
 		aVO.setFeedback(sanitized);
 		System.out.println("✅ 보정된 결과 저장: " + sanitized);
-		String resultReturn =aMapper.updateFeedback(aVO) >= 1 ? sanitized : "DB 업데이트 오류";
+		String resultReturn =aiMapper.updateFeedback(aVO) >= 1 ? sanitized : "DB 업데이트 오류";
 		UserVO user = (UserVO)session.getAttribute("User");
 		if(user.getSubscribe()!=1) {
-			if(uMapper.updateSubscribe(user.getUno(), 2)>0)
+			if(userMapper.updateSubscribe(user.getUno(), 2)>0)
 				updateUserSession(session);
 		}
 		return resultReturn;
@@ -153,7 +151,7 @@ public class InterviewServiceimpl implements InterviewService{
 	
 	@Override
 	public boolean updateLastTryDate(int uno, HttpSession session) {
-		boolean result = uMapper.updateLastTryDate(uno)>0;
+		boolean result = userMapper.updateLastTryDate(uno)>0;
 		updateUserSession(session);
 		return result;
 	}
@@ -161,7 +159,7 @@ public class InterviewServiceimpl implements InterviewService{
 	public void updateUserSession(HttpSession session) {
 		UserVO user = (UserVO)session.getAttribute("User");
 		int uno = user.getUno();
-		user = uMapper.getUserByUno(uno);
+		user = userMapper.getUserByUno(uno);
 		session.setAttribute("User", user);
 	}
 	//------------------헬퍼 함수----------------
@@ -199,7 +197,7 @@ public class InterviewServiceimpl implements InterviewService{
 	
 	// db에 동일한 이름 존재시 이름에 넘버링을 붙여서 반환하는 함수
 	private String generateUniqueTitle(String baseTitle) {
-	    List<String> similarTitles = aMapper.selectSimilarTitles(baseTitle);
+	    List<String> similarTitles = aiMapper.selectSimilarTitles(baseTitle);
 
 	    boolean hasOriginal = false;
 	    int maxNumber = 0; // 초기값 0 → 최소 번호는 (1)부터 시작

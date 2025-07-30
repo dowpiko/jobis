@@ -9,8 +9,8 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.jobis.config.CustomSpringConfigurator;
 import org.jobis.domain.UserChatVO;
-import org.jobis.service.SmService;
-import org.jobis.service.UserChatService;
+import org.jobis.service.ChatService;
+import org.jobis.service.UserService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +30,11 @@ public class ChatSocket {
 	        return instance;
 	    }
 	
-	@Autowired UserChatService ucService;
+	@Autowired 
+	private ChatService ucService;
 	
-	@Autowired SmService smService;
+	@Autowired 
+	private UserService userService;
 	
     private static final Set<Session> sessions = new CopyOnWriteArraySet<>();
 
@@ -106,7 +108,7 @@ public class ChatSocket {
             int rno = json.getInt("rno");
             
             if (ucService.getOtherNameByUno(leaderUno).getName() == null) {
-            	String leaderName = smService.selectCinofoByUno(leaderUno).getCorpNm();
+            	String leaderName = userService.selectCinofoByUno(leaderUno).getCorpNm();
             	json.put("leader_name", leaderName);
 			}else {
 				String leaderName = ucService.getOtherNameByUno(leaderUno).getName();

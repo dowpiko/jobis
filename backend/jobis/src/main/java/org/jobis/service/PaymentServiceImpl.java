@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.jobis.domain.UserVO;
-import org.jobis.mapper.JshMapper;
 import org.jobis.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,9 +30,6 @@ public class PaymentServiceImpl implements PaymentService{
 	@Autowired
 	private UserMapper userMapper;
 	
-	@Autowired
-	private JshMapper jshMapper;
-
 	@Override
 	public String verifyAndCompletePayment(Map<String, Object> paymentData, HttpSession session) {
 		try {

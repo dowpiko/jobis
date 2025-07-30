@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.jobis.mapper.OffersMapper">
+	<!-- 면접 공고 등록 -->
+	<insert id="insertInterView" parameterType="org.jobis.domain.InterViewBCVO">
+		INSERT INTO TBL_OFFERS VALUES (
+			SEQ_ONO.NEXTVAL,
+			#{uno},
+			#{o_title},
+			#{o_tag},
+			#{o_content},
+			#{o_activedays},
+			SYSDATE
+		)
+	</insert>
+	
+	<!-- 진행 중 / 마감 -->
+	<select id="progress" resultType="org.jobis.domain.InterViewBCVO" parameterType="map">
+	    SELECT
+	        o.*,
+	        (SELECT COUNT(*)
+	         FROM TBL_SUBMISSIONS s
+	         WHERE s.ONO = o.ONO) AS applicantCount
+	    FROM
+	        TBL_OFFERS o
+	    WHERE
+	        o.UNO = #{uno}
+	        AND
+	        <choose>
+	            <when test="check == 1">
+	                o.o_activedays &gt;= SYSDATE
+	            </when>
+	            <when test="check == 0">
+	                o.o_activedays &lt;= SYSDATE
+	            </when>
+	            <otherwise>
+	                o.o_activedays &gt;= SYSDATE
+	            </otherwise>
+	        </choose>
+	</select>
+	
+	<!-- 공고 지원한 사람 데이터 -->
+	<select id="selectByOno" resultType="org.jobis.domain.User_InterViewDTO" parameterType="int">
+		SELECT 
+	        s.ONO,
+	        s.UNO,
+	        s.O_TITLE,
+	        s.O_TAG,
+	        s.O_CONTENT,
+	        s.O_REGDATE,
+	        u.NAME,
+	        u.BIRTHDATE,
+	        u.EMAIL
+	    FROM 
+	        TBL_SUBMISSIONS s
+	    JOIN 
+	        TBL_USER u ON s.UNO = u.UNO
+	    WHERE 
+	        s.ONO = #{ono}
+	</select>
+	
+	<!-- 공고 삭제 -->
+	<delete id="deleteByOno" parameterType="java.util.List">
+	    DELETE FROM tbl_offers
+	    WHERE ono IN
+	    <foreach item="ono" collection="onoList" open="(" separator="," close=")">
+	        #{ono}
+	    </foreach>
+	</delete>
+	
+	<!-- 해당 공고 가져오기 -->
+	<select id="oneInterViewByOno" parameterType="int" resultType="org.jobis.domain.InterViewBCVO">
+		SELECT * FROM TBL_OFFERS WHERE ono = #{ono}
+	</select>
+	
+	<!-- 공고 정보 (tbl_offers) -->
+	<select id="selectOffer" parameterType="org.jobis.domain.InterViewBCVO" resultType="org.jobis.domain.OfferSubmissionDTO">
+	    SELECT 
+	        o.o_title AS o_title,
+	        o.o_tag AS o_tag,
+	        o.o_content AS o_content,
+	        o.o_regdate AS o_regdate,
+	        NULL AS user_content,
+	        NULL AS user_regdate
+	    FROM tbl_offers o
+	    WHERE o.ono = #{ono}
+	</select>
+	
+	<!-- 지원자 정보 (tbl_submissions) -->
+	<select id="selectSubmission" parameterType="org.jobis.domain.InterViewBCVO" resultType="org.jobis.domain.OfferSubmissionDTO">
+	    SELECT 
+	        NULL AS o_title,
+	        NULL AS o_tag,
+	        NULL AS o_content,
+	        NULL AS o_regdate,
+	        s.o_content AS user_content,
+	        s.o_regdate AS user_regdate,
+	        r.rno AS rno
+	    FROM tbl_submissions s
+	    LEFT JOIN tbl_room r
+	        ON r.ono = s.ono
+	       AND r.company = #{company}
+	       AND r.emp = #{uno}
+	    WHERE s.ono = #{ono} AND s.uno = #{uno}
+	</select>
+	
+	<!--  기업 정보 가져오기 -->
+	<select id="getCompanyOffers" resultType="org.jobis.domain.CompanyOfferDTO">
+		SELECT
+	      o.ono           AS ono,
+	      o.uno           AS uno,
+	      c.corpnm        AS corpName,
+	      o.o_tag         AS category,
+	      o.o_title       AS title,
+	      o.o_activedays  AS o_activedays
+	    FROM tbl_offers o
+	    JOIN tbl_cinfo c      ON o.uno = c.uno
+	    LEFT JOIN tbl_uprofile u ON o.uno = u.uno
+	    WHERE o.o_activedays >= TRUNC(SYSDATE)
+	    ORDER BY o.ono DESC
+	</select>
+	
+	<!--  공고 작성완료 (유저가 답변) -->
+	<insert id="insertSubmission">
+	 INSERT INTO tbl_submissions (
+	      uno,
+	      ono,
+	      o_title,
+	      o_tag,
+	      o_content,
+	      o_regdate
+	    ) VALUES (
+	      #{uno},
+	      #{ono},
+	      #{o_title},
+	      #{o_tag},
+	      #{o_content},
+	      SYSDATE
+	    )
+	</insert>
+	
+	<!--  스크랩한 공고 목록 가져오기 -->
+	<select id="getFavByUno" parameterType="int" resultType="org.jobis.domain.CompanyOfferDTO">
+	    SELECT 
+	        o.ono,
+	        c.corpnm AS corpName,
+	        u.profileimage AS profileImage,
+	        o.o_tag AS category,
+	        o.o_title AS title
+	    FROM tbl_fav f
+	    JOIN tbl_offers o ON f.ono = o.ono
+	    JOIN tbl_cinfo c ON o.uno = c.uno
+	    LEFT JOIN tbl_uprofile u ON o.uno = u.uno
+	    WHERE f.uno = #{uno}
+	</select>
+</mapper>

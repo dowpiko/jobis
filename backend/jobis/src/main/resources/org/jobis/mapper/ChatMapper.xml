@@ -2,8 +2,77 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.jobis.mapper.UserChatMapper">
-
+<mapper namespace="org.jobis.mapper.ChatMapper">
+	
+	<!-- 채팅방 생성 -->
+	<insert id="insertChatRoom" parameterType="org.jobis.domain.CompanyRoomDTO">
+	    INSERT INTO tbl_room (rno, company, emp, ono)
+	    SELECT SEQ_RNO.NEXTVAL, #{company}, #{emp}, #{ono}
+	    FROM dual
+	    WHERE NOT EXISTS (
+	        SELECT 1 FROM tbl_room
+	        WHERE company = #{company}
+	          AND emp = #{emp}
+	          AND ono = #{ono}
+	    )
+	</insert>
+	
+	<!-- 기업이 채팅방 가져오기 -->
+	<select id="initCompanyChatLayout" parameterType="int" resultType="org.jobis.domain.CompanyRoomDTO">
+	    SELECT 
+	        R.RNO,
+	        R.COMPANY,
+	        R.EMP,
+	        R.ONO,
+	        U.NAME,
+	        U.BIRTHDATE
+	    FROM 
+	        TBL_ROOM R
+	    JOIN 
+	        TBL_USER U
+	    ON 
+	        R.EMP = U.UNO
+	    WHERE 
+	        R.COMPANY = #{cno}
+	</select>
+	
+	<!-- 유저가 채팅방 가져오기 -->
+	<select id="initUserChatLayout" parameterType="int" resultType="org.jobis.domain.UserRoomDTO">
+	    SELECT 
+	        r.RNO,
+	        r.COMPANY,
+	        r.EMP,
+	        r.ONO,
+	        c.corpNm
+	    FROM 
+	        TBL_ROOM r
+	    LEFT JOIN 
+	        TBL_CINFO c ON r.COMPANY = c.uno
+	    WHERE 
+	        r.EMP = #{uno}
+	</select>
+	
+	<!-- 채팅 저장 -->
+	<insert id="insertChatMessage" parameterType="org.jobis.domain.ChatMessageVO">
+	    INSERT INTO TBL_CHATLOG (CLNO, RNO, SENDER, CONTENT, HIT, CL_REGDATE)
+	    VALUES (SEQ_CLNO.NEXTVAL, #{rno}, #{sender}, #{content}, #{hit}, SYSDATE)
+	</insert>
+	
+	<!-- 채팅 불러오기 -->
+	<select id="selectByRnoChatMessages" parameterType="int" resultType="org.jobis.domain.ChatMessageVO">
+	    SELECT 
+	        CLNO, RNO, SENDER, CONTENT, HIT, CL_REGDATE
+	    FROM TBL_CHATLOG
+	    WHERE RNO = #{rno}
+	    ORDER BY CL_REGDATE ASC, CLNO ASC
+	</select>
+	
+	<!-- 채팅 읽음 표시 -->
+	<update id="updateChatHit" parameterType="map">
+	  UPDATE TBL_CHATLOG
+	  SET HIT = 1
+	  WHERE RNO = #{rno} AND HIT = 0 AND sender = #{uno}
+	</update>
 
 	<!-- 유저 채팅 input-->
 	<insert id="register" parameterType="org.jobis.domain.UserChatVO">
@@ -39,9 +108,7 @@
 	    ORDER BY cno DESC
 	)
 	WHERE ROWNUM = 1
-
 	</select>
-	
 	
 	<!-- 유저 채팅 불러오기 (전체)-->
 	<select id="getUserChat" resultType="org.jobis.domain.UserChatVO">
@@ -68,7 +135,6 @@
 	    ORDER BY uc.r_regdate DESC
 	</select>
 	
-	
 	<!-- 이름 가져오기 -->
 	<select id="getNameByUno" resultType="org.jobis.domain.UserVO">
 		SELECT * FROM tbl_user where uno=#{uno}
@@ -78,7 +144,6 @@
 	<select id="getOtherNameByUno" parameterType="int" resultType="org.jobis.domain.UserVO">
 		SELECT * FROM tbl_user where uno=#{uno}
 	</select>
-
 	
 	<!-- 채팅 참여하기 -->
 	<update id="joinChat">
@@ -93,7 +158,6 @@
 		WHERE cno = #{cno}
 	</delete>
 
-	
 	<!--  단일 데이터 가져오기 -->
 	<select id="getChatByCno" resultType="org.jobis.domain.UserChatVO">
 	  SELECT * FROM tbl_userchat WHERE cno = #{cno}
@@ -116,92 +180,6 @@
 	  WHERE cno = #{cno}
 	</update>
 	
-	<!-- uno로 프로필 가져오기 -->
-	<select id="getProfileByUno" resultType="org.jobis.domain.ProfileVO" parameterType="int">
-		SELECT * FROM tbl_uprofile WHERE uno=#{uno}
-	</select>
-	
-	<!--  기업 정보 가져오기 -->
-	<select id="getCompanyOffers" resultType="org.jobis.domain.CompanyOfferDTO">
-		SELECT
-	      o.ono           AS ono,
-	      o.uno           AS uno,
-	      c.corpnm        AS corpName,
-	      o.o_tag         AS category,
-	      o.o_title       AS title,
-	      o.o_activedays  AS o_activedays
-	    FROM tbl_offers o
-	    JOIN tbl_cinfo c      ON o.uno = c.uno
-	    LEFT JOIN tbl_uprofile u ON o.uno = u.uno
-	    WHERE o.o_activedays >= TRUNC(SYSDATE)
-	    ORDER BY o.ono DESC
-	</select>
-	
-	<!--  공고 작성완료 (유저가 답변) -->
-	<insert id="insertSubmission">
-	 INSERT INTO tbl_submissions (
-	      uno,
-	      ono,
-	      o_title,
-	      o_tag,
-	      o_content,
-	      o_regdate
-	    ) VALUES (
-	      #{uno},
-	      #{ono},
-	      #{o_title},
-	      #{o_tag},
-	      #{o_content},
-	      SYSDATE
-	    )
-	</insert>
-	
-	<!--  스크랩한 공고 목록 가져오기 -->
-	<select id="getFavByUno" parameterType="int" resultType="org.jobis.domain.CompanyOfferDTO">
-	    SELECT 
-	        o.ono,
-	        c.corpnm AS corpName,
-	        u.profileimage AS profileImage,
-	        o.o_tag AS category,
-	        o.o_title AS title
-	    FROM tbl_fav f
-	    JOIN tbl_offers o ON f.ono = o.ono
-	    JOIN tbl_cinfo c ON o.uno = c.uno
-	    LEFT JOIN tbl_uprofile u ON o.uno = u.uno
-	    WHERE f.uno = #{uno}
-	</select>
- 
-	<!--  공고 스크랩하기 -->
-	<insert id="addFavorite" parameterType="org.jobis.domain.FavDTO">
-		INSERT INTO tbl_fav (uno,ono) VALUES (#{uno}, #{ono})
-	</insert>
-	
-	<!--  스크랩 취소하기 -->
-	<delete id="removeFavorite" parameterType="org.jobis.domain.FavDTO">
-		DELETE FROM tbl_fav WHERE uno=#{uno} and ono=#{ono}
-	</delete>
-	
-	<!-- 유저가 지원한 공고 목록 가져오기 -->
-	<select id="getAppliedByUno" parameterType="int" resultType="org.jobis.domain.SubmissionDTO">
-		SELECT 
-	        s.uno, 
-	        s.ono, 
-	        c.corpnm AS corpName,   
-	        o.o_title AS o_title,     
-	        o.o_tag AS o_tag,    
-	        s.o_content AS o_content 
-	    FROM tbl_submissions s
-	    JOIN tbl_offers o ON s.ono = o.ono
-	    JOIN tbl_cinfo c ON o.uno = c.uno
-	    WHERE s.uno = #{uno}
-	</select>
-	
-	<!--  공고지원 취소하기 -->
-	<delete id="deleteSubmission">
-		DELETE FROM tbl_submissions WHERE uno = #{uno} AND ono = #{ono}
-	</delete>
-	
-	<!-- ================패널티 관련================== -->
 	<!-- 패널티 정보 가져오기 -->
 	<select id="getPenaltyByUno" parameterType="int" resultType="org.jobis.domain.PenaltyVO">
 	    SELECT * FROM tbl_penalty WHERE uno = #{uno}

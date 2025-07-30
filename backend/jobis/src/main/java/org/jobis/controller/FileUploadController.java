@@ -119,5 +119,4 @@ public class FileUploadController {
  	        return ResponseEntity.status(500).body("목록 조회 중 오류");
  	    }
  	}
- 	
 }

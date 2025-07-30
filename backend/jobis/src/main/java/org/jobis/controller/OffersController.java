@@ -5,18 +5,12 @@ import java.util.Map;
 
 import javax.servlet.http.HttpSession;
 
-import org.jobis.domain.CUserVO;
-import org.jobis.domain.ChatMessageVO;
 import org.jobis.domain.CompanyOfferDTO;
 import org.jobis.domain.InterViewBCVO;
 import org.jobis.domain.OfferSubmissionDTO;
-import org.jobis.domain.ProfileVO;
 import org.jobis.domain.SubmissionDTO;
-import org.jobis.domain.UserRoomDTO;
-import org.jobis.domain.CompanyRoomDTO;
 import org.jobis.domain.UserVO;
-import org.jobis.service.SmService;
-import org.jobis.service.UserChatService;
+import org.jobis.service.OffersService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -35,59 +29,56 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/offers")
 public class OffersController {
 	@Autowired
-	private SmService service;
-	
-	@Autowired
-	private UserChatService ucservice;
+	private OffersService offersService;
 	
 	// 면접 공고 등록
 	@PostMapping("/insertInterView")
 	@ResponseBody
 	public int insertInterView(@RequestBody InterViewBCVO ivbc) {
 		System.out.println("면접 공고 등록");
-		return service.insertInterView(ivbc);
+		return offersService.insertInterView(ivbc);
 	}
 	
 	// 진행 중 / 마감
 	@GetMapping("/progress")
 	public List<InterViewBCVO> progress(@RequestParam("check") int check, @RequestParam("uno") int uno) {
 		System.out.println("진행 중 / 마감");
-		return service.progress(check, uno);
+		return offersService.progress(check, uno);
 	}
 	
 	// 공고 지원한 사람 데이터
 	@GetMapping("/selectByOno")
 	public List<UserVO> selectByOno(int ono){
 		System.out.println("공고 지원한 사람 데이터");
-		return service.selectByOno(ono);
+		return offersService.selectByOno(ono);
 	}
 	
 	// 공고 삭제
 	@GetMapping("/deleteByOno")
 	public int deleteByOno(@RequestParam(value = "onos") List<Integer> onoList){
 		System.out.println("공고 삭제");
-		return service.deleteByOno(onoList);
+		return offersService.deleteByOno(onoList);
 	}
 	
 	// 해당 공고 가져오기
 	@GetMapping("/oneInterViewByOno")
 	public InterViewBCVO oneInterViewByOno(int ono) {
 		System.out.println("해당 공고 가져오기");
-		return service.oneInterViewByOno(ono);
+		return offersService.oneInterViewByOno(ono);
 	}
 	
 	// 공고 답변, 질문 가져오기
 	@GetMapping("/selectOfferAndSubmission")
 	public OfferSubmissionDTO selectOfferAndSubmission(int ono, int emp, int company) {
 		System.out.println("공고 답변, 질문 가져오기");
-		return service.selectOfferAndSubmission(ono, emp, company);
+		return offersService.selectOfferAndSubmission(ono, emp, company);
 	}
 	
 	// 기업 공고 가져오기
 	@ResponseBody
 	@GetMapping(value = "/getCompanyOffer", produces = MediaType.APPLICATION_JSON_VALUE)
 	public List<CompanyOfferDTO> getCompanyOfferList(){
-		return ucservice.getCompanyOffers();
+		return offersService.getCompanyOffers();
 	}
 	
 	// 기업 공고 작성 완료(유저가 답변 완료)
@@ -104,7 +95,7 @@ public class OffersController {
 		   submissiondto.setO_content(String.join("\n", submissiondto.getAnswers()));
 	   }
 	   
-	   int result = ucservice.insertSubmission(submissiondto);
+	   int result = offersService.insertSubmission(submissiondto);
 	   
 	   if (result == 1) {
            return ResponseEntity.ok("1");  
@@ -120,7 +111,7 @@ public class OffersController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        List<CompanyOfferDTO> list = ucservice.getFavByUno(user.getUno());
+        List<CompanyOfferDTO> list = offersService.getFavByUno(user.getUno());
         return ResponseEntity.ok(list);
     }
     

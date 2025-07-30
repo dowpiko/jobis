@@ -1,13 +1,19 @@
 package org.jobis.service;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.jobis.domain.CUserVO;
+import org.jobis.domain.FavDTO;
 import org.jobis.domain.ProfileVO;
+import org.jobis.domain.SubmissionDTO;
 import org.jobis.domain.UserVO;
-import org.jobis.mapper.JshMapper;
 import org.jobis.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,49 +21,32 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-
-import org.json.JSONObject;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
-public class JshServiceImple implements JshService{
+public class UserServiceImple implements UserService{
 
-    @Autowired private JavaMailSender mailSender;
+    @Autowired 
+    private JavaMailSender mailSender;
 
-    @Autowired private StringRedisTemplate redisTemplate;
+    @Autowired 
+    private StringRedisTemplate redisTemplate;
     
-    @Autowired private JshMapper jsmMapper;
-    
-    @Autowired private UserMapper userMapper;
+    @Autowired 
+    private UserMapper userMapper;
 
     @Value("${spring.mail.username}")
     private String mailSenderAddress;
@@ -89,14 +78,128 @@ public class JshServiceImple implements JshService{
     @Value("${google.redirect.uri}")
     private String gRedirectUri;
     
+    @Value("${key.compInfo}")
+    private String compInfoKey;
+    
+    // 아이디 중복확인
+    @Override
+    public int findUserId(String id) {
+    	return userMapper.findUserId(id) == 0 ? 0 : 1;
+    }
+    
+    // 기업 불러오기
+    @Override
+    public ResponseEntity<String> findCompany(String crno) {
+        try {
+            String encodedKey = URLEncoder.encode(compInfoKey, StandardCharsets.UTF_8.toString());
+
+            String fullUrl = "http://apis.data.go.kr/1160100/service/GetCorpBasicInfoService_V2/getCorpOutline_V2"
+                    + "?serviceKey=" + encodedKey
+                    + "&pageNo=1"
+                    + "&numOfRows=1"
+                    + "&resultType=json"
+                    + "&crno=" + crno;
+
+            URI uri = URI.create(fullUrl);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("User-Agent", "Mozilla/5.0");
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+            headers.set("Accept-Charset", "UTF-8");
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.exchange(
+                    uri,
+                    HttpMethod.GET,
+                    entity,
+                    String.class
+            );
+
+            String json = response.getBody();
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> parsed = objectMapper.readValue(json, Map.class);
+
+            return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8").body(json);
+
+        } catch (Exception e) {
+            String errorJson = "{\"error\": \"API 호출 실패: " + e.getMessage() + "\"}";
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .header(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8")
+                    .body(errorJson);
+        }
+    };
+    
+    // 기업 회원가입
+    @Override
+    @Transactional
+    public int insertCUser(CUserVO cuvo) {
+    	return userMapper.insertCUser(cuvo);
+    };
+    
+    // 기업 데이터 가져오기
+    @Override
+    public CUserVO selectCinofoByUno(int uno) {
+    	return userMapper.selectCinofoByUno(uno);
+    }
+    
+    // 디스코드 프로필 업데이트
+    @Override
+    public int updateProfile(ProfileVO vo) {
+        return userMapper.updateProfile(vo);
+    }
+    
+    // 닉네임 중복확인
+    @Override
+    public int countNicknameExceptMe(ProfileVO vo) {
+    	return userMapper.countNicknameExceptMe(vo);
+    }
+    
+    // 채팅 기록 가져오기
+    @Override
+    public int chatLogCount(int uno) {
+    	return userMapper.chatLogCount(uno);
+    }
+	
+	@Override
+	public ProfileVO getProfileByUno(int uno) {
+		return userMapper.getProfileByUno(uno);
+	}
+	
+	// 공고 스크랩하기
+	@Override
+	public int addFavorite(FavDTO favdto) {
+		return userMapper.addFavorite(favdto);
+	}
+	
+	// 스크랩 취소하기
+	@Override
+	public int removeFavorite(FavDTO favdto) {
+		return userMapper.removeFavorite(favdto);
+	}
+	
+	// 유저가 지원한 공고 목록 가져오기
+	@Override
+	public List<SubmissionDTO> getAppliedByUno(int uno) {
+		return userMapper.getAppliedByUno(uno);
+	}
+	
+	// 공고 지원 취소하기
+	@Override
+	public int deleteSubmission(int uno, int ono) {
+		return userMapper.deleteSubmission(uno, ono);
+	}
+	
     @Override
     public boolean checkId(String id) {    	
-    	return jsmMapper.findUserId(id) == 0 ? true : false;
+    	return userMapper.findUserId(id) == 0 ? true : false;
     }
     
     @Override
     public boolean registerUser(UserVO userVO) {    	
-    	return jsmMapper.registerUser(userVO) > 0 ? true : false;
+    	return userMapper.registerUser(userVO) > 0 ? true : false;
     }
     
 	@Override
@@ -129,17 +232,12 @@ public class JshServiceImple implements JshService{
         param.put("id", id);
         param.put("pw", pw);
 
-        return jsmMapper.loginUser(param);
-	}
-	
-	@Override
-	public ProfileVO getProfileByUno(int uno) {
-		return jsmMapper.getProfileByUno(uno);
+        return userMapper.loginUser(param);
 	}
 	
 	@Override
 	public boolean createProfile(ProfileVO profileVO) {
-		return jsmMapper.createProfile(profileVO) > 0 ? true : false;
+		return userMapper.createProfile(profileVO) > 0 ? true : false;
 	}	
 
     @Override
@@ -154,8 +252,8 @@ public class JshServiceImple implements JshService{
         userVO.setBirthdate(Date.valueOf(userProfile.get("birthyear") + "-" + userProfile.get("birthday")));
         userVO.setPw("naver");
         
-        if(jsmMapper.findUserId(userVO.getId()) == 0) {
-        	jsmMapper.registerUser(userVO);
+        if(userMapper.findUserId(userVO.getId()) == 0) {
+        	userMapper.registerUser(userVO);
         }
         
         return userProfile;
@@ -275,11 +373,11 @@ public class JshServiceImple implements JshService{
                 userVO.setBirthdate(Date.valueOf(birth));
             }
 
-            if (jsmMapper.findUserId(userVO.getId()) == 0) {
-                jsmMapper.registerUser(userVO);
+            if (userMapper.findUserId(userVO.getId()) == 0) {
+                userMapper.registerUser(userVO);
             }
 
-            return jsmMapper.getUserById(email);
+            return userMapper.getUserById(email);
         } catch (Exception e) {
             System.err.println("🔴 [Kakao] 사용자 등록 중 오류");
             e.printStackTrace();
@@ -352,11 +450,11 @@ public class JshServiceImple implements JshService{
                 userVO.setBirthdate(Date.valueOf(birth));
             }
 
-            if (jsmMapper.findUserId(userVO.getId()) == 0) {
-                jsmMapper.registerUser(userVO);
+            if (userMapper.findUserId(userVO.getId()) == 0) {
+                userMapper.registerUser(userVO);
             }
 
-            return jsmMapper.getUserById(email);
+            return userMapper.getUserById(email);
         } catch (Exception e) {
             System.err.println("🔴 [Google] 사용자 등록 중 오류");
             e.printStackTrace();
@@ -368,92 +466,9 @@ public class JshServiceImple implements JshService{
     public void expireSubscriptionIfNeeded(int uno) {
     	System.out.println(userMapper.expireSubscriptionIfNeeded(uno)>0?"구독 여부 자동 업데이트 완료":null);
     }
-    @Value("${clova.api.key}")
-    private String clovaApiKey;
-
-    @Value("${clova.invoke.url}")
-    private String clovaInvokeUrl;
-
-    @Value("${ncloud.endpoint}")
-    private String endPoint;
-
-    @Value("${ncloud.bucket.name}")
-    private String bucketName;
-
-    @Value("${ncloud.access.key}")
-    private String accessKey;
-
-    @Value("${ncloud.secret.key}")
-    private String secretKey;
-    
-    @Override
-    public String convertVoiceToText(MultipartFile file) {
-        try {
-            // S3 업로드
-            AmazonS3 s3 = AmazonS3ClientBuilder.standard()
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endPoint, "kr-standard"))
-                .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
-                .enablePathStyleAccess()
-                .build();
-
-            String objectName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentType("audio/wav");
-            metadata.setContentLength(file.getSize());
-
-            PutObjectRequest request = new PutObjectRequest(bucketName, objectName, file.getInputStream(), metadata);
-            request.setCannedAcl(CannedAccessControlList.PublicRead);
-            s3.putObject(request);
-
-            String dataKey = objectName;
-            System.out.println("📦 업로드된 파일 경로 (dataKey): " + dataKey);
-
-            // Clova 요청
-            URL url = new URL(clovaInvokeUrl + "/recognizer/object-storage");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            conn.setRequestProperty("X-CLOVASPEECH-API-KEY", clovaApiKey);
-
-            JSONObject body = new JSONObject();
-            body.put("dataKey", dataKey);
-            body.put("language", "ko-KR");
-            body.put("completion", "sync");
-            body.put("wordAlignment", true);
-            body.put("fullText", true);
-
-            System.out.println("📨 전송할 JSON: " + body.toString());
-
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(body.toString().getBytes(StandardCharsets.UTF_8));
-            }
-
-            int responseCode = conn.getResponseCode();
-            System.out.println("📡 Clova 응답 코드: " + responseCode);
-
-            if (responseCode == 200) {
-                String response = new BufferedReader(new InputStreamReader(conn.getInputStream()))
-                        .lines().collect(Collectors.joining());
-                System.out.println("✅ Clova 응답 결과: " + response);
-
-                JSONObject json = new JSONObject(response);
-                return json.optString("text", "");  // text가 비어있을 수 있음
-            } else {
-                String error = new BufferedReader(new InputStreamReader(conn.getErrorStream()))
-                        .lines().collect(Collectors.joining());
-                System.out.println("❌ STT 실패: " + error);
-                return "❌ STT 실패: " + error;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "🔥 서버 오류: " + e.getMessage();
-        }
-    }
     
     @Override
     public UserVO getUserById(String id) {
-    	return jsmMapper.getUserById(id);
+    	return userMapper.getUserById(id);
     }
 }
