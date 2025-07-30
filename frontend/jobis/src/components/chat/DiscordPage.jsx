@@ -11,6 +11,13 @@ import VideoChatModal from './VideoChatModal';
 import axios from 'axios';
 
 
+const Nickname = styled.div`
+  font-size: 14px;
+  color: #0b0c0cff;
+  margin-bottom: 4px;
+  font-weight: bold;  
+`;
+
 const InfoNotice = styled.p`
   color: #6b7280;
   font-size: 13px;
@@ -117,19 +124,22 @@ const ChatBubble = styled.div`
   align-items: flex-start;
   margin-bottom: 14px;
   flex-direction: ${(props) => (props.$isMine ? 'row-reverse' : 'row')};
+  padding: 0 8px;
 `;
 
 const Avatar = styled.img`
-  width: 36px;
-  height: 36px;
+  width: 65px;
+  height: 65px;
   border-radius: 50%;
-  margin: 4px;
+  margin: 15px 8px 10px 4px;
+
 `;
 
 const BubbleContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: ${(props) => (props.$isMine ? 'flex-end' : 'flex-start')};
+  max-width: 70%;
 `;
 
 const Bubble = styled.div`
@@ -815,9 +825,10 @@ useEffect(() => {
                   {!isMine && (
                    <Avatar src={photoNum[chat.leader] || '/img/user.svg'} alt="avatar" />
                   )}
-                {/* {!isMine && <Avatar src="https://placehold.co/40x40" alt="avatar" />} */}
-                {!isMine && <div>{nicknameMap[chat.leader] || '알 수 없음'}</div>}
                 <BubbleContainer $isMine={isMine}>
+                      {!isMine && (
+                        <Nickname>{nicknameMap[chat.leader] || '알 수 없음'}</Nickname>
+                      )}
                   <Bubble $isMine={isMine}>{chat.r_title}</Bubble>
                   <MeetingInfo>
                     일시:{' '}
