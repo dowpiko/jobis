@@ -15,10 +15,10 @@ import org.jobis.domain.UserVO;
 public interface UserChatMapper {
 	
 	// 유저채팅 insert
-	public int register(UserChatVO cjsvo);
+	public int register(UserChatVO ucvo);
 	
 	//insert한 채팅 날짜 가져오기
-	public Date getRegdate(UserChatVO cjsvo);
+	public Date getRegdate(UserChatVO ucvo);
 	
 	// 유저채팅 불러오기(전체)
 	public List<UserChatVO> getUserChat();

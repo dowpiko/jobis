@@ -6,7 +6,7 @@
 
 
 	<!-- 유저 채팅 input-->
-	<insert id="register" parameterType="org.jobis.domain.CJSVO">
+	<insert id="register" parameterType="org.jobis.domain.UserChatVO">
 		INSERT INTO tbl_userchat (
 			cno,
 			r_title,
@@ -29,7 +29,7 @@
 	</insert>
 	
 	<!--  insert한 유저 채팅 날짜 가져오기 -->
-	<select id="getRegdate" parameterType="org.jobis.domain.CJSVO" resultType="java.util.Date">
+	<select id="getRegdate" parameterType="org.jobis.domain.UserChatVO" resultType="java.util.Date">
 		SELECT * FROM (
 	    SELECT r_regdate
 	    FROM tbl_userchat
@@ -44,7 +44,7 @@
 	
 	
 	<!-- 유저 채팅 불러오기 (전체)-->
-	<select id="getUserChat" resultType="org.jobis.domain.CJSVO">
+	<select id="getUserChat" resultType="org.jobis.domain.UserChatVO">
 	    SELECT uc.*, 
 	           u1.name AS leader_name, 
 	           u2.name AS member_name
@@ -56,7 +56,7 @@
 	</select>
 	
 	<!-- 태그 별로 유저 채팅 불러오기  -->
-	<select id="getUserChatByTag" resultType="org.jobis.domain.CJSVO">
+	<select id="getUserChatByTag" resultType="org.jobis.domain.UserChatVO">
 	    SELECT uc.*, 
 	           u1.name AS leader_name, 
 	           u2.name AS member_name
@@ -95,7 +95,7 @@
 
 	
 	<!--  단일 데이터 가져오기 -->
-	<select id="getChatByCno" resultType="org.jobis.domain.CJSVO">
+	<select id="getChatByCno" resultType="org.jobis.domain.UserChatVO">
 	  SELECT * FROM tbl_userchat WHERE cno = #{cno}
 	</select>
 	
