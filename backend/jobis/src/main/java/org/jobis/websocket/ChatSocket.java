@@ -8,7 +8,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 
 import org.jobis.config.CustomSpringConfigurator;
-import org.jobis.domain.CJSVO;
+import org.jobis.domain.UserChatVO;
 import org.jobis.service.SmService;
 import org.jobis.service.UserChatService;
 import org.json.JSONArray;

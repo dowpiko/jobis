@@ -7,7 +7,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpSession;
 
-import org.jobis.domain.CJSVO;
+import org.jobis.domain.UserChatVO;
 import org.jobis.domain.CUserVO;
 import org.jobis.domain.ChatMessageVO;
 import org.jobis.domain.InterViewBCVO;
@@ -90,21 +90,21 @@ public class ChatController {
 	// 디스코스 유저 챗 저장
 	@ResponseBody
 	@PostMapping("/insertUserChat")
-	public ResponseEntity<String> register(@RequestBody CJSVO cjsvo, HttpSession session) {
+	public ResponseEntity<String> register(@RequestBody UserChatVO ucvo, HttpSession session) {
 	    UserVO user = (UserVO) session.getAttribute("User");
 
 	    if (user == null) {
 	        return new ResponseEntity<>("세션 만료", HttpStatus.UNAUTHORIZED);
 	    }
 
-	    cjsvo.setLeader(user.getUno());
-	    int result = ucservice.register(cjsvo);
+	    ucvo.setLeader(user.getUno());
+	    int result = ucservice.register(ucvo);
 	   
-	    Date regdate = ucservice.getRegdate(cjsvo);
-	    cjsvo.setR_regdate(regdate);
+	    Date regdate = ucservice.getRegdate(ucvo);
+	    ucvo.setR_regdate(regdate);
 	    
 	    if (result > 0) {
-	        ChatSocket2.getInstance().broadcastChatRoom(cjsvo);
+	        ChatSocket2.getInstance().broadcastChatRoom(ucvo);
 	        return new ResponseEntity<>("success", HttpStatus.OK);
 	    } else {
 	        return new ResponseEntity<>("fail", HttpStatus.OK);
@@ -114,23 +114,23 @@ public class ChatController {
 	// 유저채팅 가져오기
 	@ResponseBody
 	@GetMapping(value = "/getUserChat", produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<CJSVO> getUserChat(){
-		List<CJSVO> chatList =ucservice.getUserChat(); 
+	public List<UserChatVO> getUserChat(){
+		List<UserChatVO> chatList =ucservice.getUserChat(); 
 		return chatList;
 	}
 	
 	// 태그 별로 유저채팅 가져오기
 	@ResponseBody
 	@GetMapping(value = "/getUserChatByTag", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<List<CJSVO>> getUserChatByTag(@RequestParam(required = false) String r_tag) {
-	    List<CJSVO> chatList = ucservice.getUserChatByTag(r_tag);
+	public ResponseEntity<List<UserChatVO>> getUserChatByTag(@RequestParam(required = false) String r_tag) {
+	    List<UserChatVO> chatList = ucservice.getUserChatByTag(r_tag);
 	    return new ResponseEntity<>(chatList, HttpStatus.OK);
 	}
 	
 	// 모의면접에 member로 참여하기
 	@ResponseBody
 	@PostMapping("/joinChat")
-	public ResponseEntity<String>joinChat(@RequestBody CJSVO cjsvo, HttpSession session) {
+	public ResponseEntity<String>joinChat(@RequestBody UserChatVO ucvo, HttpSession session) {
 		UserVO user = (UserVO) session.getAttribute("User");
 
 		if (user == null) {
@@ -138,10 +138,10 @@ public class ChatController {
 	    }
 		
 	    try {
-	        int result = ucservice.joinChat(cjsvo.getCno() ,user.getUno());
+	        int result = ucservice.joinChat(ucvo.getCno() ,user.getUno());
 	        
 	        if (result > 0) {
-	        	CJSVO updated = ucservice.getChatByCno(cjsvo.getCno());
+	        	UserChatVO updated = ucservice.getChatByCno(ucvo.getCno());
 	        	
 		        if (updated != null) {
 		        	ChatSocket2.getInstance().broadcastChatRoom(updated);
@@ -166,7 +166,7 @@ public class ChatController {
 		UserVO user = (UserVO)session.getAttribute("User");
 		int uno = user.getUno();
 	    try {
-	        CJSVO chat = ucservice.getChatByCno(cno);
+	        UserChatVO chat = ucservice.getChatByCno(cno);
 	        if (chat == null) {
 	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("삭제할 일정이 존재하지 않습니다.");}
 
@@ -204,13 +204,13 @@ public class ChatController {
 	        if (leader != null && leader == uno) {
 	            if (member != null && member != 0 && member != -1) {
 	                ucservice.promoteMemberToLeader(cno);
-	                CJSVO updated = ucservice.getChatByCno(cno);
+	                UserChatVO updated = ucservice.getChatByCno(cno);
 	                if (updated != null) {
 	                    ChatSocket2.getInstance().broadcastChatRoom(updated);
 	                }
 	                return ResponseEntity.ok("리더 승계 완료");
 	            } else {
-	            	CJSVO updated = ucservice.getChatByCno(cno);
+	            	UserChatVO updated = ucservice.getChatByCno(cno);
 	                if (updated != null) {
 	                    ChatSocket2.getInstance().broadcastChatRoom(updated);
 	                }
@@ -221,7 +221,7 @@ public class ChatController {
 
 	        } else if (member != null && member == uno) {
 	            ucservice.leaveChatAsMember(cno);
-	            CJSVO updated = ucservice.getChatByCno(cno);
+	            UserChatVO updated = ucservice.getChatByCno(cno);
 	            if (updated != null) {
 	                ChatSocket2.getInstance().broadcastChatRoom(updated);
 	            }

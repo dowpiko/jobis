@@ -4,7 +4,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import org.jobis.domain.CJSVO;
+import org.jobis.domain.UserChatVO;
 import org.jobis.domain.CompanyOfferDTO;
 import org.jobis.domain.FavDTO;
 import org.jobis.domain.PenaltyVO;
@@ -26,27 +26,27 @@ public class UserChatServiceImpl implements UserChatService {
 	
 	// 유저채팅 insert
 	@Override
-	public int register(CJSVO cjsvo) {
+	public int register(UserChatVO cjsvo) {
 		
 		return ucMapper.register(cjsvo);
 	}
 	
 	// insert한 채팅 날짜 가져오기
 	@Override
-	public Date getRegdate(CJSVO cjsvo) {
+	public Date getRegdate(UserChatVO cjsvo) {
 		
 		return ucMapper.getRegdate(cjsvo);
 	}
 	
 	// 유저 채팅 가져오기(전체)
 	@Override
-	public List<CJSVO> getUserChat() {
+	public List<UserChatVO> getUserChat() {
 		
 		return ucMapper.getUserChat();
 	}
 	// 태그 별로 유저채팅 가져오기
 	@Override
-	public List<CJSVO> getUserChatByTag(String r_tag) {
+	public List<UserChatVO> getUserChatByTag(String r_tag) {
 
 		return ucMapper.getUserChatByTag(r_tag);
 	}
@@ -77,7 +77,7 @@ public class UserChatServiceImpl implements UserChatService {
 	}
 	// 단일 데이터 가져오기
 	@Override
-	public CJSVO getChatByCno(int cno) {
+	public UserChatVO getChatByCno(int cno) {
 		
 		return ucMapper.getChatByCno(cno);
 	}

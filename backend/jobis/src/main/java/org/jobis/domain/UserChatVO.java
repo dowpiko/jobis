@@ -14,7 +14,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 
-public class CJSVO {
+public class UserChatVO {
 	
 	// tbl_userchat
 	private int cno;

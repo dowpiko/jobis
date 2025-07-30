@@ -3,7 +3,7 @@ package org.jobis.service;
 import java.util.Date;
 import java.util.List;
 
-import org.jobis.domain.CJSVO;
+import org.jobis.domain.UserChatVO;
 import org.jobis.domain.CompanyOfferDTO;
 import org.jobis.domain.FavDTO;
 import org.jobis.domain.PenaltyVO;
@@ -15,16 +15,16 @@ import org.springframework.stereotype.Service;
 public interface UserChatService {
 
 	// 유저채팅 insert
-	public int register(CJSVO cjsvo);
+	public int register(UserChatVO cjsvo);
 	
 	//insert한 채팅 날짜 가져오기
-	public Date getRegdate(CJSVO cjsvo);
+	public Date getRegdate(UserChatVO cjsvo);
 	
 	// 유저채팅 불러오기(전체)
-	public List<CJSVO> getUserChat();
+	public List<UserChatVO> getUserChat();
 	
 	// 태그별로 유저채팅 불러오기
-	public List<CJSVO> getUserChatByTag(String r_tag);
+	public List<UserChatVO> getUserChatByTag(String r_tag);
 	
 	// member로 참여하기
 	public int joinChat(int cno, int member);
@@ -39,7 +39,7 @@ public interface UserChatService {
 	public int deleteUserChat(int cno);
 	
 	// 단일 데이터 가져오기
-	public CJSVO getChatByCno(int cno);
+	public UserChatVO getChatByCno(int cno);
 	
 	//member를 Leader로 바꾸기
 	public void promoteMemberToLeader(int cno);

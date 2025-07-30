@@ -9,7 +9,7 @@ import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 
 import org.jobis.config.CustomSpringConfigurator;
-import org.jobis.domain.CJSVO;
+import org.jobis.domain.UserChatVO;
 import org.jobis.service.UserChatService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +82,7 @@ public class ChatSocket2 {
         throwable.printStackTrace();
     }
 
-    public void broadcastChatRoom(CJSVO chat) {
+    public void broadcastChatRoom(UserChatVO chat) {
     	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");    	
         try {
             JSONObject json = new JSONObject();
