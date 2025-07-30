@@ -82,27 +82,6 @@ const CancelButton = styled.button`
 const AppliedItem = styled(ListItem)`
   position: relative;
 `;
-  // 탭 분리
-  const ScrapItem = ({ item, onApply, onRemove }) => {
-    return (
-      <ListItem style={{ position: 'relative', cursor: 'pointer' }}>
-        <div onClick={() => onApply(item.ono)}>
-          <div>기업명: {item.corpName || '없음'}</div>
-          <div>제목: {item.title || '없음'}</div>
-          <div>태그: {item.category || '없음'}</div>
-        </div>
-        <CancelButton
-          onClick={(e) => {
-            e.stopPropagation();  // 카드 클릭해서 지원하겠냐고 confirm 방지
-            onRemove(item.ono);
-          }}
-        >
-          스크랩 취소
-        </CancelButton>
-      </ListItem>
-    );
-  };
-
 
 const ScrapPage = () => {
   const navigate = useNavigate();
@@ -207,6 +186,27 @@ const ScrapPage = () => {
     if (!timestamp) return '-';
     const date = new Date(timestamp);
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+
+  // 탭 분리
+  const ScrapItem = ({ item, onApply, onRemove }) => {
+    return (
+      <ListItem style={{ position: 'relative', cursor: 'pointer' }}>
+        <div onClick={() => onApply(item.ono)}>
+          <div>기업명: {item.corpName || '없음'}</div>
+          <div>제목: {item.title || '없음'}</div>
+          <div>태그: {item.category || '없음'}</div>
+        </div>
+        <CancelButton
+          onClick={(e) => {
+            e.stopPropagation();  // 카드 클릭해서 지원하겠냐고 confirm 방지
+            onRemove(item.ono);
+          }}
+        >
+          스크랩 취소
+        </CancelButton>
+      </ListItem>
+    );
   };
 
   return (
