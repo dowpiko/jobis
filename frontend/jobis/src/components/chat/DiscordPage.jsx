@@ -743,7 +743,6 @@ useEffect(() => {
           {bannerChat.sch_date.toLocaleDateString('ko-KR')} {bannerChat.sch_date.toLocaleTimeString('ko-KR')}
         </NotificationTitle>
         <NotificationButton onClick={() => setShowVideoModal(true)}>참여</NotificationButton>
-        <NotificationButton onClick={() => setBannerChat(null)}>닫기</NotificationButton>
       </NotificationBanner>
     )}
       {!hasProfile && (
