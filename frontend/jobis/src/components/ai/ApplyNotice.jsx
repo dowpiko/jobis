@@ -97,14 +97,7 @@ const ApplyNotice = () => {
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState([]);
 
-  const handleResumeUpload = () => {
-    alert('이력서 업로드 기능은 추후 구현될 예정입니다!');
-  };
-
-  const handleVideoUpload = () => {
-    alert('동영상 업로드 기능은 추후 구현될 예정입니다!');
-  };
-
+  
    // 1) 세션에서 uno 가져오기
   useEffect(() => {
     axios.get('/getMyUno', { withCredentials: true })
@@ -224,8 +217,6 @@ const ApplyNotice = () => {
       ))}
       <ButtonGroup>
         <SubmitButton onClick={handleSubmit}>제출</SubmitButton>
-        <ActionButton onClick={handleResumeUpload}>이력서 제출</ActionButton>
-        <ActionButton onClick={handleVideoUpload}>동영상 제출</ActionButton>
         <ActionButton onClick={goToCompanyInfo}>목록으로</ActionButton>
       </ButtonGroup>
     </MainContent>

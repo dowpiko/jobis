@@ -481,7 +481,7 @@ const UserChatLayout = () => {
             <EmptyState>
               <div style={{ fontSize: '60px', marginBottom: '16px' }}>💬</div>
               <div>채팅방을 선택해 대화를 시작하세요!</div>
-              <div>💡 왼쪽에서 지원자 목록을 클릭해 보세요.</div>
+              <div>💡 왼쪽에서 연락을 준 회사들의 목록을 확인해 보세요.</div>
             </EmptyState>
           )}
         </ChatPanel>
