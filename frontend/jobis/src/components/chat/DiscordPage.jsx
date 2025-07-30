@@ -255,6 +255,13 @@ const BlurOverlay = styled.div`
   color: #1F2A37;
 `;
 
+const FilterRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+`;
+
 const host = process.env.REACT_APP_HOST;
 const parseKoreanDate = (str) => {
   try {
@@ -302,6 +309,7 @@ const DiscordPage = () => {
   const [photoNum,setPhotoNum] = useState({});
   const [nicknameMap, setNicknameMap] = useState({});
   const [showPenaltyInfo, setShowPenaltyInfo] = useState(false);
+  const [filterDate, setFilterDate] = useState(null);
 
   const scrollRef = useRef(null);
   const prevChatListLength = useRef(0);
@@ -350,6 +358,11 @@ const DiscordPage = () => {
     if (subList.length > 0) setSelectedSub(subList[0].name);
     else setSelectedSub('');
   }, [category, subList]);
+
+  useEffect(() => {
+    setVisibleCount(9);  
+  }, [filterDate]);
+
   
 
 
@@ -397,7 +410,6 @@ const DiscordPage = () => {
 
         const contentType = res.headers.get("content-type") || "";
         if (!contentType.includes("application/json")) {
-          // console.warn("⚠️ 응답에 JSON이 없습니다.");
           return null; // 또는 적절한 fallback 객체
         }
 
@@ -466,10 +478,34 @@ const DiscordPage = () => {
     }
      prevChatListLength.current = chatList.length;
   }, [chatList, isAtBottom,shouldScrollToBottom]);
-  const visibleChats = chatList.slice(-visibleCount);
+  // const visibleChats = chatList.slice(-visibleCount);
+  // 날짜별 필터링
+  useEffect(() => {
+    const box = scrollRef.current;
+    const newMessagesAdded = chatList.length > prevChatListLength.current;
+    if ((isAtBottom || shouldScrollToBottom) && newMessagesAdded) {
+        setTimeout(() => {
+          box.scrollTop = box.scrollHeight;
+        }, 0);
+      if (shouldScrollToBottom) setShouldScrollToBottom(false);
+    }
+     prevChatListLength.current = chatList.length;
+  }, [chatList, isAtBottom,shouldScrollToBottom]);
 
+  const filteredChats = useMemo(() => {
+    if (!filterDate) return chatList;
 
+    return chatList.filter(chat => {
+      const c = chat.sch_date;
+      return (
+        c.getFullYear() === filterDate.getFullYear() &&
+        c.getMonth() === filterDate.getMonth() &&
+        c.getDate() === filterDate.getDate()
+      );
+    });
+  }, [chatList, filterDate]);
 
+  const visibleChats = filteredChats.slice(-visibleCount);
 
   // 알람 useEffect
   useEffect(() => {
@@ -632,7 +668,6 @@ const handleDateChange = (date)=>{
   setSelectedDate(date);
 }
 
-
 // websocket 관련
 useEffect(() => {
 
@@ -753,8 +788,26 @@ useEffect(() => {
       <Container>
         <Header>
           <Title>태그 : {category}</Title>
+          
+          <FilterRow>
+            <StyledDatePicker
+              selected={filterDate}
+              onChange={date => setFilterDate(date)}
+              dateFormat="yyyy-MM-dd"
+              placeholderText="일정 날짜로 필터링"
+              isClearable
+              locale={ko}
+            />
+          </FilterRow>
         </Header>
+
+
         <ChatBox ref={scrollRef} onScroll={handleScroll}> {/* ✅ 스크롤 감지 */}
+          {filterDate && visibleChats.length === 0 && (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
+              📭 해당 날짜에는 모집중인 모의 면접 일정이 없습니다
+            </div>
+          )}
           {visibleChats.map((chat) => {
             const isMine = chat.leader === myUno;
             return (

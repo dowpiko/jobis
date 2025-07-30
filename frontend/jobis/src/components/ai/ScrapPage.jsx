@@ -83,22 +83,33 @@ const AppliedItem = styled(ListItem)`
   position: relative;
 `;
   // 탭 분리
-  const ScrapItem = ({ item, onApply }) => {
+  const ScrapItem = ({ item, onApply, onRemove }) => {
     return (
-      <ListItem onClick={() => onApply(item.ono)} style={{ cursor: 'pointer' }}>
-        <div>기업명: {item.corpName || '없음'}</div>
-        <div>제목: {item.title || '없음'}</div>
-        <div>태그: {item.category || '없음'}</div>
+      <ListItem style={{ position: 'relative', cursor: 'pointer' }}>
+        <div onClick={() => onApply(item.ono)}>
+          <div>기업명: {item.corpName || '없음'}</div>
+          <div>제목: {item.title || '없음'}</div>
+          <div>태그: {item.category || '없음'}</div>
+        </div>
+        <CancelButton
+          onClick={(e) => {
+            e.stopPropagation();  // 카드 클릭해서 지원하겠냐고 confirm 방지
+            onRemove(item.ono);
+          }}
+        >
+          스크랩 취소
+        </CancelButton>
       </ListItem>
     );
   };
+
 
 const ScrapPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('scrap');
   const [uno, setUno] = useState(null);
   const [scrapData, setScrapData] = useState([]);
-  const [appliedData, setAppliedData] = useState([]); // 지원 목록 필요시 나중에
+  const [appliedData, setAppliedData] = useState([]);
   const host = process.env.REACT_APP_HOST;
 
   // uno 가져오기
@@ -130,7 +141,19 @@ const ScrapPage = () => {
       return;
     }
   };
-  
+  // 스크랩 취소하기
+  const handleUnScrap = (ono) => {
+    axios.delete(`http://${host}:9090/removeFavorite`, {
+      data: { uno, ono },
+      withCredentials: true
+    })
+      .then(() => {
+        setScrapData(prev => prev.filter(item => item.ono !== ono));
+        alert('스크랩이 취소되었습니다.');
+      })
+      .catch(err => console.error('스크랩 취소 실패', err));
+  };
+
 
   // 지원한 공고 목록 가져오기
   useEffect(() => {
@@ -181,7 +204,7 @@ const ScrapPage = () => {
         scrapData.length > 0 ? (
           <List>
             {scrapData.map((item, idx) => (
-              <ScrapItem key={idx} item={item} onApply={handleItemClick} />
+              <ScrapItem key={idx} item={item} onApply={handleItemClick} onRemove={handleUnScrap}/>
             ))}
           </List>
         ) : (
