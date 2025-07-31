@@ -326,7 +326,6 @@ const UserChatLayout = () => {
         const resOffer = await axios.get(`http://${host}:9090/offers/selectOfferAndSubmission`, {
           params: { ono, emp: myUno, company }
         });
-        console.log(resOffer.data);
         setOfferSubmission(resOffer.data);
 
         const resMsgs = await axios.get(`http://${host}:9090/chat/selectByRnoChatMessages`, {
@@ -450,7 +449,7 @@ const UserChatLayout = () => {
               selected={item.rno === rno}
               onClick={() => handleChatCardClick(item.rno, item.ono, item.company)}
             >
-              <Avatar src={`/profile/${item.company}.png`} alt="avatar" />
+              <Avatar src={`/profile/usercustom/${item.company}.png`} alt="avatar" />
               <CorpName>{item.corpNm}</CorpName>
             </ChatCard>
           ))}

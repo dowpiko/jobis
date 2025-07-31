@@ -9,6 +9,7 @@ const Container = styled.div`
   padding: 40px 20px;
   background-color: #f8f9fa;
   box-sizing: border-box;
+  min-height: 100vh;
 `;
 
 const HeaderRow = styled.div`

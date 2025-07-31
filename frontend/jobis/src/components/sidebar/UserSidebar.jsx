@@ -622,7 +622,7 @@ function UserSidebar({ children }) {
       await axios.post(`http://${host}:9090/files/upload/profileImage`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      const updatedUrl = `/profile/${uno}.png?t=${Date.now()}`;
+      const updatedUrl = `/profile/usercustom/${uno}.png?t=${Date.now()}`;
       setOriginalUrl(updatedUrl);
       setProfileUrl(updatedUrl);
       setIsModalOpen(false);

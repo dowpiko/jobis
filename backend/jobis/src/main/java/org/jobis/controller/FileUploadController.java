@@ -78,7 +78,7 @@ public class FileUploadController {
  	                String name = p.getFileName().toString();
  	                return Map.of(
  	                    "filename", name,
- 	                    "url", "/profile/" + name
+ 	                    "url", "/profile/usercustom/" + name
  	                );
  	            })
  	            .collect(Collectors.toList());
