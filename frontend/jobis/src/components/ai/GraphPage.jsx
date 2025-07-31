@@ -20,7 +20,7 @@ const Container = styled.div`
 	height: 100%;
 	display: flex;
 	flex-direction: column;
-	background-color:#f8f9fa;  // 기존보다 진한 회색톤으로 조정
+	background-color: #f8f9fa;  // 기존보다 진한 회색톤으로 조정
 	color: #1E1E1E;
 	box-sizing: border-box;
 	overflow: hidden;
