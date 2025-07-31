@@ -437,6 +437,17 @@ const RightPanelToggleButton = styled.button`
 		transform: translateY(-50%) scale(1.05);
 	}
 `;
+const TooltipRow = styled.div`
+	color: #1E293B;
+	font-size: 14px;
+	line-height: 1.4;
+	word-break: break-word;
+`;
+
+const TooltipTitle = styled.span`
+	font-weight: 600;
+	color: #0f172a;
+`;
 
 const BlurredPanelWrapper = styled.div`
 	flex: 1;
@@ -497,7 +508,12 @@ export const GoInterviewButton = styled.button`
 		background: linear-gradient(to right, #2563EB, #3B82F6);
 	}
 `;
-
+const InterviewTitleArea = styled.div`
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: 100%;
+`;
 const radarTemplate = ['리더십','분석력','창의력','실행력','소통력'];
 const radarDataTemplate = radarTemplate.map(s => ({ subject: s, A: 0 }));
 const descriptions = {
@@ -514,7 +530,7 @@ function formatTimestamp(ms) {
 	const yy = String(date.getFullYear()).slice(2);
 	const mm = String(date.getMonth() + 1).padStart(2, '0');
 	const dd = String(date.getDate()).padStart(2, '0');
-	return `생성일: ${yy}.${mm}.${dd}`;
+	return `${yy}.${mm}.${dd}`;
 }
 
 const getComment = (subject, score) => {
@@ -765,7 +781,7 @@ export default function RadarSection() {
                   }}
                   onMouseLeave={() => setHoveredId(null)}
                 >
-                  <div>{iv.title}</div>
+                  <InterviewTitleArea>{iv.title}</InterviewTitleArea>
                 </InterviewCard>
               ))}
             </InterviewList>
@@ -773,9 +789,23 @@ export default function RadarSection() {
               $show={hoveredId !== null}
               style={{ top: tooltipPos.y + 10, left: tooltipPos.x + 20 }}
             >
-              {hoveredId && formatTimestamp(Number(interviews.find(i => i.id === hoveredId)?.regdate))}
+              {hoveredId && (() => {
+                const hovered = interviews.find(i => i.id === hoveredId);
+                if (!hovered) return null;
+                return (
+                  <>
+                    <TooltipRow>
+                      <TooltipTitle>생성일: </TooltipTitle>
+                      {formatTimestamp(Number(hovered.regdate))}
+                    </TooltipRow>
+                    <TooltipRow>
+                      <TooltipTitle>제목:   </TooltipTitle>
+                      {hovered.title}
+                    </TooltipRow>
+                  </>
+                );
+              })()}
             </CustomTooltip>
-
             <Paging>
               <button disabled={page === 1} onClick={() => {
                 const newPage = Math.max(page - 1, 1);

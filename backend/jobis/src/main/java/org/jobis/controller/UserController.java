@@ -375,7 +375,6 @@ public class UserController {
  	        if (userVO != null) {
  	        	userService.expireSubscriptionIfNeeded(userVO.getUno());
  	        	userVO = userService.getUserById(email);
- 	        	log.warn(userVO);
  	            session.setAttribute("User", userVO);
  	            return ResponseEntity.ok(Map.of(
  	                "exists", true,
