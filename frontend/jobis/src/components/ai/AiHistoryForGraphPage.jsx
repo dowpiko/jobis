@@ -58,10 +58,10 @@ const MessageBubble = styled.div`
 `;
 
 const AiMessageBubble = styled(MessageBubble)`
-	background-color: #B6CDE2; // 💬 AI - 약간 더 어두운 블루
+	background-color: #ffffffff; // 💬 AI - 약간 더 어두운 블루
 `;
 const UserMessageBubble = styled(MessageBubble)`
-	background-color: #CDE7DA; // 연한 민트, 패널과 구분 확실
+	background-color: #edfef2ff; // 연한 민트, 패널과 구분 확실
 `;
 
 

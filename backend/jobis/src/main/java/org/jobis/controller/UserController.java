@@ -29,6 +29,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.extern.log4j.Log4j;
+
 @RestController
 @CrossOrigin(origins = {"http://localhost:3000", "http://192.168.0.101:3000"}, allowCredentials = "true")
 @RequestMapping("/user")
@@ -361,23 +363,20 @@ public class UserController {
  	@PostMapping("/google/check")
  	public ResponseEntity<?> checkGoogleUser(@RequestBody Map<String, String> body, HttpSession session) {
  	    String code = body.get("code");
-
  	    try {
  	        Map<String, String> tokenInfo = userService.getGoogleEmail(code);
  	        String email = tokenInfo.get("email");
  	        String accessToken = tokenInfo.get("accessToken");
-
  	        if (email == null || accessToken == null) {
  	            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
  	                .body(Map.of("success", false, "message", "이메일 또는 토큰 확인 실패"));
  	        }
-
  	        UserVO userVO = userService.getUserById(email);
  	        if (userVO != null) {
  	        	userService.expireSubscriptionIfNeeded(userVO.getUno());
  	        	userVO = userService.getUserById(email);
+ 	        	log.warn(userVO);
  	            session.setAttribute("User", userVO);
- 	            
  	            return ResponseEntity.ok(Map.of(
  	                "exists", true,
  	                "email", email,
@@ -400,7 +399,8 @@ public class UserController {
 
  	@PostMapping("/google")
  	public ResponseEntity<?> googleCallback(@RequestBody Map<String, String> body, HttpSession session) {
- 	    String email = body.get("email");
+ 	    System.out.println("구글 탔어요!!!");
+ 		String email = body.get("email");
  	    String accessToken = body.get("accessToken");
  	    String birth = body.get("birth");
 
@@ -430,7 +430,7 @@ public class UserController {
 	    cookie.setHttpOnly(true);
 	    cookie.setMaxAge(0);
 	    res.addCookie(cookie);
-
+	    
 	    return ResponseEntity.ok().build();
 	}
 }

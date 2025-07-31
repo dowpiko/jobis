@@ -446,6 +446,56 @@ const BlurredPanelWrapper = styled.div`
 	overflow-y: hidden; 
 	overflow-x: hidden;
 	transition: filter 0.3s ease, opacity 0.3s ease;
+  
+`;
+// 🔹 EmptyModal.js (또는 RadarSection.jsx 안에 정의해도 됨)
+export const EmptyBackdrop = styled.div`
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.3);
+	backdrop-filter: blur(3px);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 9999;
+`;
+
+export const EmptyModalBox = styled.div`
+	background: #ffffff;
+	border-radius: 16px;
+	padding: 32px 40px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	text-align: center;
+	width: 90%;
+	max-width: 420px;
+`;
+
+export const EmptyModalTitle = styled.h2`
+	font-size: 24px;
+	color: #1E293B;
+	margin-bottom: 12px;
+`;
+
+export const EmptyModalText = styled.p`
+	font-size: 16px;
+	color: #4B5563;
+	margin-bottom: 24px;
+`;
+
+export const GoInterviewButton = styled.button`
+	background: linear-gradient(to right, #3B82F6, #60A5FA);
+	color: #ffffff;
+	border: none;
+	border-radius: 9999px;
+	padding: 12px 24px;
+	font-size: 15px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.3s ease;
+
+	&:hover {
+		background: linear-gradient(to right, #2563EB, #3B82F6);
+	}
 `;
 
 const radarTemplate = ['리더십','분석력','창의력','실행력','소통력'];
@@ -1009,6 +1059,17 @@ export default function RadarSection() {
           uno={uno.current}
           onSubscribed={() => setSubscribeUpdated(prev => !prev)}  // 상태 토글
         />
+      )}
+      {!isLoading && interviews.length === 0 && (
+        <EmptyBackdrop>
+          <EmptyModalBox>
+            <EmptyModalTitle>면접 결과가 없습니다</EmptyModalTitle>
+            <EmptyModalText>AI 분석을 보기 위해 먼저 면접을 진행해 주세요.</EmptyModalText>
+            <GoInterviewButton onClick={() => navigate('/AiInterview')}>
+              면접 보러가기
+            </GoInterviewButton>
+          </EmptyModalBox>
+        </EmptyBackdrop>
       )}
 
     </Container>
