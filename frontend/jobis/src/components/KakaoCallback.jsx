@@ -109,15 +109,11 @@ const SubmitButton = styled.button`
   width: 100%;
 `;
 
-/** ─── Custom Input Button ────────────────────────────────────────────────── **/
-
 const CustomCalendarButton = forwardRef(({ onClick }, ref) => (
   <CalendarButton ref={ref} onClick={onClick}>
     선택
   </CalendarButton>
 ));
-
-/** ─── Component ─────────────────────────────────────────────────────────── **/
 
 const host = process.env.REACT_APP_HOST;
 
@@ -129,6 +125,12 @@ const KakaoCallback = () => {
   const [birthDate, setBirthDate] = useState(null);
   const [name, setName] = useState('');
   const [codeUsed, setCodeUsed] = useState(false);
+  const formatDateToYMD = (date) => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
 
   useEffect(() => {
     const code = new URL(window.location.href).searchParams.get('code');
@@ -239,7 +241,7 @@ const KakaoCallback = () => {
               dropdownMode="select"
               locale={ko}
               withPortal
-              customInput={<DateDisplay>{birthDate ? birthDate.toISOString().split('T')[0] : '생년월일을 입력해주세요'}</DateDisplay>}
+              customInput={<DateDisplay>{birthDate ? formatDateToYMD(birthDate) : '생년월일을 입력해주세요'}</DateDisplay>}
             />
           </FormRow>
 
