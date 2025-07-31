@@ -5,15 +5,14 @@ import styled from 'styled-components';
 
 const Wrapper = styled.div`
   width: 100%;
-  height: 100%;
-  padding: 60px 20px;
+  height: 100vh;
+  padding: 180px 0px 90px;
   font-family: sans-serif;
   background-color: #F8F9FA;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #1F2A37;
 `;
 
 const Title = styled.h2`
