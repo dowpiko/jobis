@@ -170,7 +170,7 @@ const SignUpUser = () => {
   const checkId = async () => {
     if (formErrors.id || !formData.id.trim()) return;
     try {
-      const res = await axios.get(`http://${host}:9090/jsh/checkid?id=${encodeURIComponent(formData.id)}`);
+      const res = await axios.get(`http://${host}:9090/user/checkid?id=${encodeURIComponent(formData.id)}`);
       setIdOk(res.data.available);
       alert(res.data.available ? '사용 가능한 아이디입니다' : '이미 사용 중인 아이디입니다');
     } catch (e) {

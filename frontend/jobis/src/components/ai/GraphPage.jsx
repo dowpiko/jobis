@@ -659,7 +659,7 @@ export default function RadarSection() {
           : i
       ));
 
-      const userRes = await axios.get(`http://${host}:9090/jsh/getUser`, {withCredentials:true});
+      const userRes = await axios.get(`http://${host}:9090/user/getUser`, {withCredentials:true});
       setSubscribe(userRes.data.subscribe); // ✅ 갱신된 구독 상태 반영
     } catch (err) {
       console.error(err);
