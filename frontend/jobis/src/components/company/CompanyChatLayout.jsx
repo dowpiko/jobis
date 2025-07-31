@@ -530,7 +530,7 @@ const CompanyChatLayout = () => {
                 selected={isSelected}
                 onClick={() => handleChatCardClick(item.ono, item.emp)}
               >
-                <Avatar src={`/profile/${item.emp}.png`} alt="avatar" />
+                <Avatar src={`/profile/usercustom/${item.emp}.png`} alt="avatar" />
                 <ChatName title={item.name}>{item.name}</ChatName>
               </ChatCard>
             );

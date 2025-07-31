@@ -255,7 +255,7 @@ public class UserController {
  	        Integer num = profile.getProfileimage(); // DB 숫자 (1부터 시작 가정)
  	        if (num != null) {
  	            String filename = "basic" + (num) + "__.png"; // 규칙에 맞게
- 	            String url = "/profile/" + filename;              // 정적 매핑된 URL
+ 	            String url = "/profile/basic/" + filename;              // 정적 매핑된 URL
  	            result.put("profileImageUrl", url);
  	            result.put("profileImageFilename", filename);
  	        }

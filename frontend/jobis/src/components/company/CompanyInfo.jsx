@@ -370,7 +370,7 @@ const CompanyInfo = () => {
                   >
                     {favorite.includes(o.ono) ? '★' : '☆'}
                   </ScrapButton>
-                  <CardImage src={`/profile/${(o.uno)}.png`} />
+                  <CardImage src={`/profile/usercustom/${(o.uno)}.png`} />
                 </CardImageWrapper>
                 <CardContent>
                   <CorpName>{o.corpName}</CorpName>
