@@ -8,12 +8,12 @@ import axios from 'axios';
 const ScrapButton = styled.button`
   position: absolute;
   top: 8px;
-  left: 8px;
+  left: 10px;
   background: transparent;
   border: none;
   padding: 0;
   margin: 0;
-  font-size: 18px;
+  font-size: 25px;
   line-height: 1;
   color: ${({ active }) => active ? '#FFD700' : '#B0BCCB'};
   cursor: pointer;
@@ -77,8 +77,8 @@ const CategorySection = styled.div`
 const MenuItem = styled.button`
   background-color: #E0E7EF;
   color: #4376B6;
-  font-size: 12px;         /* 글자 크기 축소 */
-  padding: 4px 8px;        /* 패딩 축소 */
+  font-size: 14.1px;         /* 글자 크기 축소 */
+  padding: 4px 8.5px;        /* 패딩 축소 */
   border-radius: 16px;     /* 모서리 둥글게 소폭 축소 */
   border: none;
   cursor: pointer;

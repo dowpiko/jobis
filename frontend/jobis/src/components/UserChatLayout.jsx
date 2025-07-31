@@ -35,12 +35,11 @@ const ChatCard = styled.div`
   display: flex;
   align-items: center;
   background-color: ${(props) => (props.selected ? '#e0e7ef' : '#rgb(239, 244, 255)')};
-  border: 2px solid ${(props) => (props.selected ? '#749fd3ff' : '#b0bccb')};
+  border: 2px solid ${(props) => (props.selected ? '#808080ff' : '#cdd6e2ff')};
   padding: 8px;
   margin-bottom: 8px;
   border-radius: 6px;
   cursor: pointer;
-  box-shadow: ${(props) => (props.selected ? '0 0 8px rgba(67, 118, 182, 0.5)' : 'none')};
 
   &:hover {
     background-color: #d4eaf4;

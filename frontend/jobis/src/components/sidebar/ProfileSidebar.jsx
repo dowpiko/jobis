@@ -26,7 +26,6 @@ const Sidebar = styled.aside`
   width: 280px;
   height: 100vh;
   background-color: #EFF4FF;
-  border-right: 1px solid #E2E8F0;
   display: flex;
   flex-direction: column;
   padding: 10px;
@@ -42,8 +41,10 @@ const TopBar = styled.div`
 `;
 
 const Logo = styled.img`
-  height: 40px;
+  width: 120px;
+  height: auto;
   cursor: pointer;
+  padding: 6px 0px;
 `;
 
 const ModeToggle = styled.button`
@@ -54,10 +55,14 @@ const ModeToggle = styled.button`
   border-radius: 50%;
   cursor: pointer;
   padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 5px;
 
   img {
-    width: 100%;
-    height: 100%;
+    width: 30px;
+    height: 30px;
     object-fit: contain;
   }
 `;
