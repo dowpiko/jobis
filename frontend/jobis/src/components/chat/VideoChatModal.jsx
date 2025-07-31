@@ -133,7 +133,7 @@ const ExitButton = styled.button`
   }
 `;
 
-//const SIGNALING_SERVER_URL = 'ws://' + process.env.REACT_APP_HOST + ':9090/signal';
+// const SIGNALING_SERVER_URL = 'ws://' + process.env.REACT_APP_HOST + ':9090/signal';
 const SIGNALING_SERVER_URL = 'ws://' + '192.168.0.101' + ':9090/signal';
 const CONFIG = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
