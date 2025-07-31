@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import categories from '../../data/categories';  // 카테고리 데이터 임포트
+import categories from '../../data/categories';  // 카테고리 데이터 import
+import CompanyModal from '../modal/CompanyModal';
 import axios from 'axios';
 
 const ScrapButton = styled.button`
@@ -196,6 +197,9 @@ const CompanyInfo = () => {
   const [visibleCount, setVisibleCount] = useState(10);
   const [uno,setUno] =useState(null);
   const [favorite,setFavorite] = useState([]);
+  const [selectedOffer, setSelectedOffer] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
   const host = process.env.REACT_APP_HOST;
   const [profileUrl, setProfileUrl] = useState('/img/user.svg');
   
@@ -272,9 +276,15 @@ const CompanyInfo = () => {
   const handleLoadMore = () => {
     setVisibleCount(v => v + 5);
   };
-  const handleCardClick = (ono) => {
-    navigate('/applyNotice', { state: { ono } });
+  const handleCardClick = (offer) => {
+    console.log('선택한 기업정보 : ', offer)
+    setSelectedOffer(offer);
+    setModalOpen(true);
   };
+
+  // const handleCardClick = (ono) => {
+  //   navigate('/applyNotice', { state: { ono } });
+  // };
 
   const getDday = (timestamp) => {
     if (!timestamp) return '-';
@@ -348,7 +358,8 @@ const CompanyInfo = () => {
         <ListSection>
           <Grid>
             {visible.map(o => (
-              <CompanyCard key={o.ono} onClick={() => handleCardClick(o.ono)}>  
+              // <CompanyCard key={o.ono} onClick={() => handleCardClick(o.ono)}>  
+              <CompanyCard key={o.ono} onClick={() => handleCardClick(o)}>  
                 <CardImageWrapper>
                     <ScrapButton
                     active={favorite.includes(o.ono)}
@@ -379,6 +390,19 @@ const CompanyInfo = () => {
               </LoadMoreButton>
             </LoadMoreWrapper>
           )}
+
+          {/* 모달 */}
+          {modalOpen && selectedOffer && (
+            <CompanyModal
+              offer={selectedOffer}
+              onClose={() => setModalOpen(false)}
+              onGoApply={() => {
+                navigate('/applyNotice', { state: { ono: selectedOffer.ono } });
+              }}
+            />
+          )}
+
+
         </ListSection>
       </Content>
     </Page>

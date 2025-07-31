@@ -19,4 +19,7 @@ public class CompanyOfferDTO {
     private String category;
     private String title;
     private Date o_activedays;
+    private int enpEmpeCnt;
+    private String enpBsadr;
+    private String enpRprfnm;
     }

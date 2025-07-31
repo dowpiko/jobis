@@ -685,6 +685,7 @@ export default function RadarSection() {
 
   return (
     <Container>
+      
       {isLoading && <LoadingModal />}
       <Wrapper>
         <KpiWrapper>

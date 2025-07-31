@@ -114,7 +114,10 @@
 	      c.corpnm        AS corpName,
 	      o.o_tag         AS category,
 	      o.o_title       AS title,
-	      o.o_activedays  AS o_activedays
+	      o.o_activedays  AS o_activedays,
+	      c.enpempecnt      AS enpEmpeCnt,
+	      c.enpbsadr        AS enpBsadr,
+	      c.enprprfnm       AS enpRprfnm
 	    FROM tbl_offers o
 	    JOIN tbl_cinfo c      ON o.uno = c.uno
 	    LEFT JOIN tbl_uprofile u ON o.uno = u.uno
