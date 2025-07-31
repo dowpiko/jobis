@@ -69,13 +69,13 @@ public interface UserService {
 	
 	public UserVO getUserById(String id);
 	
-	public UserVO handleKakaoLogin(String accessToken, String code, String birth);
+	public UserVO handleKakaoLogin(String accessToken, String code, String birth, String name);
 	
 	public Map<String, String> getKakaoEmail(String code);
 	
 	public Map<String, String> getGoogleEmail(String code);
 	
-	public UserVO handleGoogleLogin(String accessToken, String email, String birth);
+	public UserVO handleGoogleLogin(String accessToken, String email, String birth, String name);
 	
 	public void expireSubscriptionIfNeeded(int uno);
 }

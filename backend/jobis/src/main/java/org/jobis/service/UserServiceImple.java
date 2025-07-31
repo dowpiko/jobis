@@ -348,7 +348,7 @@ public class UserServiceImple implements UserService{
     }
 
     @Override
-    public UserVO handleKakaoLogin(String accessToken, String email, String birth) {
+    public UserVO handleKakaoLogin(String accessToken, String email, String birth, String name) {
         try {
             RestTemplate rt = new RestTemplate();
 
@@ -361,12 +361,11 @@ public class UserServiceImple implements UserService{
 
             Map kakaoAccount = (Map) profileResponse.getBody().get("kakao_account");
             Map profile = (Map) kakaoAccount.get("profile");
-            String nickname = (String) profile.get("nickname");
 
             UserVO userVO = new UserVO();
             userVO.setId(email);
             userVO.setEmail(email);
-            userVO.setName(nickname + "Test");
+            userVO.setName(name);
             userVO.setPw("kakao");
 
             if (birth != null && !birth.isEmpty()) {
@@ -427,7 +426,7 @@ public class UserServiceImple implements UserService{
     }
     
     @Override
-    public UserVO handleGoogleLogin(String accessToken, String email, String birth) {
+    public UserVO handleGoogleLogin(String accessToken, String email, String birth, String name) {
         try {
             RestTemplate rt = new RestTemplate();
 
@@ -438,12 +437,10 @@ public class UserServiceImple implements UserService{
             ResponseEntity<Map> profileResponse = rt.exchange(
                 "https://www.googleapis.com/oauth2/v3/userinfo", HttpMethod.GET, profileRequest, Map.class);
 
-            String name = (String) profileResponse.getBody().get("name");
-
             UserVO userVO = new UserVO();
             userVO.setId(email);
+            userVO.setName(name);
             userVO.setEmail(email);
-            userVO.setName(name + "Google");
             userVO.setPw("google");
 
             if (birth != null && !birth.isEmpty()) {
