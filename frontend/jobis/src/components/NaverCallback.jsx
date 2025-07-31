@@ -11,7 +11,7 @@ const NaverCallback = () => {
     const state = url.searchParams.get('state');
 
     if (code) {
-      axios.post(`http://${host}:9090/user/naver`, { code, state })
+      axios.post(`http://${host}:9090/user/naver`, { code, state }, {withCredentials:true})
         .then((res) => {
           navigate('/profile');
         })

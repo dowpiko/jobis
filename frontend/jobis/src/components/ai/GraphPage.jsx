@@ -437,6 +437,17 @@ const RightPanelToggleButton = styled.button`
 		transform: translateY(-50%) scale(1.05);
 	}
 `;
+const TooltipRow = styled.div`
+	color: #1E293B;
+	font-size: 14px;
+	line-height: 1.4;
+	word-break: break-word;
+`;
+
+const TooltipTitle = styled.span`
+	font-weight: 600;
+	color: #0f172a;
+`;
 
 const BlurredPanelWrapper = styled.div`
 	flex: 1;
@@ -446,8 +457,63 @@ const BlurredPanelWrapper = styled.div`
 	overflow-y: hidden; 
 	overflow-x: hidden;
 	transition: filter 0.3s ease, opacity 0.3s ease;
+  
+`;
+// 🔹 EmptyModal.js (또는 RadarSection.jsx 안에 정의해도 됨)
+export const EmptyBackdrop = styled.div`
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.3);
+	backdrop-filter: blur(3px);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 9999;
 `;
 
+export const EmptyModalBox = styled.div`
+	background: #ffffff;
+	border-radius: 16px;
+	padding: 32px 40px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	text-align: center;
+	width: 90%;
+	max-width: 420px;
+`;
+
+export const EmptyModalTitle = styled.h2`
+	font-size: 24px;
+	color: #1E293B;
+	margin-bottom: 12px;
+`;
+
+export const EmptyModalText = styled.p`
+	font-size: 16px;
+	color: #4B5563;
+	margin-bottom: 24px;
+`;
+
+export const GoInterviewButton = styled.button`
+	background: linear-gradient(to right, #3B82F6, #60A5FA);
+	color: #ffffff;
+	border: none;
+	border-radius: 9999px;
+	padding: 12px 24px;
+	font-size: 15px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background 0.3s ease;
+
+	&:hover {
+		background: linear-gradient(to right, #2563EB, #3B82F6);
+	}
+`;
+const InterviewTitleArea = styled.div`
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: 100%;
+`;
 const radarTemplate = ['리더십','분석력','창의력','실행력','소통력'];
 const radarDataTemplate = radarTemplate.map(s => ({ subject: s, A: 0 }));
 const descriptions = {
@@ -464,7 +530,7 @@ function formatTimestamp(ms) {
 	const yy = String(date.getFullYear()).slice(2);
 	const mm = String(date.getMonth() + 1).padStart(2, '0');
 	const dd = String(date.getDate()).padStart(2, '0');
-	return `생성일: ${yy}.${mm}.${dd}`;
+	return `${yy}.${mm}.${dd}`;
 }
 
 const getComment = (subject, score) => {
@@ -715,7 +781,7 @@ export default function RadarSection() {
                   }}
                   onMouseLeave={() => setHoveredId(null)}
                 >
-                  <div>{iv.title}</div>
+                  <InterviewTitleArea>{iv.title}</InterviewTitleArea>
                 </InterviewCard>
               ))}
             </InterviewList>
@@ -723,9 +789,23 @@ export default function RadarSection() {
               $show={hoveredId !== null}
               style={{ top: tooltipPos.y + 10, left: tooltipPos.x + 20 }}
             >
-              {hoveredId && formatTimestamp(Number(interviews.find(i => i.id === hoveredId)?.regdate))}
+              {hoveredId && (() => {
+                const hovered = interviews.find(i => i.id === hoveredId);
+                if (!hovered) return null;
+                return (
+                  <>
+                    <TooltipRow>
+                      <TooltipTitle>생성일: </TooltipTitle>
+                      {formatTimestamp(Number(hovered.regdate))}
+                    </TooltipRow>
+                    <TooltipRow>
+                      <TooltipTitle>제목:   </TooltipTitle>
+                      {hovered.title}
+                    </TooltipRow>
+                  </>
+                );
+              })()}
             </CustomTooltip>
-
             <Paging>
               <button disabled={page === 1} onClick={() => {
                 const newPage = Math.max(page - 1, 1);
@@ -1009,6 +1089,17 @@ export default function RadarSection() {
           uno={uno.current}
           onSubscribed={() => setSubscribeUpdated(prev => !prev)}  // 상태 토글
         />
+      )}
+      {!isLoading && interviews.length === 0 && (
+        <EmptyBackdrop>
+          <EmptyModalBox>
+            <EmptyModalTitle>면접 결과가 없습니다</EmptyModalTitle>
+            <EmptyModalText>AI 분석을 보기 위해 먼저 면접을 진행해 주세요.</EmptyModalText>
+            <GoInterviewButton onClick={() => navigate('/AiInterview')}>
+              면접 보러가기
+            </GoInterviewButton>
+          </EmptyModalBox>
+        </EmptyBackdrop>
       )}
 
     </Container>

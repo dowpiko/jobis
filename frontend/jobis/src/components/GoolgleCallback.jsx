@@ -47,7 +47,7 @@ const GoogleCallback = () => {
 
     setCodeUsed(true);
 
-    axios.post(`http://${host}:9090/user/google/check`, { code: codeFromUrl })
+    axios.post(`http://${host}:9090/user/google/check`, { code: codeFromUrl }, {withCredentials:true})
       .then((res) => {
         if (!res.data.success && res.data.message) {
           alert(res.data.message);

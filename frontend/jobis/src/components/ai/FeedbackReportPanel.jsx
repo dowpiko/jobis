@@ -15,11 +15,12 @@ const Wrapper = styled.div`
 	height: 100%;
 	display: flex;
 	flex-direction: column;
-	background-color: #f9fafb;
+	background-color: #f8f9fa;
 	padding: 24px 32px 24px 32px;  // ✅ 오른쪽 여백 확보
 	box-sizing: border-box;       // ✅ 패딩 포함 계산
 	overflow-y: auto;
 	overflow-x: hidden;
+	border-radius: 12px;
 `;
 
 
