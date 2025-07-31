@@ -589,8 +589,6 @@ const CompanyChatLayout = () => {
             readOnly = {initCheck}
           />
           <Button onClick={sendMessage}>▶️</Button>
-          <Button>🎤</Button>
-          <Button>🔄</Button>
         </InputContainer>
         </>
         ) : (

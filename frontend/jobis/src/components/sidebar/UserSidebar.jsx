@@ -174,7 +174,6 @@ const FooterDivider = styled.span`
 
 const Main = styled.main`
   flex: 1;
-  padding: 30px;
   background-color: #FFFFFF;
   overflow-y: auto;
 `;
@@ -625,7 +624,7 @@ function UserSidebar({ children }) {
     formData.append('uno', uno);
 
     try {
-      await axios.post('http://localhost:9090/files/upload/profileImage', formData, {
+      await axios.post(`http://${host}:9090/files/upload/profileImage`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       const updatedUrl = `/profile/${uno}.png?t=${Date.now()}`;

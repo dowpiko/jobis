@@ -467,7 +467,7 @@ function CompanySidebar({ children }) {
     formData.append('uno', uno);
 
     try {
-      await axios.post('http://localhost:9090/files/upload/profileImage', formData, {
+      await axios.post(`http://${host}:9090/files/upload/profileImage`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       const updatedUrl = `/profile/${uno}.png?t=${Date.now()}`;

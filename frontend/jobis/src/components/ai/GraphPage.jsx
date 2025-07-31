@@ -20,12 +20,11 @@ const Container = styled.div`
 	height: 100%;
 	display: flex;
 	flex-direction: column;
-	background-color:rgb(225, 226, 235);  // 기존보다 진한 회색톤으로 조정
+	background-color:#f8f9fa;  // 기존보다 진한 회색톤으로 조정
 	color: #1E1E1E;
 	box-sizing: border-box;
 	overflow: hidden;
 `;
-
 
 const Wrapper = styled.div`
 	flex: 1;
@@ -72,15 +71,12 @@ const ContentBox = styled.div`
 
 const Sidebar = styled.div`
 	width: 260px;
-	background: #E9F1F9;  // 메인과 어울리는 밝은 푸른 회색 계열
+	background: rgb(239, 244, 255);  // 메인과 어울리는 밝은 푸른 회색 계열
 	padding: 20px;
 	border-radius: 12px;
 	display: flex;
 	flex-direction: column;
-	border: 1px solid #D5DFEA;  // 기존보다 약간 어둡게
 `;
-
-
 
 const ToggleContainer = styled.div`
 	display: flex;
@@ -128,8 +124,7 @@ const InterviewList = styled.div`
 
 const InterviewCard = styled.div`
 	padding: 10px;
-	background: ${({ $selected }) => ($selected ? '#D6E4FF' : '#FFFFFF')}; // 밝은 배경 톤
-	border: 1px solid ${({ $selected }) => ($selected ? '#2563EB' : '#E2E8F0')};
+	background: ${({ $selected }) => ($selected ? '#c5d8ffff' : '#FFFFFF')}; // 밝은 배경 톤
 	border-radius: 6px;
 	margin-bottom: 8px;
 	cursor: pointer;
@@ -140,7 +135,7 @@ const InterviewCard = styled.div`
 	transition: background 0.2s ease;
 
 	&:hover {
-		background: #E8F0FF;
+		background: #d3e2feff;
 	}
 `;
 
@@ -189,7 +184,7 @@ const MainArea = styled.div`
 `;
 
 const Panel = styled.div`
-	background-color: #E9F1F9;  // 기존보다 톤 다운
+	background-color: rgb(239, 244, 255);  // 기존보다 톤 다운
 	padding: 20px;
 	border-radius: 12px;
 	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
@@ -224,7 +219,7 @@ const PanelContent = styled.div`
 `;
 
 const InfoTitle = styled.h4`
-	margin-bottom: 12px;
+	margin: 0 0 12px 0;
 	font-size: 22px;
 	font-weight: bold;
 	color: #1E1E1E; // 기존 #ffffff → 어두운 텍스트로 변경
@@ -253,7 +248,6 @@ const LeftPanelBox = styled(PanelSection)`
 	transition: flex 0.4s ease;
 `;
 
-
 const RightPanelBox = styled(PanelSection)`
 	flex: ${({ $expanded }) => ($expanded ? 10 : 3)};
 	height: 100%;
@@ -261,7 +255,6 @@ const RightPanelBox = styled(PanelSection)`
 	position: relative;
 	transition: flex 0.4s ease;
 `;
-
 
 const LeftPanel = styled(Panel)`
 	height: 100%;
@@ -329,10 +322,9 @@ const RadarSectionRight = styled(PanelSection)`
 `;
 
 const DescriptionBox = styled.div`
-	background-color: #F0F6FF;
+	background-color: rgb(239, 244, 255);
 	padding: 18px;
 	border-radius: 8px;
-	border: 1px solid #D0E3FF;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 	color: #1E1E1E;
 	display: flex;
@@ -469,10 +461,10 @@ const descriptions = {
 function formatTimestamp(ms) {
 	if (!ms || typeof ms !== 'number') return '';
 	const date = new Date(ms);
-	const yyyy = date.getFullYear();
+	const yy = String(date.getFullYear()).slice(2);
 	const mm = String(date.getMonth() + 1).padStart(2, '0');
 	const dd = String(date.getDate()).padStart(2, '0');
-	return `생성일: ${yyyy}-${mm}-${dd}`;
+	return `생성일: ${yy}.${mm}.${dd}`;
 }
 
 const getComment = (subject, score) => {
@@ -573,11 +565,11 @@ export default function RadarSection() {
       navigate(0);  // 구독 상태 최신화 위해 전체 리렌더
     }
   }, [subscribeUpdated]);
+
   const filtered = useMemo(
     () => interviews.slice((page - 1) * perPage, page * perPage),
     [page, interviews] // ✅ interviews 추가!
   );
-
 
   const radarData = useMemo(() => {
     const base = radarDataTemplate.map(d => ({ ...d }));
@@ -603,8 +595,6 @@ export default function RadarSection() {
 	});
 	return padded;
 }, [selSubject, filtered]);
-
-
 
   const areaData = useMemo(() => interviews.map(i => {
     const obj = {
@@ -711,9 +701,7 @@ export default function RadarSection() {
             </ToggleContainer>
             <InterviewList>
               {filtered.map(iv => (
-                <InterviewCard
-                  key={iv.id}
-                  $selected={iv.id === selInterviewId}
+                <InterviewCard key={iv.id} $selected={iv.id === selInterviewId}
                   onClick={() => {
                     setSelInterviewId(iv.id);
                     setSelSubject(null);
@@ -1025,9 +1013,4 @@ export default function RadarSection() {
 
     </Container>
   );
-
-
-
-
-
 }

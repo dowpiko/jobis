@@ -7,11 +7,9 @@ import { AuthContext }   from '../contexts/AuthContext';
 
 const Wrapper = styled.div`
   display: flex;
-  height: 98%;
+  height: 100%;
   font-family: sans-serif;
   background-color: #f8f9fa;
-  border: 1px solid #afafb0ff;
-  border-radius: 6px;
 `;
 
 const ChatListPanel = styled.div`
@@ -20,7 +18,7 @@ const ChatListPanel = styled.div`
   padding: 10px;
   box-sizing: border-box;
   border-right: 1px solid #b0bccb;
-  background-color: #f0f2f5;
+  background-color: rgb(239, 244, 255)
 
   display: flex;
   flex-direction: column;
@@ -36,8 +34,8 @@ const PanelTitle = styled.h3`
 const ChatCard = styled.div`
   display: flex;
   align-items: center;
-  background-color: ${(props) => (props.selected ? '#e0e7ef' : '#f0f2f5')};
-  border: 2px solid ${(props) => (props.selected ? '#4376B6' : '#b0bccb')};
+  background-color: ${(props) => (props.selected ? '#e0e7ef' : '#rgb(239, 244, 255)')};
+  border: 2px solid ${(props) => (props.selected ? '#749fd3ff' : '#b0bccb')};
   padding: 8px;
   margin-bottom: 8px;
   border-radius: 6px;
@@ -256,7 +254,7 @@ const UserChatLayout = () => {
         navigate('/');
         return;
       }
-      axios.get(`http://localhost:9090/chat/initUserChatLayout?uno=${myUno}`)
+      axios.get(`http://${host}:9090/chat/initUserChatLayout?uno=${myUno}`)
         .then(res => setChatList(res.data))
         .catch(err => {
           console.error('채팅방 목록 조회 실패', err);
@@ -352,7 +350,7 @@ const UserChatLayout = () => {
       const payload = { rno, sender: cno, content: inputText.trim(), leader: myUno, hit : hit};
 
       socket.send(JSON.stringify(payload));
-      axios.post('http://localhost:9090/chat/insertChatMessage', payload).catch(console.error);
+      axios.post(`http://${host}:9090/chat/insertChatMessage`, payload).catch(console.error);
       setInputText('');
     };
 

@@ -29,7 +29,7 @@
   import UserSidebarLayout from './components/layout/UserSidebarLayout';
   import ProfileSidebarLayout from './components/layout/ProfileSidebarLayout';
   import CompanySidebarLayout from './components/layout/CompanySidebarLayout';
-import VideoChat from './components/chat/VideoChatTest';
+  import VideoChat from './components/chat/VideoChatTest';
 
   function App() {
     const [socket, setSocket] = useState(null);
@@ -82,6 +82,7 @@ import VideoChat from './components/chat/VideoChatTest';
             <Route path="/profile" element={<Profile/>}/>
             {/* 화상 채팅 */}
             <Route path='/videoChat' element={<VideoChat/>}/>
+            
             <Route element={<UserSidebarLayout />}>
               <Route path="/userChatLayout" element={<UserChatLayout />} />           {/* 유저 채팅 */}
               <Route path="/scrapPage" element={<ScrapPage />} />                     {/* 스크랩 & 지원 */}

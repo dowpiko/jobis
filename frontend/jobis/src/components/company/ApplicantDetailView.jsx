@@ -128,7 +128,7 @@ const ApplicantDetailView = ({ applicant, onBack }) => {
       const confirmCreate = window.confirm('채팅방을 생성하시겠습니까?');
       if (!confirmCreate) return;
 
-      const res = await axios.get(`http://localhost:9090/chat/insertChatRoom?cno=${myUno}&uno=${applicant.uno}&ono=${interviewData.ono}`);
+      const res = await axios.get(`http://${host}:9090/chat/insertChatRoom?cno=${myUno}&uno=${applicant.uno}&ono=${interviewData.ono}`);
 
       if (res.data === 1) {
         alert('채팅방이 생성되었습니다.');
