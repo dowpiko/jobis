@@ -218,10 +218,13 @@ const SignUpUser = () => {
     if (!idOk) return alert('아이디 중복 확인을 완료해주세요.');
     if (!emailVerified) return alert('이메일 인증을 완료해주세요.');
     if (!formData.birthdate) return alert('생년월일을 선택해주세요.');
-
+    
     try {
-      const payload = { ...formData, birthdate: formData.birthdate.toISOString().split('T')[0] };
+      const pad = (n) => n.toString().padStart(2, '0');
+      const d = formData.birthdate;
+      const payload = { ...formData, birthdate: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`};
       const res = await axios.post(`http://${host}:9090/user/signup`, payload);
+      console.log(res);
       alert(res.data.success ? '가입 성공' : '가입 실패');
       if (res.data.success) navigate('/');
     } catch (e) {
