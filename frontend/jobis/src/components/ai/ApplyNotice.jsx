@@ -115,6 +115,30 @@ const ApplyNotice = () => {
   // 2) uno, ono 둘 다 준비되면 기업 정보 + 질문 데이터 fetch
    useEffect(() => {
     if (!ono || uno == null) return;
+
+      const checkAlreadySubmitted = async () => {
+      try {
+        const { data: alreadySubmitted } = await axios.get(
+          `http://${host}:9090/offers/isAlreadySubmitted`,
+          {
+            params: { uno, ono },
+            withCredentials: true
+          }
+        );
+
+        if (alreadySubmitted) {
+          alert('이미 지원한 공고입니다.');
+          navigate('/scrapPage');  // 이동할 페이지
+          return;
+        }
+
+        fetchData(); // 아직 안 지원했으면 fetch 실행
+      } catch (err) {
+        console.error('❗ 지원 여부 확인 실패:', err);
+        alert('지원 여부 확인 중 오류가 발생했습니다.');
+      }
+    };
+
     const fetchData = async () => {
       try {
         // — 면접/공고 정보
@@ -144,7 +168,7 @@ const ApplyNotice = () => {
         alert('정보 로딩 중 오류가 발생했습니다.');
       }
     };
-    fetchData();
+    checkAlreadySubmitted();
   }, [ono, uno, navigate]);
 
 

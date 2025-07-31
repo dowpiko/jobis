@@ -47,6 +47,9 @@ public class UserServiceImple implements UserService{
     
     @Autowired 
     private UserMapper userMapper;
+    
+    @Autowired
+    private ChatService chatService;
 
     @Value("${spring.mail.username}")
     private String mailSenderAddress;
@@ -187,8 +190,12 @@ public class UserServiceImple implements UserService{
 	}
 	
 	// 공고 지원 취소하기
+	@Transactional
 	@Override
 	public int deleteSubmission(int uno, int ono) {
+		
+		chatService.deleteChatRoom(ono, uno);
+		
 		return userMapper.deleteSubmission(uno, ono);
 	}
 	

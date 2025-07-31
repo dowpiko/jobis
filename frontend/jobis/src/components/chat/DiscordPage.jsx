@@ -10,6 +10,19 @@ import categories from '../../data/categories';
 import VideoChatModal from './VideoChatModal';
 import axios from 'axios';
 
+const OverlayButton = styled.button`
+  margin-top: 16px;
+  padding: 10px 16px;
+  background-color: #2563EB;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  &:hover {
+    background-color: #1E40AF;
+  }
+`;
 
 const Nickname = styled.div`
   font-size: 14px;
@@ -834,7 +847,14 @@ useEffect(() => {
     )}
       {!hasProfile && (
         <BlurOverlay>
-          ⚠️ 먼저 프로필을 생성해야 면접 일정에 참여할 수 있습니다.
+            <div style={{ textAlign: 'center' }}>
+              ⚠️ 먼저 프로필을 생성해야 면접 일정에 참여할 수 있습니다.
+              <div style={{ marginTop: '16px' }}>
+                <OverlayButton onClick={() => window.location.href = '/createProfileForm'}>
+                  프로필 생성하러 가기
+                </OverlayButton>
+              </div>
+            </div>
         </BlurOverlay>
       )}
       <Container>

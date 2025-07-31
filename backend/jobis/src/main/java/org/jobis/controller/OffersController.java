@@ -1,5 +1,6 @@
 package org.jobis.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -80,6 +81,19 @@ public class OffersController {
 	public List<CompanyOfferDTO> getCompanyOfferList(){
 		return offersService.getCompanyOffers();
 	}
+	
+	// 이미 공고에 지원했는지 확인
+	@GetMapping("/isAlreadySubmitted")
+	@ResponseBody
+	public boolean isAlreadySubmitted(@RequestParam("uno") Long uno,
+	                                  @RequestParam("ono") Long ono) {
+	    Map<String, Object> param = new HashMap<>();
+	    param.put("uno", uno);
+	    param.put("ono", ono);
+	    return offersService.isAlreadySubmitted(param) > 0;
+	}
+
+
 	
 	// 기업 공고 작성 완료(유저가 답변 완료)
 	@ResponseBody

@@ -86,6 +86,12 @@ public class OffersServiceImple implements OffersService {
 	public List<CompanyOfferDTO> getCompanyOffers() {
 		return offersMapper.getCompanyOffers();
 	}
+	// 이미 공고에 지원했는지 확인
+	@Override
+	public int isAlreadySubmitted(Map<String, Object> param) {
+	    return offersMapper.isAlreadySubmitted(param);
+	}
+
 	
 	// 기업공고 작성완료 (유저가 답변작성한것)
 	@Override
