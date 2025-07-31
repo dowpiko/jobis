@@ -1,6 +1,7 @@
 package org.jobis.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.jobis.domain.CompanyOfferDTO;
 import org.jobis.domain.InterViewBCVO;
@@ -32,6 +33,9 @@ public interface OffersService {
 	
 	// 기업정보 가져오기
 	public List<CompanyOfferDTO> getCompanyOffers();
+	
+	// 이미 공고에 지원했는지 확인
+	public int isAlreadySubmitted(Map<String, Object>param);
 	
 	// 기업공고 작성 완료 (유저가 답변)
 	public int insertSubmission(SubmissionDTO submissiondto);

@@ -33,6 +33,13 @@ public class ChatServiceImpl implements ChatService {
     	return chatMapper.insertChatRoom(crvo) > 0 ? 1 : -1;
     }
     
+    //채팅방 삭제
+    @Override
+    public void deleteChatRoom(int ono, int uno) {
+    	chatMapper.deleteChatRoom(ono, uno);
+    	
+    }
+    
     // 기업이 채팅방 가져오기
     @Override
     public List<CompanyRoomDTO> initCompanyChatLayout(int cno) {

@@ -125,6 +125,13 @@
 	    ORDER BY o.ono DESC
 	</select>
 	
+	<!-- 이미 공고에 지원했는지 확인 -->
+	<select id="isAlreadySubmitted" resultType="int">
+		SELECT COUNT(*) 
+		FROM tbl_submissions 
+		WHERE uno=#{uno} AND ono=#{ono}
+	</select>
+	
 	<!--  공고 작성완료 (유저가 답변) -->
 	<insert id="insertSubmission">
 	 INSERT INTO tbl_submissions (

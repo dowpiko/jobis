@@ -20,6 +20,9 @@ public interface ChatMapper {
     // 채팅방 생성
     public int insertChatRoom(CompanyRoomDTO crvo);
     
+	// 채팅방 삭제
+	public void deleteChatRoom(@Param("ono") int ono, @Param("emp") int emp);
+    
     // 기업이 채팅방 가져오기
     public List<CompanyRoomDTO> initCompanyChatLayout(int cno);
     

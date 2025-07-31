@@ -17,6 +17,11 @@
 	    )
 	</insert>
 	
+	<!-- 채팅방 삭제 --><!-- parameterType="org.jobis.domain.CompanyRoomDTO"  -->
+	<delete id="deleteChatRoom">
+		DELETE FROM tbl_room WHERE ono=#{ono} AND emp =#{emp}
+	</delete>
+	
 	<!-- 기업이 채팅방 가져오기 -->
 	<select id="initCompanyChatLayout" parameterType="int" resultType="org.jobis.domain.CompanyRoomDTO">
 	    SELECT 

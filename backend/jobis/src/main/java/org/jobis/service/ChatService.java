@@ -16,6 +16,9 @@ public interface ChatService {
 	// 채팅방 생성
 	public int insertChatRoom(int cno, int uno, int ono);
 	
+	// 채팅방 삭제
+	public void deleteChatRoom(int ono, int uno);
+	
 	// 기업이 채팅방 가져오기
 	public List<CompanyRoomDTO> initCompanyChatLayout(int cno);
 	

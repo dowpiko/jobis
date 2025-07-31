@@ -344,9 +344,9 @@ public class UserController {
  	    String email = body.get("email");
  	    String accessToken = body.get("accessToken");
  	    String birth = body.get("birth");
-
+ 	    String name = body.get("name");
  	    try {
- 	        UserVO userVO = userService.handleKakaoLogin(accessToken, email, birth);
+ 	        UserVO userVO = userService.handleKakaoLogin(accessToken, email, birth, name);
  	        userService.expireSubscriptionIfNeeded(userVO.getUno());
  	        userVO = userService.getUserById(email);
  	        session.setAttribute("User", userVO);
@@ -398,13 +398,13 @@ public class UserController {
 
  	@PostMapping("/google")
  	public ResponseEntity<?> googleCallback(@RequestBody Map<String, String> body, HttpSession session) {
- 	    System.out.println("구글 탔어요!!!");
  		String email = body.get("email");
+ 		String name = body.get("name");
  	    String accessToken = body.get("accessToken");
  	    String birth = body.get("birth");
-
+ 	    System.out.println("이름이랍니다~~:"+name);
  	    try {
- 	        UserVO userVO = userService.handleGoogleLogin(accessToken, email, birth);
+ 	        UserVO userVO = userService.handleGoogleLogin(accessToken, email, birth, name);
  	        userService.expireSubscriptionIfNeeded(userVO.getUno());
  	        userVO = userService.getUserById(email);
  	        session.setAttribute("User", userVO);
