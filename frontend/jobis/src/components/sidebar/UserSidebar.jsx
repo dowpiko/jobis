@@ -60,10 +60,6 @@ const ModeToggle = styled.button`
   border-radius: 50%;
   cursor: pointer;
   transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: rgba(37, 99, 235, 0.1); // Primary hover
-  }
 `;
 
 const Profile = styled.div`
@@ -76,7 +72,6 @@ const Profile = styled.div`
   gap: 14px;
   border: 1px solid #E2E8F0;
 `;
-
 
 const ProfileInfo = styled.div`
   display: flex;
