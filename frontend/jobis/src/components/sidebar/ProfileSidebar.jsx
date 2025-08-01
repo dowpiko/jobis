@@ -400,6 +400,7 @@ function ProfileSidebar({ children }) {
 
   const handleSelectImg = (url, idx) => {
     setModalImgSrc(url);
+    setSelectIdx(idx);
     setShowImgPicker(false);
   };
 
@@ -415,9 +416,10 @@ function ProfileSidebar({ children }) {
       return;
     }
     try {
+      console.log(modalImgSrc);
       const res = await axios.post(
         `http://${host}:9090/user/updateNickname`,
-        { nickname: nicknameTemp, profileimage: modalImgSrc },
+        { nickname: nicknameTemp, profileimage: selectIdx },
         { withCredentials: true }
       );
       if (res.data.duplicated) {
