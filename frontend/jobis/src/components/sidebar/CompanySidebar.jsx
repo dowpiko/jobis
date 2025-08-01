@@ -396,31 +396,33 @@ function CompanySidebar({ children }) {
     socket.addEventListener('message', handler);
     return () => socket.removeEventListener('message', handler);
   }, [socket, uno]);
+  const reloadSidebarCount = async (uno, host, dbCount, setDbCount, logout, navigate) => {
+    if (uno === null) {
+      await axios.post(`http://${host}:9090/user/logout`, { withCredentials: true });
+      alert('로그인이 필요합니다.');
+      logout();
+      navigate('/');
+      return;
+    }
 
+    try {
+      const res = await axios.get(`/user/selectCinofoByUno?uno=${uno}`);
+      if (res.data) {
+        if (res.data.count !== dbCount) {
+          setDbCount(res.data.count);
+        }
+      }
+    } catch (err) {
+      console.error('🔔 알림 카운트 재로딩 실패', err);
+    }
+  };
   useEffect(() => {
     const reload = () => {
-      if (uno === null) {
-        axios.post(`http://${host}:9090/user/logout`, {withCredentials:true})
-        alert('로그인이 필요합니다.')
-        logout();
-        navigate('/');
-        return;
-      }
-      axios.get(`/user/selectCinofoByUno?uno=${uno}`)
-        .then(data => {
-          if (data.data) {
-            if (data.data.count === dbCount) {
-              return;
-            }else{
-              setDbCount(data.data.count);
-            }
-          }
-        })
-        .catch(err => {console.error('🔔 알림 카운트 재로딩 실패', err);});
-        };
+      reloadSidebarCount(uno, host, dbCount, setDbCount, logout, navigate);
+    };
 
-        window.addEventListener('reloadSidebarCount', reload);
-        return () => window.removeEventListener('reloadSidebarCount', reload);
+    window.addEventListener('reloadSidebarCount', reload);
+    return () => window.removeEventListener('reloadSidebarCount', reload);
   }, []);
 
   const handleNotificationClick = (rno) => {
@@ -430,6 +432,7 @@ function CompanySidebar({ children }) {
       return updated;
     });
     navigate(`/companyChatLayout?rno=${rno}`);
+     reloadSidebarCount(uno, host, dbCount, setDbCount, logout, navigate);
   };
 
   useEffect(() => {
