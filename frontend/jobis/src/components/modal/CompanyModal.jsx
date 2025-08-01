@@ -111,7 +111,7 @@ const CompanyModal = ({ offer, onClose, onGoApply }) => {
   return (
     <ModalOverlay onClick={onClose}>
       <ModalBox onClick={(e) => e.stopPropagation()}>
-        <CompanyImage src={`/profile/${offer.uno}.png`} alt={`${offer.corpName} 프로필`} />
+        <CompanyImage src={`/profile/usercustom/${(offer.uno)}.png`} alt={`${offer.corpName} 프로필`} />
         <Title><b>{offer.corpName}</b></Title>
         <Info>
           <p> <b>분야:</b> {offer.category}</p>
