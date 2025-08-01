@@ -387,7 +387,7 @@ const DiscordPage = () => {
   }, [category, subList]);
 
   useEffect(() => {
-    setVisibleCount(9);  
+    setVisibleCount(8);  
   }, [filterDate]);
 
   
@@ -809,7 +809,6 @@ useEffect(() => {
           withCredentials: true
         }
       );
-
       const data = res.data;
       if (data.success && data.profileImageUrl) {
         setPhotoNum(prev => ({ ...prev, [uno]: data.profileImageUrl }));
