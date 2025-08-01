@@ -331,6 +331,7 @@ function ProfileSidebar({ children }) {
   }, [location.pathname, refreshProfile]);
 
 
+  const [selectIdx, setSelectIdx] = useState();
 
   useEffect(() => {
     const checkLogin = async () => {
