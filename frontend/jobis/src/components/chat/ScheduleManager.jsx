@@ -208,9 +208,18 @@ function ScheduleManager() {
   }, [myUno, chatList]);
 
   const handleEventClick = (clickInfo) => {
-    const { title, startStr, extendedProps } = clickInfo.event;
+    const { title, start, extendedProps } = clickInfo.event;
+
+    const dateObj = new Date(start); // startStr 대신 Date 객체 사용
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    const day = days[dateObj.getDay()];
+    const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+    const timeStr = `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+
+    const formattedDate = `${dateStr} (${day}) ${timeStr}`;
+
     setModalData({
-      date: startStr,
+      date: formattedDate,
       title,
       leaderName: extendedProps.leaderName,
       memberName: extendedProps.memberName,
