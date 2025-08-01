@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, } from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import categories from '../../data/categories';
 import logo from '../../img/SIMPLELOGO.png';
@@ -323,6 +323,14 @@ function ProfileSidebar({ children }) {
   const [nicknameTemp, setNicknameTemp] = useState('');
   const [nickError, setNickError] = useState('');
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const location = useLocation();
+  const { refreshProfile } = useContext(AuthContext);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [location.pathname, refreshProfile]);
+
+
 
   useEffect(() => {
     const checkLogin = async () => {
