@@ -69,15 +69,15 @@ const SearchInput = styled.input`
 const CategorySection = styled.div`
   display: flex;  
   flex-wrap: wrap;         /* 줄이 부족하면 다음 줄로 자동 배치 */
-  gap: 6px;                /* 버튼 간격 소폭 축소 */
+  gap: 15px;                /* 버튼 간격 소폭 축소 (버튼에 이미지 넣을거면 10으로) */
   margin-bottom: 16px;
 `;
 
 /* 개별 카테고리 버튼: 글자 및 패딩 축소, 모서리 둥글게 */
 const MenuItem = styled.button`
-  background-color: #E0E7EF;
-  color: #4376B6;
-  font-size: 14.1px;         /* 글자 크기 축소 */
+  background-color: ${({ active }) => active ? '#4376B6' : '#E0E7EF'};
+  color: ${({ active }) => active ? '#ffffff' : '#4376B6'};
+  font-size: 15px;         /* 글자 크기 축소 */
   padding: 4px 8.5px;        /* 패딩 축소 */
   border-radius: 16px;     /* 모서리 둥글게 소폭 축소 */
   border: none;
@@ -86,7 +86,7 @@ const MenuItem = styled.button`
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: #D0D6DE;
+    background-color: ${({ active }) => active ? '#5C8BC4' : '#D0D6DE'};
   }
 `;
 
@@ -348,7 +348,7 @@ const CompanyInfo = () => {
               active={selectedCategory === cat.category}
               onClick={() => onCategoryClick(cat.category)}
             >
-              🛠️ {cat.category}
+               {cat.category}
             </MenuItem>
           ))}
         </CategorySection>
