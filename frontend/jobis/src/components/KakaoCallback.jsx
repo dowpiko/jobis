@@ -172,11 +172,24 @@ const KakaoCallback = () => {
     return age;
   };
 
+  const CustomDateInput = forwardRef(({ value, onClick }, ref) => (
+    <DateDisplay onClick={onClick} ref={ref}>
+      {value || '생년월일을 입력해주세요'}
+    </DateDisplay>
+  ));
+
   const handleDateChange = (date) => {
+    console.log('선택된 날짜:', date);
+    if (!(date instanceof Date)) {
+      alert('잘못된 날짜 형식입니다.');
+      return;
+    }
+
     if (getAge(date) < MIN_AGE) {
       alert(`만 ${MIN_AGE}세 이상만 가입이 가능합니다.`);
       return;
     }
+
     setBirthDate(date);
   };
 
@@ -241,7 +254,7 @@ const KakaoCallback = () => {
               dropdownMode="select"
               locale={ko}
               withPortal
-              customInput={<DateDisplay>{birthDate ? formatDateToYMD(birthDate) : '생년월일을 입력해주세요'}</DateDisplay>}
+              customInput={<CustomDateInput />}
             />
           </FormRow>
 
