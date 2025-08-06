@@ -7,12 +7,9 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import javax.servlet.ServletContext;
-
-import org.springframework.beans.factory.annotation.Autowired;
+//import javax.servlet.ServletContext;
+//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,8 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/files")
 public class FileUploadController {
 
-    @Autowired
-    private ServletContext servletContext;
+//    @Autowired
+//    private ServletContext servletContext;
 
     @PostMapping("/upload/profileImage")
     public ResponseEntity<?> uploadProfileImage( @RequestParam("image") MultipartFile image, @RequestParam("uno") int uno) {
