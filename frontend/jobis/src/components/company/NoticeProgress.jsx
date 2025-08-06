@@ -7,12 +7,13 @@ import axios from 'axios';
 const Container = styled.div`
   flex-grow: 1;
   max-width: 600px;
-  padding: 30px 20px 60px;
+  padding: 40px 20px 80px;
   margin: 0 auto;
   background-color: #f8f9fa;
   position: relative;
   box-sizing: border-box;
 `;
+
 
 const Title = styled.h2`
   font-size: 20px;
@@ -21,11 +22,14 @@ const Title = styled.h2`
   text-align: center;
 `;
 
+
+
 const QuestionListWrapper = styled.div`
   height: 307px;
   overflow-y: auto;
   margin-bottom: 20px;
   padding-right: 8px;
+  padding-bottom: 20px;  
 
   &::-webkit-scrollbar {
     width: 6px;
