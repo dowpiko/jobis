@@ -13,7 +13,9 @@ const Container = styled.div`
   justify-content: center;
   align-items: center;
   padding: 40px 20px;
-  height: 100dvh;
+  height: 100vh;  
+  box-sizing: border-box;
+  overflow: hidden;
   background-color: #f8f9fa;
 `;
 

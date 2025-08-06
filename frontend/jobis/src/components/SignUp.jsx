@@ -5,9 +5,11 @@ import { useNavigate } from 'react-router-dom';
 const Container = styled.div`
   font-family: sans-serif;
   text-align: center;
-  padding: 80px 20px;
+  padding: 40px 16px;
   background-color: #f8f9fa;
-  min-height: 100vh;
+  height: 100vh;
+  box-sizing: border-box;
+  overflow: hidden;
 `;
 
 const Title = styled.h2`
@@ -21,6 +23,7 @@ const BoxWrapper = styled.div`
   justify-content: center;
   gap: 60px;
   flex-wrap: wrap;
+  margin-top: 24px;
 `;
 
 const Box = styled.div`
