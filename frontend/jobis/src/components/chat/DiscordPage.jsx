@@ -538,7 +538,7 @@ const DiscordPage = () => {
       const now = new Date();
 
       const upcoming = allMyChats.filter(chat => {
-        if (!chat.member) return false;
+        if (chat.leader !== myUno && chat.member !== myUno) return false;  // 내가 leader나 member아니면 return
 
         const start = new Date(chat.sch_date.getTime() - 30 * 60 * 1000); // 30분 전
         const end = new Date(chat.sch_date.getTime() + 60 * 60 * 1000);  // 1시간 후
