@@ -339,7 +339,7 @@ const AiChat = () => {
       el.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
     }
   };
-
+//
   const handleSend = () => {
     if (!inputText.trim()) return;
 
