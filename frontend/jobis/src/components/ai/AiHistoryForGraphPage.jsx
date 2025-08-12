@@ -41,7 +41,7 @@ const ProfileImage = styled.img`
 	object-fit: cover;
 	border: 3px solid #94A3B8; // 💡 테두리만 한 단계 진하게
 `;
-
+//
 
 const MessageBubble = styled.div`
 	padding: 12px 16px;
