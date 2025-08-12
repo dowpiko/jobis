@@ -357,6 +357,7 @@ function ProfileSidebar({ children }) {
         setHasProfile(true);
         setNickname(res.data.nickname);
         setProfileUrl(res.data.profileImageUrl);
+        console.log(res.data.profileImageUrl);
         setGlobalNickname(res.data.nickname);
         localStorage.setItem('hasProfile', 'true');
       } else {

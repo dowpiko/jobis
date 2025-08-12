@@ -124,7 +124,7 @@ public class UserController {
 	    if (profile != null && profile.getProfileimage() >= 0) {
 	        int profileNum = profile.getProfileimage();  
 	        String filename = "basic" + profileNum + "__.png";
-	        String url = "/profile/" + filename;
+	        String url = "/profile/basic/" + filename;
 
 	        result.put("success", true);
 	        result.put("profileImageUrl", url);
